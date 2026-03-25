@@ -1,0 +1,206 @@
+{
+    "hero": {
+        "badge": "NEXT-GEN ENGINEERING",
+        "title1": "PURE",
+        "title2": "MASTER",
+        "title3": "CODE",
+        "subtitle": "WE DON'T JUST WRITE CODE. WE DESIGN BRUTAL COMPETITIVE ADVANTAGES. HIGH-IMPACT ENGINEERING WITH {l} & {v}.",
+        "cta_start": "START A PROJECT",
+        "cta_solutions": "SOLUTIONS"
+    },
+    "services": "SERVICES",
+    "portfolio": "PORTAFOLIO",
+    "contact": "CONTACT",
+    "dashboard": "DASHBOARD",
+    "dashboard_panel": {
+        "welcome": "WELCOME, MASTER",
+        "subtitle": "TECHNICAL CONTROL CENTER",
+        "stats": {
+            "projects": "ACTIVE PROJECTS",
+            "uptime": "SYSTEMS UPTIME",
+            "deploy": "LAST DEPLOY",
+            "commits": "COMMITS / WEEK"
+        },
+        "shortcuts": {
+            "title": "QUICK ACCESS",
+            "services": "MANAGE SERVICES",
+            "portfolio": "VIEW PORTFOLIO",
+            "contact": "CONTACT REQUESTS"
+        },
+        "arsenal_summary": "ARSENAL SUMMARY",
+        "tech_stack": "ACTIVE TECHS"
+    },
+    "marquee": {
+        "clean_code": "CLEAN CODE GUARANTEED",
+        "scalable": "SCALABLE ARCHITECTURE",
+        "support": "24/7 SUPPORT"
+    },
+    "skills": {
+        "badge": "TECH STACK",
+        "title1": "OUR TECH",
+        "title2": "FORGE",
+        "quote": "\"EXCELLENCE IS NOT AN ACT, BUT A BRUTAL ENGINEERING HABIT.\"",
+        "power": "POWER"
+    },
+    "trust": {
+        "title": "HIGH-PRECISION ARCHITECTURES"
+    },
+    "manifesto": {
+        "badge": "THE MANIFESTO",
+        "title1": "OUR",
+        "title2": "BRUTAL",
+        "title3": "PHILOSOPHY",
+        "points": {
+            "p1": { "name": "MAXIMUM IMPACT", "desc": "EVERY LINE OF CODE MUST MOVE THE NEEDLE OF YOUR BUSINESS." },
+            "p2": { "name": "ZERO FRICTION", "desc": "WE ELIMINATE UNNECESSARY COMPLEXITY. SIMPLE IS POWERFUL." },
+            "p3": { "name": "CONSTANT EVOLUTION", "desc": "WE DON'T BUILD FOR TODAY, BUT FOR THE FUTURE TO COME." }
+        },
+        "quote": "\"WE DON'T DO SOFTWARE, WE CREATE DIGITAL WEAPONS TO DOMINATE YOUR MARKET.\""
+    },
+    "services_preview": {
+        "title1": "READY TO",
+        "title2": "SCALE?",
+        "card1": {
+            "title": "Fullstack Apps",
+            "desc": "ROBUST ENGINEERING WITHOUT COMPROMISES."
+        },
+        "card2": {
+            "title": "Modernization",
+            "desc": "ROBUST ENGINEERING WITHOUT COMPROMISES."
+        },
+        "card3": {
+            "title": "DevOps & Cloud",
+            "desc": "ROBUST ENGINEERING WITHOUT COMPROMISES."
+        },
+        "details": "DETAILS →"
+    },
+    "cta": {
+        "title1": "DO WE DO SOMETHING",
+        "title2": "EXTRAORDINARY?",
+        "button": "LET'S TALK"
+    },
+    "footer": {
+        "tagline": "PUSHING THE BOUNDARIES OF THE POSSIBLE THROUGH BRUTAL ENGINEERING.",
+        "links": "LINKS",
+        "studio": "STUDIO",
+        "remote": "REMOTE FIRST",
+        "global": "GLOBAL IMPACT",
+        "built": "BUILT WITH BLOOD, SWEAT & LARAVEL",
+        "rights": "© 2026 NUWESOFT ENGINEERING.",
+        "privacy": "PRIVACY",
+        "terms": "TERMS",
+        "twitter": "TWITTER",
+        "linkedin": "LINKEDIN",
+        "github": "GITHUB",
+        "coding_future": "CODING THE BRUTAL FUTURE.",
+        "no_compromise": "NO COMPROMISES, JUST RESULTS.",
+        "engineering_no_borders": "ENGINEERING WITHOUT BORDERS."
+    },
+    "portafolio": {
+        "head_title": "Portfolio | NUWESOFT Engineering",
+        "badge": "SELECTED WORKS",
+        "title1": "OUR",
+        "title2": "PROJECTS",
+        "title3": "OF IMPACT",
+        "subtitle": "A SAMPLE OF OUR TECHNICAL CAPABILITY AND OBSESSION WITH BRUTAL DETAILS.",
+        "all": "ALL",
+        "web": "WEB DEV",
+        "mobile": "MOBILE APPS",
+        "cloud": "INFRASTRUCTURE",
+        "automation": "AUTOMATION",
+        "stats": {
+            "projects": { "value": "120+", "label": "PROJECTS" },
+            "uptime": { "value": "99.9%", "label": "UPTIME" },
+            "commits": { "value": "15K+", "label": "COMMITS" },
+            "coffee": { "value": "∞", "label": "COFFEE" }
+        },
+        "view_project": "VIEW PROJECT →",
+        "projects": {
+            "p1": {
+                "name": "INTELLIGENT MANAGEMENT 01",
+                "desc": "SCALABLE ARCHITECTURE DESIGNED TO PROCESS THOUSANDS OF TRANSACTIONS PER SECOND WITH TOTAL INTEGRITY."
+            },
+            "p2": {
+                "name": "E-COMMERCE PRO",
+                "desc": "FLUID SHOPPING EXPERIENCE WITH INTEGRATED PAYMENT GATEWAYS AND REAL-TIME INVENTORY MANAGEMENT."
+            },
+            "p3": {
+                "name": "IOT AUTOMATION",
+                "desc": "PREVENTIVE MONITORING AND AUTONOMOUS FLOWS FOR RESOURCE OPTIMIZATION IN MANUFACTURING PLANTS."
+            }
+        }
+    },
+    "contacto": {
+        "head_title": "Contact | NUWESOFT Engineering",
+        "badge": "DIRECT LINE",
+        "title1": "LET'S",
+        "title2": "CONNECT",
+        "title3": "HARD",
+        "subtitle": "WE ARE READY TO MATERIALIZE YOUR NEXT BIG BRUTAL IDEA. NO FLUFF.",
+        "card_title": "SEND US",
+        "card_title_span": "A BRIEF",
+        "card_desc": "OUR TECHNICAL TEAM WILL ANALYZE YOUR PROPOSAL IN LESS THAN 24 HOURS.",
+        "label_name": "FULL NAME",
+        "label_email": "CORPORATE EMAIL",
+        "label_message": "PROJECT DETAILS",
+        "placeholder_name": "JOHN DOE",
+        "placeholder_email": "JOHN@COMPANY.COM",
+        "placeholder_message": "WRITE YOUR BRUTAL VISION HERE...",
+        "submit": "SEND MESSAGE →",
+        "alert": "MESSAGE SENT BRUTALLY (SIMULATION)",
+        "info": {
+            "title": "DIRECT CHANNELS",
+            "email_label": "EMAIL",
+            "location_label": "LOCATION",
+            "location_value": "REMOTE FIRST / GLOBAL",
+            "social_label": "SOCIAL",
+            "hours_label": "AVAILABILITY",
+            "hours_value": "24/7 CRITICAL MONITORING"
+        }
+    },
+    "servicios": {
+        "head_title": "Our Services | NUWESOFT Engineering",
+        "badge": "ENGINEERING SOLUTIONS",
+        "title1": "OUR",
+        "title2": "SERVICES",
+        "title3": "BRUTAL",
+        "subtitle": "WE DEVELOP TECHNOLOGICAL SOLUTIONS THAT TRANSCEND. WE FUSE PRECISION ENGINEERING WITH CUTTING-EDGE DESIGN.",
+        "tech_details": "TECH STACK DETAILS",
+        "consultancy": "CONSULTANCY →",
+        "workflow_badge": "OUR WORKFLOW",
+        "workflow_title1": "HOW WE",
+        "workflow_title2": "WORK",
+        "workflow_quote": "\"PRECISION ENGINEERING FUSED WITH BRUTAL AGILITY.\"",
+        "cta_title1": "READY FOR THE NEXT",
+        "cta_title2": "LEVEL?",
+        "cta_button": "START PROJECT",
+        "steps": {
+            "discovery": { "name": "DISCOVERY", "desc": "DEEP IMMERSION IN YOUR BUSINESS MODEL AND VISION." },
+            "architect": { "name": "ARCHITECT", "desc": "SCALABLE SYSTEM DESIGN AND TECHNICAL BLUEPRINTS." },
+            "develop": { "name": "DEVELOP", "desc": "ITERATIVE SPRINTS OF CLEAN CODE AND HIGH IMPACT." },
+            "deploy": { "name": "DEPLOY", "desc": "CONTROLLED LAUNCH WITH 24/7 MONITORING." }
+        },
+        "items": {
+            "software": {
+                "title": "Custom Software",
+                "desc": "WE BUILD ROBUST AND SCALABLE DIGITAL ECOSYSTEMS. FROM MODERN MONOLITHIC ARCHITECTURES TO DISTRIBUTED MICROSERVICES.",
+                "stack_desc": "OUR FOCUS CENTERS ON CREATING SYSTEMS THAT SUSTAIN CRITICAL LOADS. WE USE ADVANCED DESIGN PATTERNS AND CLEAN ARCHITECTURES TO ENSURE YOUR SOFTWARE EVOLVES AT YOUR BUSINESS PACE WITHOUT TECHNICAL DEBT."
+            },
+            "cloud": {
+                "title": "Cloud & DevOps",
+                "desc": "WE OPTIMIZE YOUR INFRASTRUCTURE FOR MAXIMUM PERFORMANCE AND GLOBAL AVAILABILITY. FRICTIONLESS CONTINUOUS DEPLOYMENT.",
+                "stack_desc": "WE TRANSFORM YOUR OPERATION WITH INFRASTRUCTURE AS CODE (IaC). WE AUTOMATE FULL LIFE CYCLES, FROM INTEGRATION TO DEPLOYMENT, ENSURING ELASTIC SCALABILITY THAT REDUCES COSTS AND ELIMINATES DOWNTIME."
+            },
+            "automation": {
+                "title": "Automation",
+                "desc": "WE ELIMINATE REPETITIVE TASKS THROUGH BOTS AND AUTONOMOUS WORKFLOWS THAT SAVE THOUSANDS OF OPERATIONAL HOURS.",
+                "stack_desc": "WE CONNECT YOUR FAVORITE TOOLS TO WORK FOR YOU. WE DESIGN AI AGENTS AND COMPLEX LOGIC FLOWS THAT ORCHESTRATE DATA ACROSS PLATFORMS, LETTING YOUR TEAM FOCUS ON WHAT TRULY CREATES VALUE."
+            },
+            "frontend": {
+                "title": "Premium Frontend",
+                "desc": "INTERFACES THAT NOT ONLY LOOK GOOD, BUT CONVERT. OBSESSIVE FOCUS ON PERFORMANCE AND USER EXPERIENCE.",
+                "stack_desc": "WE CREATE VIBRANT AND HIGHLY REACTIVE DIGITAL EXPERIENCES. WE FOCUS ON WEB VITALS METRICS TO GUARANTEE INSTANT SPEED, TOTAL ACCESSIBILITY, AND AN AESTHETIC THAT POSITIONS YOUR BRAND AT THE DIGITAL VANGUARD."
+            }
+        }
+    }
+}
