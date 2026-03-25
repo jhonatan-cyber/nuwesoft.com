@@ -2,6 +2,9 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import PublicGridBackground from '@/Components/PublicGridBackground.vue';
+import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
+import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
@@ -13,17 +16,13 @@ import {
   CardDescription,
   CardContent,
 } from '@/Components/ui/card';
-import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
-import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import { 
     Mail, 
-    MapPin, 
     Clock, 
     Send, 
     Twitter, 
     Linkedin, 
     Github, 
-    ArrowRight,
     MessageSquare,
     Globe
 } from 'lucide-vue-next';
@@ -50,12 +49,6 @@ const submit = () => {
     }, 1500);
 };
 
-const navigation = [
-    { name: 'Services', href: 'servicios', key: 'services' },
-    { name: 'Portfolio', href: 'portafolio', key: 'portfolio' },
-    { name: 'Contact', href: 'contacto', key: 'contact' },
-];
-
 const isVisible = ref(false);
 onMounted(() => {
     isVisible.value = true;
@@ -70,42 +63,9 @@ const socialLinks = [
 
 <template>
     <Head :title="t('contacto.head_title')" />
-    <div class="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans selection:bg-brutalist-yellow selection:text-black overflow-x-hidden">
-        <!-- Grid Background -->
-        <div class="fixed inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px] z-0"></div>
-
-        <!-- Navigation -->
-        <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b-4 border-black dark:border-white transition-all duration-300">
-            <div class="max-w-[1400px] mx-auto px-6">
-                <div class="flex justify-between h-20 items-center">
-                    <Link href="/" class="group flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-brutalist-yellow border-4 border-black dark:border-white flex items-center justify-center transform group-hover:-rotate-6 transition-transform shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
-                            <span class="text-2xl font-black text-black">N</span>
-                        </div>
-                        <span class="text-3xl font-display font-black tracking-tighter uppercase italic group-hover:bg-brutalist-pink group-hover:text-white px-2 transition-colors text-black dark:text-white">NUWESOFT</span>
-                    </Link>
-                    
-                    <div class="hidden md:flex items-center space-x-8 text-black dark:text-white">
-                        <Link v-for="item in navigation" :key="item.key" :href="route(item.href)" 
-                            class="text-sm font-black uppercase tracking-widest hover:underline decoration-brutalist-pink decoration-4 underline-offset-8 transition-all"
-                            :class="[route().current(item.href) ? 'text-brutalist-pink underline' : '']">
-                            {{ t(item.key) }}
-                        </Link>
-                        
-                        <div class="flex items-center space-x-4 border-l-4 border-black dark:border-white pl-8">
-                            <ThemeSwitcher />
-                            <LanguageSwitcher />
-                        </div>
-
-                        <Button as-child class="bg-brutalist-blue text-black font-black border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white hover:shadow-brutalist-hover hover:translate-x-[4px] hover:translate-y-[4px] transition-all rounded-none uppercase italic">
-                            <Link :href="route('login')">
-                                {{ t('dashboard') }}
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </nav>
+    <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
+        <PublicGridBackground />
+        <PublicSiteHeader />
 
         <main class="relative z-10">
             <!-- Hero Section -->
@@ -117,7 +77,7 @@ const socialLinks = [
                     
                     <h1 class="text-[8vw] md:text-[10rem] font-display font-black leading-[0.8] uppercase italic tracking-tighter mb-12">
                         <span class="block">{{ t('contacto.title1') }}</span>
-                        <span class="block text-white dark:text-black drop-shadow-[8px_8px_0px_rgba(0,0,0,1)] dark:drop-shadow-[8px_8px_0px_rgba(255,255,255,1)]">{{ t('contacto.title2') }}</span>
+                        <span class="block text-black drop-shadow-[8px_8px_0px_rgba(255,255,255,0.35)] dark:text-white dark:drop-shadow-[8px_8px_0px_rgba(0,0,0,0.45)]">{{ t('contacto.title2') }}</span>
                         <span class="block">{{ t('contacto.title3') }}</span>
                     </h1>
 
@@ -261,28 +221,7 @@ const socialLinks = [
             </section>
         </main>
 
-        <footer class="bg-black text-white border-t-8 border-brutalist-pink py-24 px-6">
-            <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h3 class="text-6xl font-display font-black uppercase italic tracking-tighter mb-4 text-white">NUWESOFT</h3>
-                    <p class="text-xl font-black italic uppercase leading-tight text-white/60 max-w-md">
-                        {{ t('footer.tagline') }}
-                    </p>
-                </div>
-                <div class="text-left md:text-right space-y-6">
-                    <p class="text-2xl font-black italic uppercase leading-none">
-                        {{ t('footer.rights') }} <br/>
-                        <span class="text-brutalist-yellow italic underline decoration-4 underline-offset-4">{{ t('footer.no_compromise') }}</span>
-                    </p>
-                    <div class="flex md:justify-end space-x-8">
-                        <Link v-for="social in socialLinks" :key="social.name" :href="social.href" 
-                            class="text-xl font-black italic uppercase hover:text-brutalist-pink transition-colors">
-                            {{ social.name }}
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </footer>
+        <PublicSiteFooter />
     </div>
 </template>
 

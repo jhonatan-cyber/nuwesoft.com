@@ -14,22 +14,27 @@ import {
     Code,
     Cpu,
     Briefcase,
-    MessageSquare
+    MessageSquare,
+    ChevronRight,
+    Globe,
+    Server,
+    Database,
+    Layers
 } from 'lucide-vue-next';
 
 const { t } = useI18n();
 
 const stats = [
-    { label: 'dashboard_panel.stats.projects', value: '12', icon: Briefcase, color: 'bg-blue-500' },
-    { label: 'dashboard_panel.stats.uptime', value: '99.9%', icon: Activity, color: 'bg-green-500' },
-    { label: 'dashboard_panel.stats.deploy', value: '2h ago', icon: Clock, color: 'bg-purple-500' },
-    { label: 'dashboard_panel.stats.commits', value: '142', icon: Code, color: 'bg-orange-500' },
+    { label: 'dashboard_panel.stats.projects', value: '12', icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { label: 'dashboard_panel.stats.uptime', value: '99.9%', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'dashboard_panel.stats.deploy', value: '2h ago', icon: Rocket, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+    { label: 'dashboard_panel.stats.commits', value: '142', icon: Code, color: 'text-blue-500', bg: 'bg-blue-500/10' },
 ];
 
 const shortcuts = [
-    { label: 'dashboard_panel.shortcuts.services', href: '/servicios', icon: Cpu, desc: 'Gestión técnica' },
-    { label: 'dashboard_panel.shortcuts.portfolio', href: '/portafolio', icon: LayoutDashboard, desc: 'Vitrina de proyectos' },
-    { label: 'dashboard_panel.shortcuts.contact', href: '/contacto', icon: MessageSquare, desc: 'Canales directos' },
+    { label: 'dashboard_panel.shortcuts.projects_admin', href: route('projects.index'), icon: Layers, desc: 'Gestión técnica de proyectos' },
+    { label: 'dashboard_panel.shortcuts.services', href: '/servicios', icon: Cpu, desc: 'Servicios y arquitectura' },
+    { label: 'dashboard_panel.shortcuts.contact', href: '/contacto', icon: Globe, desc: 'Interacciones y mensajes' },
 ];
 </script>
 
@@ -38,123 +43,193 @@ const shortcuts = [
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-4xl font-display font-black uppercase italic leading-tight text-black">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div class="space-y-1">
+                    <h2 class="text-3xl md:text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white uppercase italic">
                         {{ t('dashboard_panel.welcome') }}
                     </h2>
-                    <p class="text-sm font-mono font-bold text-gray-500 uppercase tracking-tighter">
-                        {{ t('dashboard_panel.subtitle') }}
-                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="h-0.5 w-8 bg-indigo-500 rounded-full"></div>
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                            {{ t('dashboard_panel.subtitle') }}
+                        </p>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <span class="px-3 py-1 bg-black text-white text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
-                        V 2.0.4-MASTER
-                    </span>
-                    <span class="px-3 py-1 bg-green-400 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
-                        ONLINE
-                    </span>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <Server class="w-3 h-3" /> v2.2-REF
+                        </span>
+                    </div>
+                    <div class="bg-indigo-600 px-3 py-1.5 rounded-xl shadow-lg shadow-indigo-600/20">
+                        <span class="text-[10px] font-bold text-white uppercase tracking-widest animate-pulse flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span> ONLINE
+                        </span>
+                    </div>
                 </div>
             </div>
         </template>
 
-        <div class="py-12 bg-gray-50 min-h-screen">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
-                
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div v-for="stat in stats" :key="stat.label" 
-                        class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all group">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-xs font-mono font-black text-gray-500 uppercase mb-1">{{ t(stat.label) }}</p>
-                                <p class="text-4xl font-display font-black text-black">{{ stat.value }}</p>
+        <div class="space-y-10 pb-10">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div v-for="stat in stats" :key="stat.label" 
+                    class="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all group overflow-hidden relative">
+                    <div class="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                        <component :is="stat.icon" class="w-20 h-20 -mr-6 -mt-6" />
+                    </div>
+                    <div class="relative z-10 space-y-4">
+                        <div :class="[stat.bg, 'w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500']">
+                            <component :is="stat.icon" :class="['w-5 h-5', stat.color]" />
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{{ t(stat.label) }}</p>
+                            <p class="text-3xl font-display font-bold text-slate-900 dark:text-white tracking-tight">{{ stat.value }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Shortcuts Section -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-xl font-display font-bold uppercase tracking-tight text-slate-900 dark:text-white">
+                            {{ t('dashboard_panel.shortcuts.title') }}
+                        </h3>
+                        <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Link v-for="item in shortcuts" :key="item.label" :href="item.href"
+                            class="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:border-indigo-500/50 transition-all group flex flex-col h-full overflow-hidden relative">
+                            <div class="absolute inset-0 bg-indigo-600 opacity-0 group-hover:opacity-[0.02] transition-opacity"></div>
+                            
+                            <div class="w-12 h-12 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
+                                <component :is="item.icon" class="w-6 h-6" />
                             </div>
-                            <div :class="[stat.color, 'p-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none transition-all']">
-                                <component :is="stat.icon" class="w-6 h-6 text-white" />
+                            
+                            <h4 class="text-lg font-bold uppercase tracking-tight mb-2 italic">{{ t(item.label) }}</h4>
+                            <p class="text-[11px] text-slate-400 uppercase font-medium mb-8 leading-tight">{{ item.desc }}</p>
+                            
+                            <div class="mt-auto flex items-center justify-between border-t border-slate-50 dark:border-slate-800/50 pt-4">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-indigo-600 transition-colors">Abrir módulo</span>
+                                <ArrowRight class="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-slate-300 group-hover:text-indigo-500" />
+                            </div>
+                        </Link>
+                    </div>
+
+                    <!-- System Status Terminal - Refined -->
+                    <div class="bg-slate-950 p-8 rounded-[40px] border border-slate-800/50 shadow-2xl relative overflow-hidden font-mono group transition-all duration-500 hover:border-emerald-500/30">
+                        <!-- Glass reflections -->
+                        <div class="absolute -top-1/2 -left-1/2 w-full h-full bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
+                        
+                        <div class="flex items-center justify-between mb-8 relative z-10">
+                            <div class="flex items-center gap-4">
+                                <div class="relative flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                </div>
+                                <h3 class="text-sm font-bold uppercase tracking-[0.3em] text-emerald-500/80">CORE_SYNC_MONITOR</h3>
+                            </div>
+                            <span class="text-[10px] text-slate-600 font-bold tracking-widest">ENCRYPTION: AES-256-GCM</span>
+                        </div>
+
+                        <div class="space-y-5 text-xs relative z-10">
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group/row hover:border-emerald-500/20 transition-all">
+                                <span class="text-slate-500 font-bold tracking-tighter uppercase">> CPU_LOAD_OPTIMIZED</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-32 h-1.5 bg-slate-900 rounded-full overflow-hidden flex">
+                                        <div class="h-full bg-emerald-500 w-[24%] shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                    </div>
+                                    <span class="text-emerald-400 font-bold">24%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group/row hover:border-indigo-500/20 transition-all">
+                                <span class="text-slate-500 font-bold tracking-tighter uppercase">> MEMORY_STACK_ALLOC</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-32 h-1.5 bg-slate-900 rounded-full overflow-hidden flex">
+                                        <div class="h-full bg-indigo-500 w-[62%] shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                                    </div>
+                                    <span class="text-indigo-400 font-bold">62%</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                                <div class="flex items-center gap-3">
+                                    <Activity class="w-4 h-4 text-emerald-500" />
+                                    <span class="text-slate-400 uppercase font-bold text-[10px] tracking-widest">Sincronización Global</span>
+                                </div>
+                                <span class="text-emerald-400 font-bold">ACTIVO</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Shortcuts Section -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <h3 class="text-2xl font-display font-black uppercase italic border-b-4 border-black inline-block mb-2">
-                            {{ t('dashboard_panel.shortcuts.title') }}
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <Link v-for="item in shortcuts" :key="item.label" :href="item.href"
-                                class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-400 transition-colors group">
-                                <component :is="item.icon" class="w-10 h-10 mb-4 text-black" />
-                                <h4 class="text-xl font-display font-black uppercase mb-1 leading-tight">{{ t(item.label) }}</h4>
-                                <p class="text-xs font-mono font-bold text-gray-600 uppercase">{{ item.desc }}</p>
-                                <ArrowRight class="mt-4 w-6 h-6 transform group-hover:translate-x-2 transition-transform" />
-                            </Link>
-                        </div>
-
-                        <!-- System Status Mock -->
-                        <div class="bg-black text-white p-8 border-4 border-black shadow-[12px_12px_0px_0px_rgba(59,130,246,0.5)]">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                                <h3 class="text-2xl font-display font-black uppercase tracking-tighter">NÚCLEO MAESTRO OPERATIVO</h3>
-                            </div>
-                            <div class="space-y-4 font-mono text-sm">
-                                <div class="flex justify-between border-b border-gray-800 pb-2">
-                                    <span class="text-gray-500">> CPU_LOAD</span>
-                                    <span class="text-green-400">[ |||||||||| 24% ]</span>
-                                </div>
-                                <div class="flex justify-between border-b border-gray-800 pb-2">
-                                    <span class="text-gray-500">> MEMORY_SYNC</span>
-                                    <span class="text-blue-400">[ |||||||||||||| 62% ]</span>
-                                </div>
-                                <div class="flex justify-between border-b border-gray-800 pb-2">
-                                    <span class="text-gray-500">> LATENCY_STABLE</span>
-                                    <span class="text-yellow-400">14ms</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">> ENCRYPTION</span>
-                                    <span class="text-white">AES-256-GCM ACTIVE</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tech Arsenal Summary -->
+                <!-- Right Sidebar - Arsenal -->
+                <div class="space-y-8">
                     <div class="space-y-6">
-                        <h3 class="text-2xl font-display font-black uppercase italic border-b-4 border-black inline-block mb-2">
-                            {{ t('dashboard_panel.arsenal_summary') }}
-                        </h3>
-                        <div class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                            <div class="flex flex-wrap gap-2 mb-6">
-                                <span v-for="tech in ['PHP', 'Go', 'Docker', 'React', 'Node', 'AWS', 'Vue', 'Python']" :key="tech"
-                                    class="px-2 py-1 bg-gray-100 border-2 border-black text-[10px] font-mono font-black uppercase">
+                        <div class="flex items-center gap-4">
+                            <h3 class="text-xl font-display font-bold uppercase tracking-tight text-slate-900 dark:text-white">
+                                {{ t('dashboard_panel.arsenal_summary') }}
+                            </h3>
+                            <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-8 rounded-[40px] shadow-sm relative overflow-hidden group">
+                            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                            
+                            <div class="flex flex-wrap gap-2 mb-8 relative z-10">
+                                <span v-for="tech in ['PHP 8.3', 'Go', 'Docker', 'Inertia', 'Vue 3', 'Tailwind', 'Bun', 'Radix']" :key="tech"
+                                    class="px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-[9px] font-bold uppercase tracking-widest rounded-lg text-slate-600 dark:text-slate-400">
                                     {{ tech }}
                                 </span>
                             </div>
-                            <p class="text-xs font-mono font-bold text-gray-600 mb-6 uppercase leading-relaxed">
-                                El arsenal completo está sincronizado y listo para despliegue masivo en cualquier infraestructura global.
-                            </p>
-                            <Link href="/servicios" class="flex items-center justify-between bg-black text-white p-4 font-display font-black uppercase italic hover:bg-gray-800 transition-colors">
-                                {{ t('dashboard_panel.tech_stack') }}
-                                <ExternalLink class="w-5 h-5" />
+                            
+                            <div class="flex items-start gap-4 mb-8 relative z-10">
+                                <div class="w-1 h-12 bg-indigo-500 rounded-full"></div>
+                                <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed uppercase tracking-tight">
+                                    Arquitectura optimizada bajo el núcleo de ingeniería V2.2-REF. Sincronización completa.
+                                </p>
+                            </div>
+                            
+                            <Link href="/servicios" class="group/btn flex items-center justify-between bg-slate-900 dark:bg-white text-white dark:text-black p-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white transition-all shadow-xl shadow-slate-900/10 dark:shadow-none relative z-10 overflow-hidden">
+                                <div class="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform"></div>
+                                <span class="relative z-10">{{ t('dashboard_panel.tech_stack') }}</span>
+                                <ExternalLink class="w-4 h-4 relative z-10 group-hover/btn:rotate-45 transition-transform" />
                             </Link>
                         </div>
+                    </div>
 
-                        <!-- Info Card -->
-                        <div class="bg-yellow-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                            <h4 class="text-xl font-display font-black uppercase mb-2 italic">NOTIFICACIÓN MAESTRA</h4>
-                            <p class="text-sm font-mono font-bold text-black uppercase">
-                                Todos los sistemas están operando bajo parámetros óptimos. Próxima ventana de mantenimiento programada: T+48h.
-                            </p>
+                    <!-- Master Alert -->
+                    <div class="bg-indigo-600 p-8 rounded-[40px] shadow-2xl shadow-indigo-600/30 relative overflow-hidden group">
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                        
+                        <div class="flex items-center gap-3 mb-4 relative z-10">
+                            <Zap class="w-6 h-6 text-white fill-white animate-pulse" />
+                            <h4 class="text-lg font-bold uppercase tracking-tight text-white italic">NOTIFICACIÓN MAESTRA</h4>
                         </div>
+                        <p class="text-[11px] font-bold text-indigo-100 uppercase leading-normal tracking-wide relative z-10">
+                            SISTEMAS OPERANDO EN ESTADO ÓPTIMO. INTERFAZ REFINADA ACTIVADA CON SUCESO.
+                        </p>
                     </div>
                 </div>
-
             </div>
+
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.font-display { font-family: 'Space Grotesk', sans-serif; }
+
+/* Custom animations for the terminal dots */
+@keyframes pulse-emerald {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+}
+</style>
 
 <style scoped>
 .font-display {

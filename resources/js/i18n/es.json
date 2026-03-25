@@ -1,100 +1,287 @@
 {
     "hero": {
-        "badge": "INGENIERÍA DE ÚLTIMA GENERACIÓN",
-        "title1": "CÓDIGO",
-        "title2": "MAESTRO",
-        "title3": "PURO",
-        "subtitle": "NO SOLO ESCRIBIMOS CÓDIGO. DISEÑAMOS VENTAJAS COMPETITIVAS BRUTALES. INGENIERÍA DE ALTO IMPACTO CON {l} & {v}.",
+        "badge": "INGENIERIA DE NUEVA GENERACION",
+        "title1": "LLEVAMOS TU",
+        "title2": "SOFTWARE",
+        "title3": "AL SIGUIENTE NIVEL",
+        "kicker": "INGENIERIA MAESTRA DIGITAL",
+        "subtitle": "NO SOLO ESCRIBIMOS CODIGO. DISENAMOS VENTAJAS COMPETITIVAS CON INGENIERIA DE ALTO IMPACTO, EJECUCION PRECISA Y SISTEMAS DIGITALES ESCALABLES.",
         "cta_start": "INICIAR PROYECTO",
-        "cta_solutions": "SOLUCIONES"
+        "cta_solutions": "SOLUCIONES",
+        "stats": {
+            "m1": "SPRINT MVP",
+            "m2": "LISTO PARA UPTIME",
+            "m3": "MENTALIDAD OPS"
+        },
+        "highlights": {
+            "h1": {
+                "title": "SISTEMAS FULLSTACK",
+                "desc": "ARQUITECTURA LIMPIA CON EXPERIENCIAS DE USUARIO DE ALTO IMPACTO."
+            },
+            "h2": {
+                "title": "AUTOMATIZACION REAL",
+                "desc": "FLUJOS, INTEGRACIONES Y DESPLIEGUES SIN FRICCION OPERATIVA."
+            },
+            "h3": {
+                "title": "ESCALA CONFIABLE",
+                "desc": "RENDIMIENTO, OBSERVABILIDAD Y DECISIONES TECNICAS CON RIGOR."
+            }
+        },
+        "panel": {
+            "badge": "MATRIZ DE BUILD",
+            "live": "PIPELINE ACTIVO",
+            "title": "MOTOR DE PRODUCTO DIGITAL",
+            "description": "PRODUCTO, ARQUITECTURA, AUTOMATIZACION Y DESPLIEGUE ALINEADOS A OBJETIVOS DE NEGOCIO.",
+            "velocity_label": "VELOCIDAD DE LANZAMIENTO",
+            "velocity_text": "ENTREGA DE FEATURES CON CRITERIO TECNICO",
+            "stack_label": "FOCO DE STACK",
+            "stack_items": {
+                "s1": "APPS WEB",
+                "s2": "FLUJOS IA",
+                "s3": "CLOUD OPS"
+            },
+            "mission_label": "FOCO DE MISION",
+            "mission_text": "CONVERTIR SOFTWARE EN VENTAJA COMPETITIVA"
+        }
     },
     "services": "SERVICIOS",
     "portfolio": "PORTAFOLIO",
     "contact": "CONTACTO",
     "dashboard": "DASHBOARD",
+    "actions": {
+        "edit": "EDITAR",
+        "delete": "ELIMINAR",
+        "confirm_delete": "ESTAS SEGURO DE ELIMINAR ESTE REGISTRO?"
+    },
+    "pagination": {
+        "per_page": "POR PÁGINA",
+        "showing": "MOSTRANDO",
+        "to": "A",
+        "of": "DE",
+        "results": "RESULTADOS"
+    },
+    "technologies": {
+        "title": "TECNOLOGIAS",
+        "subtitle": "GESTION DE STACK TECNICO",
+        "search_placeholder": "BUSCAR TECNOLOGIA...",
+        "empty": "NO HAY TECNOLOGIAS",
+        "empty_desc": "COMIENZA AGREGANDO UNA NUEVA TECNOLOGIA A TU STACK",
+        "actions": {
+            "add": "NUEVA TECNOLOGIA",
+            "upload_logo": "SUBIR LOGO"
+        },
+        "fields": {
+            "name": "NOMBRE",
+            "category": "CATEGORIA",
+            "is_active": "ESTADO ACTIVO",
+            "logo": "LOGO"
+        },
+        "placeholders": {
+            "name": "EJ. LARAVEL, VUE.JS, DOCKER...",
+            "category": "SELECCIONA UNA CATEGORIA"
+        },
+        "descriptions": {
+            "is_active": "DETERMINA SI LA TECNOLOGIA SE MUESTRA EN EL PORTAFOLIO"
+        },
+        "modals": {
+            "create_title": "CREAR TECNOLOGIA",
+            "create_desc": "AGREGA UNA NUEVA HERRAMIENTA A TU CATALOGO",
+            "edit_title": "EDITAR TECNOLOGIA",
+            "edit_desc": "ACTUALIZA LA INFORMACION DE LA HERRAMIENTA",
+            "save": "GUARDAR",
+            "cancel": "CANCELAR"
+        }
+    },
+    "logout": "CERRAR SESION",
+    "profile": "PERFIL",
+    "home": "INICIO",
+    "login": "ACCESO MAESTRO",
+    "auth": {
+        "login_title": "Acceso Maestro",
+        "login_subtitle": "INGRESE SUS CREDENCIALES DE SISTEMA",
+        "email": "Protocolo de Email",
+        "password": "Password",
+        "remember_me": "Recordar sesión",
+        "forgot_password": "¿Recuperar Acceso?",
+        "sign_in": "INICIAR SESION",
+        "processing": "PROCESANDO...",
+        "email_placeholder": "admin@nuwesoft.com",
+        "password_placeholder": "••••••••"
+    },
     "dashboard_panel": {
         "welcome": "BIENVENIDO, MAESTRO",
-        "subtitle": "CENTRO DE CONTROL TÉCNICO",
+        "subtitle": "CENTRO DE CONTROL TECNICO",
         "stats": {
             "projects": "PROYECTOS ACTIVOS",
-            "uptime": "UPTIME SISTEMAS",
-            "deploy": "ÚLTIMO DEPLOY",
+            "uptime": "UPTIME DEL SISTEMA",
+            "deploy": "ULTIMO DEPLOY",
             "commits": "COMMITS / SEMANA"
         },
         "shortcuts": {
-            "title": "ACCESOS RÁPIDOS",
+            "title": "ACCESOS RAPIDOS",
+            "projects_admin": "GESTIONAR PROYECTOS",
             "services": "GESTIONAR SERVICIOS",
             "portfolio": "VER PORTAFOLIO",
-            "contact": "SOLICITUDES CONTACTO"
+            "contact": "SOLICITUDES DE CONTACTO"
+        },
+        "projects": {
+            "title": "GESTION DE PROYECTOS",
+            "subtitle": "VITRINA TECNICA",
+            "create": "NUEVO PROYECTO",
+            "edit": "EDITAR PROYECTO",
+            "list": "LISTADO MAESTRO",
+            "empty": "NO HAY PROYECTOS REGISTRADOS",
+            "fields": {
+                "name": "NOMBRE DEL PROYECTO",
+                "category": "CATEGORIA",
+                "stack": "TECNOLOGIAS (JSON O COMAS)",
+                "desc": "DESCRIPCION",
+                "icon": "NOMBRE DEL ICONO (LUCIDE)",
+                "image_url": "URL DE IMAGEN",
+                "project_url": "URL DEL PROYECTO",
+                "is_active": "ACTIVO"
+            },
+            "actions": {
+                "edit": "EDITAR",
+                "save": "GUARDAR PROYECTO",
+                "delete": "ELIMINAR",
+                "cancel": "CANCELAR",
+                "confirm_delete": "ESTAS SEGURO DE ELIMINAR ESTE PROYECTO?"
+            },
+            "gallery": {
+                "view": "VER GALERIA",
+                "subtitle": "ACTIVOS VISUALES ASOCIADOS",
+                "empty": "NO HAY ACTIVOS VISUALES DISPONIBLES",
+                "close": "CERRAR VISOR"
+            },
+            "status": {
+                "inactive": "INACTIVO"
+            }
         },
         "arsenal_summary": "RESUMEN DEL ARSENAL",
-        "tech_stack": "TECNOLOGÍAS ACTIVAS"
+        "tech_stack": "STACK TECNICO ACTIVO"
     },
     "marquee": {
-        "clean_code": "CÓDIGO LIMPIO GARANTIZADO",
+        "clean_code": "CODIGO LIMPIO GARANTIZADO",
         "scalable": "ARQUITECTURA ESCALABLE",
         "support": "SOPORTE 24/7"
     },
     "skills": {
-        "badge": "STACK TECNOLÓGICO",
+        "badge": "STACK TECNOLOGICO",
         "title1": "NUESTRA FORJA",
-        "title2": "TECNOLÓGICA",
-        "quote": "\"LA EXCELENCIA NO ES UN ACTO, SINO UN HÁBITO DE INGENIERÍA BRUTAL.\"",
+        "title2": "TECNOLOGICA",
+        "quote": "\"LA EXCELENCIA NO ES UN ACTO, SINO UN HABITO DE INGENIERIA BRUTAL.\"",
         "power": "PODER"
     },
     "trust": {
-        "title": "ARQUITECTURAS DE ALTA PRECISIÓN"
+        "title": "ARQUITECTURAS DE ALTA PRECISION",
+        "words": {
+            "w1": "INGENIERIA",
+            "w2": "INNOVACION",
+            "w3": "MAESTRIA"
+        }
     },
     "manifesto": {
         "badge": "EL MANIFIESTO",
         "title1": "NUESTRA",
-        "title2": "FILOSOFÍA",
+        "title2": "FILOSOFIA",
         "title3": "BRUTAL",
-        "points": {
-            "p1": { "name": "MÁXIMO IMPACTO", "desc": "CADA LÍNEA DE CÓDIGO DEBE MOVER LA AGUJA DE TU NEGOCIO." },
-            "p2": { "name": "CERO FRICCIÓN", "desc": "ELIMINAMOS LA COMPLEJIDAD INNECESARIA. SIMPLE ES PODEROSO." },
-            "p3": { "name": "EVOLUCIÓN CONSTANTE", "desc": "NO CONSTRUIMOS PARA HOY, SINO PARA EL FUTURO QUE VIENE." }
+        "intro": "NUESTRO ENFOQUE COMBINA ESTRATEGIA, EJECUCION Y DISCIPLINA TECNICA PARA CONSTRUIR PRODUCTOS QUE RESUELVEN, ESCALAN Y SOSTIENEN NEGOCIO REAL.",
+        "focus_label": "DONDE APUNTAMOS",
+        "focus_text": "DECISIONES TECNICAS QUE REDUCEN FRICCION, ACELERAN ENTREGA Y ELEVAN LA CALIDAD DEL PRODUCTO.",
+        "bridge_label": "LO QUE ESTO SIGNIFICA EN PRACTICA",
+        "bridge_text": "CADA PROYECTO SE PIENSA COMO SISTEMA, NO COMO PIEZA SUELTA. DISENAMOS PARA LANZAR RAPIDO SIN ROMPER ESCALA, CLARIDAD NI MANTENIBILIDAD.",
+        "pillars": {
+            "a": "ENTENDER EL NEGOCIO ANTES DE PROPONER SOLUCION",
+            "b": "ENTREGAR CON RITMO, CLARIDAD Y CONTROL",
+            "c": "DEJAR BASES LISTAS PARA LA SIGUIENTE ETAPA"
         },
-        "quote": "\"NO HACEMOS SOFTWARE, CREAMOS ARMAS DIGITALES PARA DOMINAR TU MERCADO.\""
+        "points": {
+            "p1": {
+                "name": "MAXIMO IMPACTO",
+                "desc": "CADA LINEA DE CODIGO DEBE MOVER TU NEGOCIO HACIA ADELANTE.",
+                "support": "PRIORIDAD A FEATURES, FLUJOS Y DECISIONES QUE CAMBIAN RESULTADOS, NO SOLO BACKLOG."
+            },
+            "p2": {
+                "name": "CERO FRICCION",
+                "desc": "ELIMINAMOS LA COMPLEJIDAD INNECESARIA. LO SIMPLE ES PODEROSO.",
+                "support": "MENOS CAPAS INUTILES, MEJOR OPERACION, MENOS COSTO COGNITIVO PARA EQUIPO Y USUARIO."
+            },
+            "p3": {
+                "name": "EVOLUCION CONSTANTE",
+                "desc": "NO CONSTRUIMOS SOLO PARA HOY, SINO PARA LO QUE VIENE.",
+                "support": "ARQUITECTURA, AUTOMATIZACION Y ORDEN PARA CRECER SIN REESCRIBIR TODO EN CADA ETAPA."
+            }
+        },
+        "quote": "\"NO SOLO HACEMOS SOFTWARE. CREAMOS VENTAJA DIGITAL PARA MERCADOS REALES.\""
     },
     "services_preview": {
+        "kicker": "NUESTROS SERVICIOS",
         "title1": "LISTO PARA",
         "title2": "ESCALAR?",
+        "intro": "DISEÑAMOS PRODUCTOS, SISTEMAS Y OPERACIONES PARA EMPRESAS QUE NECESITAN AVANZAR SIN IMPROVISAR.",
+        "tag1": "PRODUCTO",
+        "tag2": "ARQUITECTURA",
+        "tag3": "OPERACION",
+        "outcome": "RESULTADO",
         "card1": {
             "title": "Apps Fullstack",
-            "desc": "INGENIERÍA ROBUSTA SIN COMPROMISOS."
+            "desc": "PLATAFORMAS HECHAS PARA CRECER CON ORDEN.",
+            "eyebrow": "BUILD",
+            "detail": "APPS, PANELES Y PLATAFORMAS CON BASE SOLIDA PARA CRECER SIN DEUDA PREMATURA.",
+            "outcome": "UNA BASE TECNICA CLARA PARA LANZAR, ITERAR Y ESCALAR SIN RECONSTRUIR TODO.",
+            "b1": "ARQUITECTURA, API Y FRONTEND EN UNA SOLA EJECUCION.",
+            "b2": "MODULOS ADMIN, DASHBOARDS Y FLUJOS DE NEGOCIO REALES.",
+            "b3": "CODIGO PREPARADO PARA EVOLUCIONAR SIN CAOS."
         },
         "card2": {
-            "title": "Modernización",
-            "desc": "INGENIERÍA ROBUSTA SIN COMPROMISOS."
+            "title": "Modernizacion",
+            "desc": "ACTUALIZAMOS SIN ROMPER LA OPERACION.",
+            "eyebrow": "UPGRADE",
+            "detail": "MODERNIZACION DE PRODUCTO, ARQUITECTURA Y PROCESOS SIN FRENAR LA OPERACION.",
+            "outcome": "MENOS FRICCION TECNICA, MENOS DEUDA Y MAS VELOCIDAD PARA EL EQUIPO.",
+            "b1": "REFRESH DE EXPERIENCIA, FLUJOS Y ESTRUCTURA INTERNA.",
+            "b2": "MIGRACION PROGRESIVA DE MODULOS Y PROCESOS CRITICOS.",
+            "b3": "REORDENAMOS EL SISTEMA SIN PARALIZAR EL NEGOCIO."
         },
         "card3": {
-            "title": "DevOps & Cloud",
-            "desc": "INGENIERÍA ROBUSTA SIN COMPROMISOS."
+            "title": "DevOps y Cloud",
+            "desc": "INFRAESTRUCTURA Y AUTOMATIZACION PARA IR MAS RAPIDO.",
+            "eyebrow": "OPERATE",
+            "detail": "AUTOMATIZACION, DESPLIEGUE Y CONFIABILIDAD PARA EQUIPOS QUE NECESITAN VELOCIDAD REAL.",
+            "outcome": "ENTREGAS MAS ESTABLES, OPERACION MAS PREDECIBLE Y MENOS CUELLOS DE BOTELLA.",
+            "b1": "PIPELINES, DESPLIEGUES Y ENTORNOS CON DISCIPLINA OPERATIVA.",
+            "b2": "OBSERVABILIDAD Y ALERTAS PARA EVITAR SORPRESAS CARAS.",
+            "b3": "AUTOMATIZACION PARA REDUCIR TAREAS MANUALES Y ERRORES."
         },
-        "details": "DETALLES →"
+        "details": "DETALLES ->"
     },
     "cta": {
-        "title1": "¿HACEMOS ALGO",
+        "title1": "HACEMOS ALGO",
         "title2": "EXTRAORDINARIO?",
+        "subtitle": "SI HAY UNA IDEA SERIA, LA CONVERTIMOS EN UNA EJECUCION CLARA, ESCALABLE Y LISTA PARA MOVER EL NEGOCIO.",
         "button": "HABLEMOS"
     },
     "footer": {
-        "tagline": "EMPUJANDO LOS LÍMITES DE LO POSIBLE A TRAVÉS DE LA INGENIERÍA BRUTAL.",
+        "tagline": "EMPUJANDO LOS LIMITES DE LO POSIBLE A TRAVES DE LA INGENIERIA BRUTAL.",
         "links": "LINKS",
         "studio": "ESTUDIO",
         "remote": "REMOTO PRIMERO",
         "global": "IMPACTO GLOBAL",
-        "built": "CONSTRUIDO CON SANGRE, SUDOR Y LARAVEL",
-        "rights": "© 2026 NUWESOFT ENGINEERING.",
+        "built": "CONSTRUIDO CON ESTRATEGIA, DISCIPLINA E INGENIERIA",
+        "rights": "COPYRIGHT 2026 NUWESOFT ENGINEERING.",
         "privacy": "PRIVACIDAD",
-        "terms": "TÉRMINOS",
+        "terms": "TERMINOS",
+        "facebook": "FACEBOOK",
+        "x": "X",
+        "tiktok": "TIKTOK",
         "twitter": "TWITTER",
         "linkedin": "LINKEDIN",
         "github": "GITHUB",
+        "youtube": "YOUTUBE",
         "coding_future": "CODIFICANDO EL FUTURO BRUTAL.",
-        "no_compromise": "SIN COMPROMISOS, SÓLO RESULTADOS.",
-        "engineering_no_borders": "INGENIERÍA SIN FRONTERAS."
+        "no_compromise": "SIN COMPROMISOS, SOLO RESULTADOS.",
+        "engineering_no_borders": "INGENIERIA SIN FRONTERAS."
     },
     "portafolio": {
         "head_title": "Portafolio | NUWESOFT Engineering",
@@ -102,104 +289,154 @@
         "title1": "NUESTROS",
         "title2": "PROYECTOS",
         "title3": "DE IMPACTO",
-        "subtitle": "UNA MUESTRA DE NUESTRA CAPACIDAD TÉCNICA Y OBSESIÓN POR LOS DETALLES BRUTALES.",
+        "subtitle": "UNA MUESTRA DE NUESTRA CAPACIDAD TECNICA Y DE NUESTRA OBSESION POR ENTREGAR CON CALIDAD.",
+        "lead_label": "QUE VES AQUI",
+        "lead_text": "CASOS DONDE PRODUCTO, EXPERIENCIA Y EJECUCION TECNICA SE ALINEAN PARA RESOLVER PROBLEMAS REALES.",
+        "metrics": {
+            "m1": "PROYECTOS PARA CONTEXTOS DE NEGOCIO REALES",
+            "m2": "PRODUCTO, INTERFAZ Y OPERACION EN UN MISMO SISTEMA",
+            "m3": "MUESTRAS CON CRITERIO, NO SOLO DECORACION"
+        },
+        "highlights": {
+            "web": "PLATAFORMAS Y SISTEMAS QUE ORDENAN OPERACION, DATOS Y FLUJOS CLAVE.",
+            "cloud": "ENTORNOS E INFRAESTRUCTURA LISTOS PARA SOSTENER CARGA, CAMBIO Y ESCALA.",
+            "automation": "FLUJOS QUE REDUCEN TRABAJO MANUAL Y MUEVEN PROCESOS CON MENOS FRICCION."
+        },
         "all": "TODOS",
-        "web": "DESARROLLO WEB",
-        "mobile": "APPS MÓVILES",
+        "web": "WEB",
+        "mobile": "APPS MOVILES",
         "cloud": "INFRAESTRUCTURA",
-        "automation": "AUTOMATIZACIÓN",
+        "automation": "AUTOMATIZACION",
+        "case_label": "CASO",
+        "images_label": "IMAGENES",
+        "gallery_label": "GALERIA",
+        "project_label": "PROYECTO",
+        "empty_label": "SIN RESULTADOS",
+        "empty_title": "NO HAY PROYECTOS EN ESTA CATEGORIA",
+        "empty_text": "PRUEBA OTRO FILTRO O AGREGA NUEVOS CASOS AL PORTAFOLIO PARA COMPLETAR ESTA VISTA.",
         "stats": {
             "projects": { "value": "120+", "label": "PROYECTOS" },
             "uptime": { "value": "99.9%", "label": "UPTIME" },
             "commits": { "value": "15K+", "label": "COMMITS" },
-            "coffee": { "value": "∞", "label": "CAFÉ" }
+            "coffee": { "value": "NONSTOP", "label": "CAFE" }
         },
-        "view_project": "VER PROYECTO →",
+        "view_project": "VER PROYECTO ->",
         "projects": {
             "p1": {
-                "name": "GESTIÓN INTELIGENTE 01",
-                "desc": "ARQUITECTURA ESCALABLE DISEÑADA PARA PROCESAR MILES DE TRANSACCIONES POR SEGUNDO CON INTEGRIDAD TOTAL."
+                "name": "GESTION INTELIGENTE 01",
+                "desc": "ARQUITECTURA ESCALABLE DISENADA PARA PROCESAR MILES DE TRANSACCIONES POR SEGUNDO CON INTEGRIDAD TOTAL."
             },
             "p2": {
                 "name": "E-COMMERCE PRO",
-                "desc": "EXPERIENCIA DE COMPRA FLUIDA CON PASARELAS DE PAGO INTEGRADAS Y GESTIÓN DE INVENTARIO EN TIEMPO REAL."
+                "desc": "UNA EXPERIENCIA DE COMPRA FLUIDA CON PAGOS INTEGRADOS E INVENTARIO EN TIEMPO REAL."
             },
             "p3": {
-                "name": "AUTOMATIZACIÓN IOT",
-                "desc": "MONITOREO PREVENTIVO Y FLUJOS AUTÓNOMOS PARA OPTIMIZACIÓN DE RECURSOS EN PLANTAS DE MANUFACTURA."
+                "name": "AUTOMATIZACION IOT",
+                "desc": "MONITOREO PREVENTIVO Y FLUJOS AUTONOMOS PARA OPTIMIZAR RECURSOS EN OPERACIONES INDUSTRIALES."
             }
         }
     },
     "contacto": {
         "head_title": "Contacto | NUWESOFT Engineering",
-        "badge": "LÍNEA DIRECTA",
+        "badge": "LINEA DIRECTA",
         "title1": "VAMOS A",
         "title2": "CONECTAR",
         "title3": "FUERTE",
-        "subtitle": "ESTAMOS LISTOS PARA MATERIALIZAR TU PRÓXIMA GRAN IDEA BRUTAL. SIN RODEOS.",
-        "card_title": "ENVÍANOS",
+        "subtitle": "ESTAMOS LISTOS PARA CONVERTIR TU PROXIMA GRAN IDEA EN UN PRODUCTO DIGITAL DE ALTO IMPACTO.",
+        "card_title": "ENVIANOS",
         "card_title_span": "UN BRIEF",
-        "card_desc": "NUESTRO EQUIPO TÉCNICO ANALIZARÁ TU PROPUESTA EN MENOS DE 24 HORAS.",
+        "card_desc": "NUESTRO EQUIPO TECNICO REVISARA TU PROPUESTA EN MENOS DE 24 HORAS.",
         "label_name": "NOMBRE COMPLETO",
         "label_email": "EMAIL CORPORATIVO",
         "label_message": "DETALLES DEL PROYECTO",
         "placeholder_name": "JOHN DOE",
         "placeholder_email": "JOHN@COMPANY.COM",
-        "placeholder_message": "ESCRIBE AQUÍ TU VISIÓN BRUTAL...",
-        "submit": "ENVIAR MENSAJE →",
-        "alert": "MENSAJE ENVIADO BRUTALMENTE (SIMULACIÓN)",
+        "placeholder_message": "DESCRIBE AQUI TU VISION...",
+        "submit": "ENVIAR MENSAJE ->",
+        "alert": "MENSAJE ENVIADO CORRECTAMENTE (SIMULACION)",
         "info": {
             "title": "CANALES DIRECTOS",
             "email_label": "EMAIL",
-            "location_label": "UBICACIÓN",
+            "location_label": "UBICACION",
             "location_value": "REMOTO PRIMERO / GLOBAL",
             "social_label": "REDES",
             "hours_label": "DISPONIBILIDAD",
-            "hours_value": "24/7 MONITOREO CRÍTICO"
+            "hours_value": "24/7 MONITOREO CRITICO"
         }
     },
     "servicios": {
         "head_title": "Nuestros Servicios | NUWESOFT Engineering",
-        "badge": "SOLUCIONES DE INGENIERÍA",
+        "badge": "SOLUCIONES DE INGENIERIA",
         "title1": "NUESTROS",
         "title2": "SERVICIOS",
         "title3": "BRUTALES",
-        "subtitle": "DESARROLLAMOS SOLUCIONES TECNOLÓGICAS QUE TRASCIENDEN. FUSIONAMOS INGENIERÍA DE PRECISIÓN CON DISEÑO VANGUARDISTA.",
-        "tech_details": "DETALLES DE STACK TÉCNICO",
-        "consultancy": "CONSULTORÍA →",
+        "subtitle": "DESARROLLAMOS SOLUCIONES TECNOLOGICAS QUE ESCALAN. COMBINAMOS INGENIERIA DE PRECISION CON CRITERIO DE PRODUCTO.",
+        "lead_label": "COMO ENTRAMOS",
+        "lead_text": "NOS METEMOS EN PRODUCTO, ARQUITECTURA Y OPERACION PARA CONSTRUIR SOLUCIONES QUE NO SOLO SALEN, SINO QUE SE SOSTIENEN.",
+        "map_label": "MAPA DE CAPACIDADES",
+        "map_title": "CUATRO FRENTES. UNA SOLA EJECUCION.",
+        "map_text": "CADA SERVICIO ATACA UN CUELLO DE BOTELLA DISTINTO, PERO TODOS SE CONECTAN PARA DARTE MAS VELOCIDAD, CONTROL Y ESCALA.",
+        "outcome_label": "RESULTADO",
+        "stats": {
+            "s1": "DEL DESCUBRIMIENTO AL DESPLIEGUE",
+            "s2": "STACKS Y CONTEXTOS DISTINTOS",
+            "s3": "EJECUCION CON RITMO Y ORDEN"
+        },
+        "tech_details": "DETALLES DEL STACK",
+        "consultancy": "CONSULTORIA ->",
         "workflow_badge": "NUESTRO FLUJO",
-        "workflow_title1": "CÓMO",
+        "workflow_title1": "COMO",
         "workflow_title2": "TRABAJAMOS",
-        "workflow_quote": "\"INGENIERÍA DE PRECISIÓN FUSIONADA CON AGILIDAD BRUTAL.\"",
-        "cta_title1": "¿LISTO PARA EL SIGUIENTE",
+        "workflow_quote": "\"INGENIERIA DE PRECISION FUSIONADA CON AGILIDAD BRUTAL.\"",
+        "cta_title1": "LISTO PARA EL SIGUIENTE",
         "cta_title2": "NIVEL?",
         "cta_button": "INICIAR PROYECTO",
         "steps": {
-            "discovery": { "name": "DESCUBRIMIENTO", "desc": "INMERSIÓN PROFUNDA EN TU MODELO DE NEGOCIO Y VISIÓN." },
-            "architect": { "name": "ARQUITECTURA", "desc": "DISEÑO DE SISTEMAS ESCALABLES Y BLUEPRINTS TÉCNICOS." },
-            "develop": { "name": "DESARROLLO", "desc": "SPRINTS ITERATIVOS DE CÓDIGO LIMPIO Y ALTO IMPACTO." },
+            "discovery": { "name": "DESCUBRIMIENTO", "desc": "INMERSION PROFUNDA EN TU MODELO DE NEGOCIO Y TU VISION." },
+            "architect": { "name": "ARQUITECTURA", "desc": "DISENO DE SISTEMAS ESCALABLES Y BLUEPRINTS TECNICOS." },
+            "develop": { "name": "DESARROLLO", "desc": "SPRINTS ITERATIVOS DE CODIGO LIMPIO Y ALTO IMPACTO." },
             "deploy": { "name": "DESPLIEGUE", "desc": "LANZAMIENTO CONTROLADO CON MONITOREO 24/7." }
         },
         "items": {
             "software": {
+                "eyebrow": "BUILD",
                 "title": "Software a Medida",
-                "desc": "CONSTRUIMOS ECOSISTEMAS DIGITALES ESCALABLES Y ROBUSTOS. DESDE ARQUITECTURAS MONOLÍTICAS MODERNAS HASTA MICROSERVICIOS DISTRIBUIDOS.",
-                "stack_desc": "NUESTRO ENFOQUE SE CENTRA EN LA CREACIÓN DE SISTEMAS QUE SOPORTAN CARGAS CRÍTICAS. UTILIZAMOS PATRONES DE DISEÑO AVANZADOS Y ARQUITECTURAS LIMPIAS PARA GARANTIZAR QUE TU SOFTWARE EVOLUCIONE AL RITMO DE TU NEGOCIO SIN DEUDA TÉCNICA."
+                "desc": "CONSTRUIMOS ECOSISTEMAS DIGITALES ROBUSTOS Y ESCALABLES, DESDE MONOLITOS MODERNOS HASTA SERVICIOS DISTRIBUIDOS.",
+                "stack_desc": "DISENAMOS SISTEMAS CAPACES DE SOPORTAR CARGAS CRITICAS, EVOLUCIONAR CON ORDEN Y ACOMPANAR EL CRECIMIENTO DEL NEGOCIO SIN DEUDA TECNICA INNECESARIA.",
+                "outcome": "UNA BASE TECNICA LISTA PARA CRECER SIN REPLANTEAR TODO EN LA SIGUIENTE ETAPA.",
+                "b1": "BACKEND, FRONTEND Y LOGICA DE NEGOCIO EN UNA SOLA DIRECCION.",
+                "b2": "PANELES, PLATAFORMAS Y MODULOS OPERATIVOS CON CRITERIO DE PRODUCTO.",
+                "b3": "ARQUITECTURA QUE SOPORTA CAMBIOS REALES SIN VOLVERSE FRAGIL."
             },
             "cloud": {
-                "title": "Cloud & DevOps",
-                "desc": "OPTIMIZAMOS TU INFRAESTRUCTURA PARA EL MÁXIMO RENDIMIENTO Y DISPONIBILIDAD GLOBAL. DESPLIEGUE CONTINUO SIN FRICCIONES.",
-                "stack_desc": "TRANSFORMAMOS TU OPERACIÓN CON INFRAESTRUCTURA COMO CÓDIGO (IaC). AUTOMATIZAMOS CICLOS DE VIDA COMPLETOS, DESDE LA INTEGRACIÓN HASTA EL DESPLIEGUE, ASEGURANDO UNA ESCALABILIDAD ELÁSTICA QUE REDUCE COSTOS Y ELIMINA TIEMPOS DE INACTIVIDAD."
+                "eyebrow": "OPERATE",
+                "title": "Cloud y DevOps",
+                "desc": "OPTIMIZAMOS TU INFRAESTRUCTURA PARA RENDIMIENTO, CONFIABILIDAD Y DISPONIBILIDAD GLOBAL.",
+                "stack_desc": "AUTOMATIZAMOS ENTREGAS, MEJORAMOS OPERACIONES Y CONSTRUIMOS INFRAESTRUCTURA ELASTICA QUE REDUCE COSTOS Y TIEMPOS DE CAIDA.",
+                "outcome": "UNA OPERACION MAS PREDECIBLE, MENOS FRICCION EN DESPLIEGUES Y MENOS RIESGO AL ESCALAR.",
+                "b1": "PIPELINES, CONTENEDORES Y ENTORNOS CON DISCIPLINA TECNICA.",
+                "b2": "OBSERVABILIDAD, CONFIABILIDAD Y MEJOR RESPUESTA ANTE INCIDENTES.",
+                "b3": "INFRAESTRUCTURA PREPARADA PARA CRECER SIN DESORDEN OPERATIVO."
             },
             "automation": {
-                "title": "Automatización",
-                "desc": "ELIMINAMOS TAREAS REPETITIVAS MEDIANTE BOTS Y FLUJOS DE TRABAJO AUTÓNOMOS QUE AHORRAN MILES DE HORAS OPERATIVAS.",
-                "stack_desc": "CONECTAMOS TUS HERRAMIENTAS FAVORITAS PARA QUE TRABAJEN POR TI. DISEÑAMOS AGENTES DE IA Y FLUJOS LÓGICOS COMPLEJOS QUE ORQUESTAN DATOS ENTRE PLATAFORMAS, PERMITIENDO QUE TU EQUIPO SE CONCENTRE EN LO QUE REALMENTE GENERA VALOR."
+                "eyebrow": "AUTOMATE",
+                "title": "Automatizacion",
+                "desc": "ELIMINAMOS TRABAJO REPETITIVO CON BOTS, INTEGRACIONES Y FLUJOS AUTONOMOS QUE AHORRAN TIEMPO.",
+                "stack_desc": "CONECTAMOS HERRAMIENTAS, DATOS Y PROCESOS PARA QUE TU EQUIPO SE ENFOQUE EN DECISIONES Y EJECUCION.",
+                "outcome": "MENOS TAREAS MANUALES, MAS VELOCIDAD INTERNA Y PROCESOS QUE SE MUEVEN SOLOS.",
+                "b1": "INTEGRACIONES ENTRE HERRAMIENTAS, CRM, APIS Y SERVICIOS INTERNOS.",
+                "b2": "FLUJOS AUTONOMOS PARA REDUCIR ERRORES Y TIEMPOS MUERTOS.",
+                "b3": "AUTOMATIZACION PENSADA PARA NEGOCIO, NO SOLO PARA DEMO."
             },
             "frontend": {
+                "eyebrow": "EXPERIENCE",
                 "title": "Frontend Premium",
-                "desc": "INTERFACES QUE NO SOLO SE VEN BIEN, SINO QUE CONVIERTEN. FOCO OBSESIVO EN EL RENDIMIENTO Y LA EXPERIENCIA DE USUARIO.",
-                "stack_desc": "CREAMOS EXPERIENCIAS DIGITALES VIBRANTES Y ALTAMENTE REACTIVAS. NOS ENFOCAMOS EN MÉTRICAS DE WEB VITALS PARA GARANTIZAR VELOCIDAD INSTANTÁNEA, ACCESIBILIDAD TOTAL Y UNA ESTÉTICA QUE POSICIONA TU MARCA EN LA VANGUARDIA DIGITAL."
+                "desc": "INTERFACES QUE NO SOLO SE VEN BIEN, SINO QUE TAMBIEN RINDEN, CONVIERTEN Y SE SIENTEN INTENCIONALES.",
+                "stack_desc": "CREAMOS EXPERIENCIAS RAPIDAS, ACCESIBLES Y DE ALTA CALIDAD QUE ELEVAN LA PERCEPCION DE MARCA Y LA USABILIDAD DEL PRODUCTO.",
+                "outcome": "UNA INTERFAZ CON PRESENCIA, MEJOR CLARIDAD DE USO Y MAS CONFIANZA EN EL PRODUCTO.",
+                "b1": "SISTEMAS DE INTERFAZ CON IDENTIDAD, ORDEN Y CONSISTENCIA.",
+                "b2": "EXPERIENCIAS RAPIDAS Y ACCESIBLES QUE CUIDAN LA PERCEPCION DE MARCA.",
+                "b3": "DECISIONES VISUALES ALINEADAS CON CONVERSION Y USABILIDAD."
             }
         }
     }

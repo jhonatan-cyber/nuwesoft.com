@@ -8,7 +8,6 @@
     "baseColor": "slate",
     "cssVars": true
   },
-  "framework": "laravel",
   "aliases": {
     "components": "@/Components",
     "utils": "@/lib/utils"

@@ -2,8 +2,9 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
-import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+import PublicGridBackground from '@/Components/PublicGridBackground.vue';
+import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
+import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
 import n8nLogo from '@/Assets/n8n.svg';
 import encoreLogo from '@/Assets/encore-logo-full.svg';
 import n8nColorLogo from '@/Assets/n8n-color.svg';
@@ -47,19 +48,27 @@ import {
   AccordionTrigger,
 } from '@/Components/ui/accordion'
 
-const navigation = [
-    { name: 'Services', href: 'servicios', key: 'services' },
-    { name: 'Portfolio', href: 'portafolio', key: 'portfolio' },
-    { name: 'Contact', href: 'contacto', key: 'contact' },
-];
-
 const { t } = useI18n();
+
+const serviceStats = [
+    { value: 'END-TO-END', label: t('servicios.stats.s1') },
+    { value: 'MULTISTACK', label: t('servicios.stats.s2') },
+    { value: 'SHIP FAST', label: t('servicios.stats.s3') },
+];
 
 const services = [
     {
+        slug: 'software',
+        eyebrow: t('servicios.items.software.eyebrow'),
         title: t('servicios.items.software.title'),
         description: t('servicios.items.software.desc'),
         stack_desc: t('servicios.items.software.stack_desc'),
+        outcome: t('servicios.items.software.outcome'),
+        bullets: [
+            t('servicios.items.software.b1'),
+            t('servicios.items.software.b2'),
+            t('servicios.items.software.b3'),
+        ],
         icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-original.svg',
         color: 'bg-brutalist-pink',
         items: [
@@ -73,9 +82,17 @@ const services = [
         ]
     },
     {
+        slug: 'cloud',
+        eyebrow: t('servicios.items.cloud.eyebrow'),
         title: t('servicios.items.cloud.title'),
         description: t('servicios.items.cloud.desc'),
         stack_desc: t('servicios.items.cloud.stack_desc'),
+        outcome: t('servicios.items.cloud.outcome'),
+        bullets: [
+            t('servicios.items.cloud.b1'),
+            t('servicios.items.cloud.b2'),
+            t('servicios.items.cloud.b3'),
+        ],
         icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
         color: 'bg-brutalist-blue',
         items: [
@@ -89,9 +106,17 @@ const services = [
         ]
     },
     {
+        slug: 'automation',
+        eyebrow: t('servicios.items.automation.eyebrow'),
         title: t('servicios.items.automation.title'),
         description: t('servicios.items.automation.desc'),
         stack_desc: t('servicios.items.automation.stack_desc'),
+        outcome: t('servicios.items.automation.outcome'),
+        bullets: [
+            t('servicios.items.automation.b1'),
+            t('servicios.items.automation.b2'),
+            t('servicios.items.automation.b3'),
+        ],
         icon: n8nLogo,
         color: 'bg-brutalist-yellow',
         items: [
@@ -104,9 +129,17 @@ const services = [
         ]
     },
     {
+        slug: 'frontend',
+        eyebrow: t('servicios.items.frontend.eyebrow'),
         title: t('servicios.items.frontend.title'),
         description: t('servicios.items.frontend.desc'),
         stack_desc: t('servicios.items.frontend.stack_desc'),
+        outcome: t('servicios.items.frontend.outcome'),
+        bullets: [
+            t('servicios.items.frontend.b1'),
+            t('servicios.items.frontend.b2'),
+            t('servicios.items.frontend.b3'),
+        ],
         icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
         color: 'bg-brutalist-pink',
         items: [
@@ -267,80 +300,100 @@ const isVisible = ref(false);
 onMounted(() => {
     isVisible.value = true;
 });
+
+const processSteps = [
+    { name: t('servicios.steps.discovery.name'), desc: t('servicios.steps.discovery.desc'), icon: 'discovery' },
+    { name: t('servicios.steps.architect.name'), desc: t('servicios.steps.architect.desc'), icon: 'architect' },
+    { name: t('servicios.steps.develop.name'), desc: t('servicios.steps.develop.desc'), icon: 'develop' },
+    { name: t('servicios.steps.deploy.name'), desc: t('servicios.steps.deploy.desc'), icon: 'deploy' },
+];
 </script>
 
 <template>
     <Head title="Nuestros Servicios | NUWESOFT Engineering" />
     
-    <div class="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans selection:bg-brutalist-yellow selection:text-black overflow-x-hidden">
-        <!-- Grid Background -->
-        <div class="fixed inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px] z-0"></div>
-
-        <!-- Navigation -->
-        <nav class="fixed top-0 w-full z-40 bg-white dark:bg-black border-b-4 border-black dark:border-white">
-            <div class="max-w-[1400px] mx-auto px-6">
-                <div class="flex justify-between h-20 items-center">
-                    <Link href="/" class="group flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-brutalist-yellow border-4 border-black flex items-center justify-center transform group-hover:-rotate-6 transition-transform">
-                            <span class="text-2xl font-black text-black">N</span>
-                        </div>
-                        <span class="text-3xl font-display font-black tracking-tighter uppercase italic group-hover:bg-brutalist-pink group-hover:text-white px-2 transition-colors text-black dark:text-white">NUWESOFT</span>
-                    </Link>
-                    
-                    <div class="hidden md:flex items-center space-x-8 text-black dark:text-white">
-                        <Link v-for="item in navigation" :key="item.key" :href="route(item.href)" 
-                            class="text-sm font-black uppercase tracking-widest hover:underline decoration-brutalist-pink decoration-4 underline-offset-8 transition-all">
-                            {{ t(item.key) }}
-                        </Link>
-                        
-                        <ThemeSwitcher />
-                        <LanguageSwitcher />
-                        
-                        <Button as-child class="bg-brutalist-blue text-black font-black border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white hover:shadow-brutalist-hover hover:translate-x-[4px] hover:translate-y-[4px] transition-all rounded-none">
-                            <Link :href="route('login')">
-                                {{ t('dashboard') }}
-                            </Link>
-                        </Button>
-                    </div>
-
-                    <div class="flex items-center space-x-4 md:hidden">
-                        <ThemeSwitcher />
-                        <LanguageSwitcher />
-                        <button class="text-black dark:text-white p-2 border-4 border-black dark:border-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </nav>
+    <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
+        <PublicGridBackground />
+        <PublicSiteHeader />
 
         <main class="relative pt-48 pb-32 px-6">
             <div class="max-w-[1400px] mx-auto relative z-10">
                 <!-- Header -->
                 <div :class="['transition-all duration-700 transform mb-24', isVisible ? 'translate-x-0 opacity-100' : '-translate-x-12 opacity-0']">
-                    <Badge class="bg-brutalist-pink text-white font-black border-4 border-black px-4 py-2 mb-8 text-xl rotate-1 inline-block">{{ t('servicios.badge') }}</Badge>
-                    <h1 class="text-[clamp(3rem,8vw,6rem)] font-display font-black leading-[0.8] tracking-tighter mb-10 uppercase italic">
-                        {{ t('servicios.title1') }} <br/>
-                        <span class="bg-brutalist-yellow text-black px-4 ml-[-1rem]">{{ t('servicios.title2') }}</span> <br/>
-                        <span class="relative inline-block mt-4 text-white">
-                            <span class="absolute inset-0 bg-black -rotate-1 z-0"></span>
-                            <span class="relative z-10 px-4">{{ t('servicios.title3') }}</span>
-                        </span>
-                    </h1>
-                    <p class="max-w-2xl text-2xl font-black leading-none italic border-l-8 border-black dark:border-white pl-6 uppercase">
-                        {{ t('servicios.subtitle') }}
-                    </p>
+                    <div class="grid gap-12 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
+                        <div>
+                            <Badge class="mb-8 inline-block rotate-1 border-4 border-black bg-brutalist-pink px-4 py-2 text-xl font-black text-white">{{ t('servicios.badge') }}</Badge>
+                            <h1 class="mb-10 text-[clamp(3rem,8vw,6.3rem)] font-display font-black uppercase italic leading-[0.8] tracking-tighter">
+                                {{ t('servicios.title1') }} <br/>
+                                <span class="ml-[-1rem] bg-brutalist-yellow px-4 text-black">{{ t('servicios.title2') }}</span> <br/>
+                                <span class="relative mt-4 inline-block text-white">
+                                    <span class="absolute inset-0 -rotate-1 bg-black z-0"></span>
+                                    <span class="relative z-10 px-4">{{ t('servicios.title3') }}</span>
+                                </span>
+                            </h1>
+                            <p class="max-w-3xl border-l-8 border-black pl-6 text-2xl font-black uppercase italic leading-tight dark:border-white">
+                                {{ t('servicios.subtitle') }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="border-4 border-black bg-white p-8 shadow-brutalist dark:border-white dark:bg-zinc-950 dark:shadow-brutalist-white">
+                                <p class="text-sm font-black uppercase tracking-[0.28em] text-brutalist-pink">{{ t('servicios.lead_label') }}</p>
+                                <p class="mt-4 text-xl font-black uppercase leading-tight md:text-2xl">
+                                    {{ t('servicios.lead_text') }}
+                                </p>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-3">
+                                <div
+                                    v-for="stat in serviceStats"
+                                    :key="stat.label"
+                                    class="border-4 border-black bg-brutalist-yellow p-5 text-black shadow-brutalist dark:border-white dark:shadow-brutalist-white"
+                                >
+                                    <div class="text-2xl font-display font-black italic leading-none md:text-3xl">{{ stat.value }}</div>
+                                    <div class="mt-3 text-[11px] font-black uppercase tracking-[0.24em]">{{ stat.label }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Services Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-40">
+                <div class="mb-16 grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
+                    <div class="border-4 border-black bg-black p-8 text-white shadow-brutalist dark:border-white dark:shadow-brutalist-white">
+                        <p class="text-sm font-black uppercase tracking-[0.28em] text-brutalist-yellow">{{ t('servicios.map_label') }}</p>
+                        <h2 class="mt-4 text-4xl font-display font-black uppercase italic leading-none md:text-5xl">{{ t('servicios.map_title') }}</h2>
+                        <p class="mt-6 text-lg font-black uppercase leading-tight text-white/75">
+                            {{ t('servicios.map_text') }}
+                        </p>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <a
+                            v-for="(service, index) in services"
+                            :key="`anchor-${service.slug}`"
+                            :href="`#${service.slug}`"
+                            class="group border-4 border-black bg-white p-5 text-black shadow-brutalist transition-all hover:-translate-y-1 hover:bg-brutalist-yellow hover:text-black dark:border-white dark:bg-zinc-950 dark:text-white dark:shadow-brutalist-white dark:hover:bg-brutalist-yellow dark:hover:text-black"
+                        >
+                            <div class="text-[11px] font-black uppercase tracking-[0.28em] opacity-55 transition-colors group-hover:text-black dark:group-hover:text-black">0{{ index + 1 }}</div>
+                            <div class="mt-4 min-h-[4.5rem] text-xl font-black uppercase leading-tight break-words transition-colors group-hover:text-black dark:group-hover:text-black">
+                                {{ service.title }}
+                            </div>
+                            <div class="mt-5 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.24em] transition-colors group-hover:text-black dark:group-hover:text-black">
+                                <span>{{ service.eyebrow }}</span>
+                                <span class="shrink-0 transition-transform group-hover:translate-x-1">-></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-12 mb-40 md:grid-cols-2">
                     <Card v-for="(service, index) in services" :key="index"
+                        :id="service.slug"
                         class="group rounded-none border-4 border-black dark:border-white bg-white dark:bg-black shadow-brutalist dark:shadow-brutalist-white hover:shadow-brutalist-hover-lg dark:hover:shadow-brutalist-white-lg hover:-translate-x-2 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full relative">
                         
                         <!-- Decorative element -->
                         <div :class="['absolute top-0 right-0 w-32 h-32 opacity-10 -mr-16 -mt-16 rounded-full transition-transform duration-700 group-hover:scale-150', service.color]"></div>
 
-                        <CardHeader class="flex flex-row justify-between items-start p-10 pb-0 relative z-10">
+                        <CardHeader class="relative z-10 flex flex-row items-start justify-between p-10 pb-0">
                             <TooltipProvider :delay-duration="0">
                                 <div class="flex -space-x-3 overflow-hidden group-hover:space-x-1 transition-all duration-500">
                                     <div v-for="item in service.items" :key="item.name" class="inline-block">
@@ -361,6 +414,9 @@ onMounted(() => {
                         </CardHeader>
 
                         <CardContent class="p-10 pt-12 flex-grow relative z-10">
+                            <div class="mb-5 inline-flex border-2 border-current px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em]">
+                                {{ service.eyebrow }}
+                            </div>
                             <CardTitle class="text-4xl md:text-5xl font-display font-black uppercase italic mb-8 group-hover:bg-brutalist-yellow group-hover:text-black px-2 inline-block transition-colors text-black dark:text-white">
                                 {{ service.title }}
                             </CardTitle>
@@ -368,6 +424,24 @@ onMounted(() => {
                             <CardDescription class="text-xl font-black uppercase leading-[1.1] mb-10 text-black dark:text-white/90 opacity-100 italic">
                                 {{ service.description }}
                             </CardDescription>
+
+                            <div class="mb-8 border-l-8 border-black pl-5 dark:border-white">
+                                <p class="text-[11px] font-black uppercase tracking-[0.28em] opacity-55">{{ t('servicios.outcome_label') }}</p>
+                                <p class="mt-3 text-base font-black uppercase leading-tight">
+                                    {{ service.outcome }}
+                                </p>
+                            </div>
+
+                            <div class="mb-10 space-y-3">
+                                <div
+                                    v-for="bullet in service.bullets"
+                                    :key="bullet"
+                                    class="flex items-start gap-3 border-2 border-black/15 px-4 py-3 dark:border-white/20"
+                                >
+                                    <span class="mt-1 h-3 w-3 shrink-0 bg-current"></span>
+                                    <span class="text-xs font-black uppercase leading-relaxed">{{ bullet }}</span>
+                                </div>
+                            </div>
 
                             <Accordion type="single" collapsible class="w-full border-4 border-black dark:border-white bg-gray-50 dark:bg-zinc-900 shadow-brutalist group-hover:shadow-none transition-all">
                                 <AccordionItem value="tech-details" class="border-none">
@@ -446,19 +520,15 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <Card v-for="(step, idx) in [
-                            { name: t('servicios.steps.discovery.name'), desc: t('servicios.steps.discovery.desc'), icon: 'discovery' },
-                            { name: t('servicios.steps.architect.name'), desc: t('servicios.steps.architect.desc'), icon: 'architect' },
-                            { name: t('servicios.steps.develop.name'), desc: t('servicios.steps.develop.desc'), icon: 'develop' },
-                            { name: t('servicios.steps.deploy.name'), desc: t('servicios.steps.deploy.desc'), icon: 'deploy' }
-                        ]" :key="idx"
-                            class="group rounded-none border-4 border-black bg-white dark:bg-black shadow-brutalist hover:shadow-brutalist-hover hover:translate-x-[4px] hover:translate-y-[4px] transition-all p-8 flex flex-col relative overflow-hidden">
+                    <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+                        <Card v-for="(step, idx) in processSteps" :key="idx"
+                            class="group relative flex flex-col overflow-hidden rounded-none border-4 border-black bg-white p-8 shadow-brutalist transition-all hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-brutalist-hover dark:border-white dark:bg-black dark:shadow-brutalist-white">
                             
                             <span class="absolute -bottom-8 -right-4 text-[10rem] font-display font-black opacity-5 leading-none select-none italic">{{ idx + 1 }}</span>
                             
                             <CardContent class="p-0 relative z-10">
-                                <div class="w-16 h-16 bg-black text-white border-4 border-black mb-8 flex items-center justify-center group-hover:bg-brutalist-yellow group-hover:text-black transition-colors">
+                                <div class="mb-6 text-[11px] font-black uppercase tracking-[0.28em] opacity-50">PHASE 0{{ idx + 1 }}</div>
+                                <div class="w-16 h-16 bg-black text-white border-4 border-black mb-8 flex items-center justify-center group-hover:bg-brutalist-yellow group-hover:text-black transition-colors dark:border-white">
                                     <svg v-if="step.icon==='discovery'" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                                     <svg v-if="step.icon==='architect'" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                                     <svg v-if="step.icon==='develop'" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -495,30 +565,7 @@ onMounted(() => {
             </div>
         </section>
 
-        <!-- Footer -->
-        <footer class="bg-black text-white border-t-8 border-brutalist-blue py-24">
-            <div class="max-w-[1400px] mx-auto px-6">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-16">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-brutalist-yellow border-4 border-white flex items-center justify-center -rotate-6">
-                            <span class="text-3xl font-black text-black">N</span>
-                        </div>
-                        <span class="text-5xl font-display font-black italic">NUWESOFT</span>
-                    </div>
-                    
-                    <div class="flex space-x-12 text-2xl font-black italic uppercase text-black dark:text-white">
-                        <Link href="#" class="hover:text-brutalist-pink transition-colors">{{ t('footer.twitter') }}</Link>
-                        <Link href="#" class="hover:text-brutalist-blue transition-colors">{{ t('footer.linkedin') }}</Link>
-                        <Link href="#" class="hover:text-brutalist-yellow transition-colors">{{ t('footer.github') }}</Link>
-                    </div>
-                    
-                    <p class="text-xl font-black italic uppercase text-right leading-none text-black dark:text-white">
-                        {{ t('footer.rights') }} <br/>
-                        <span class="text-brutalist-pink">{{ t('footer.coding_future') }}</span>
-                    </p>
-                </div>
-            </div>
-        </footer>
+        <PublicSiteFooter />
     </div>
 </template>
 
