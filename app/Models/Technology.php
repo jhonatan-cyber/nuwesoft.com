@@ -12,6 +12,7 @@ class Technology extends Model
     protected $fillable = [
         'name',
         'logo_url',
+        'logo_public_id',
         'category',
         'is_active',
     ];

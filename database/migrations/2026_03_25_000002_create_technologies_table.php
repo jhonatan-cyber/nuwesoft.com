@@ -15,6 +15,7 @@ return new class extends Migration
             $col->id();
             $col->string('name');
             $col->string('logo_url')->nullable();
+            $col->string('logo_public_id')->nullable();
             $col->string('category')->default('backend');
             $col->boolean('is_active')->default(true);
             $col->timestamps();

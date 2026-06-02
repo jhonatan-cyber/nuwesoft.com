@@ -2,7 +2,7 @@
 import { PaginationNext } from 'radix-vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { Button } from '@/Components/ui/button'
-import { cn } from '@/utils'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
   asChild: { type: Boolean, default: true },

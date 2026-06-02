@@ -34,7 +34,9 @@ class TechnologyController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $validated['logo_url'] = $this->cloudinary->upload($request->file('logo'), 'technologies');
+            $upload = $this->cloudinary->upload($request->file('logo'), 'technologies');
+            $validated['logo_url'] = $upload['secure_url'] ?? $upload['url'] ?? null;
+            $validated['logo_public_id'] = $upload['public_id'] ?? null;
         }
 
         Technology::create($validated);
@@ -52,7 +54,13 @@ class TechnologyController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $validated['logo_url'] = $this->cloudinary->upload($request->file('logo'), 'technologies');
+            if ($technology->logo_public_id) {
+                $this->cloudinary->delete($technology->logo_public_id);
+            }
+
+            $upload = $this->cloudinary->upload($request->file('logo'), 'technologies');
+            $validated['logo_url'] = $upload['secure_url'] ?? $upload['url'] ?? null;
+            $validated['logo_public_id'] = $upload['public_id'] ?? null;
         }
 
         $technology->update($validated);
@@ -62,6 +70,10 @@ class TechnologyController extends Controller
 
     public function destroy(Technology $technology)
     {
+        if ($technology->logo_public_id) {
+            $this->cloudinary->delete($technology->logo_public_id);
+        }
+
         $technology->delete();
         return redirect()->back();
     }

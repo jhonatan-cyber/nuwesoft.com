@@ -249,6 +249,7 @@ const deleteProject = (id) => {
                         </div>
                     </div>
                 </div>
+            </div>
             <!-- Paginador Centrado -->
             <div v-if="projects.last_page > 1" class="flex justify-center pt-8">
                 <Pagination
@@ -274,7 +275,6 @@ const deleteProject = (id) => {
                 </Pagination>
             </div>
         </div>
-    </AuthenticatedLayout>
 
         <!-- Galería de Imágenes Modal - Refined -->
         <Modal :show="!!selectedProjectForGallery" @close="closeGallery" max-width="5xl">

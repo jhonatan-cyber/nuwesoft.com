@@ -1,7 +1,7 @@
 <script setup>
 import { PaginationListItem } from 'radix-vue'
 import { Button } from '@/Components/ui/button'
-import { cn } from '@/utils'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
   value: { type: Number, required: true },

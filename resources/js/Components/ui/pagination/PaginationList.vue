@@ -1,6 +1,6 @@
 <script setup>
 import { PaginationList } from 'radix-vue'
-import { cn } from '@/utils'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
   class: { type: null, required: false },

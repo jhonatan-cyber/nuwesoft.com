@@ -23,7 +23,11 @@ class ProjectController extends Controller
 
     public function create()
     {
-        return Inertia::render('Dashboard/Projects/Form');
+        $technologies = \App\Models\Technology::where('is_active', true)->get();
+
+        return Inertia::render('Dashboard/Projects/Form', [
+            'technologies' => $technologies,
+        ]);
     }
 
     public function store(Request $request)
@@ -31,22 +35,25 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string',
-            'stack' => 'nullable|array',
+            'stack' => 'nullable',
             'technologies' => 'nullable|array',
             'desc' => 'nullable|string',
             'icon' => 'nullable|string',
             'images.*' => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120',
             'project_url' => 'nullable|string',
+            'is_active' => 'required|boolean',
         ]);
+
+        $stack = $this->normalizeStack($request->input('stack'));
 
         $project = Project::create([
             'name' => $validated['name'],
             'category' => $validated['category'],
-            'stack' => $validated['stack'] ?? [],
+            'stack' => $stack,
             'desc' => $validated['desc'] ?? '',
             'icon' => $validated['icon'] ?? 'Briefcase',
             'project_url' => $validated['project_url'] ?? '',
-            'is_active' => true,
+            'is_active' => $validated['is_active'],
         ]);
 
         if ($request->has('technologies')) {
@@ -64,10 +71,12 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        $project->load('images');
+        $project->load(['images', 'technologies']);
+        $technologies = \App\Models\Technology::where('is_active', true)->get();
 
         return Inertia::render('Dashboard/Projects/Form', [
             'project' => $project,
+            'technologies' => $technologies,
         ]);
     }
 
@@ -76,22 +85,26 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string',
-            'stack' => 'nullable|array',
+            'stack' => 'nullable',
             'technologies' => 'nullable|array',
             'desc' => 'nullable|string',
             'icon' => 'nullable|string',
             'images.*' => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120',
             'remove_images' => 'nullable|array',
             'project_url' => 'nullable|string',
+            'is_active' => 'required|boolean',
         ]);
+
+        $stack = $this->normalizeStack($request->input('stack'));
 
         $project->update([
             'name' => $validated['name'],
             'category' => $validated['category'],
-            'stack' => $validated['stack'] ?? [],
+            'stack' => $stack,
             'desc' => $validated['desc'] ?? '',
             'icon' => $validated['icon'] ?? 'Briefcase',
             'project_url' => $validated['project_url'] ?? '',
+            'is_active' => $validated['is_active'],
         ]);
 
         if ($request->has('technologies')) {
@@ -127,5 +140,23 @@ class ProjectController extends Controller
             ->where('is_active', true)
             ->latest('created_at')
             ->get();
+    }
+
+    protected function normalizeStack(mixed $stack): array
+    {
+        if (is_array($stack)) {
+            return array_values(array_filter(array_map('trim', $stack), fn ($v) => $v !== ''));
+        }
+
+        if (!is_string($stack) || trim($stack) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($stack, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return array_values(array_filter(array_map('trim', $decoded), fn ($v) => $v !== ''));
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $stack)), fn ($v) => $v !== ''));
     }
 }

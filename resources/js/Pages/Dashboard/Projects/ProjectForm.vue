@@ -176,7 +176,7 @@ const submit = () => {
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <!-- Existing Images -->
                 <div v-for="image in existingImages" :key="image.id" class="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
-                    <img :src="image.url" class="w-full h-full object-cover" />
+                    <img :src="image.image_url" class="w-full h-full object-cover" />
                     <button type="button" @click="removeExistingImage(image.id)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                         <XCircle class="w-4 h-4" />
                     </button>
