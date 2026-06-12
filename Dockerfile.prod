@@ -21,7 +21,7 @@ RUN bun run build
 # ==========================================
 # STAGE 2: Aplicación PHP + Nginx en Producción
 # ==========================================
-FROM webdevops/php-nginx:8.3-alpine
+FROM webdevops/php-nginx:8.4-alpine
 
 WORKDIR /var/www/html
 
