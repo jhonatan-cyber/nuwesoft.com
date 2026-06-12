@@ -48,14 +48,14 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
     LOG_STDOUT=/dev/stdout \
     LOG_STDERR=/dev/stderr
 
+# Copiar todo el código de la aplicación Laravel con el dueño correcto
+COPY --chown=application:application . .
+
 # Copiar dependencias de Composer ya descargadas en el Stage 1 con el dueño correcto
 COPY --from=composer-builder --chown=application:application /app/vendor ./vendor
 
 # Copiar los assets de frontend compilados en el Stage 2 con el dueño correcto
 COPY --from=frontend-builder --chown=application:application /app/public/build ./public/build
-
-# Copiar todo el código de la aplicación Laravel con el dueño correcto
-COPY --chown=application:application . .
 
 # Volver a correr composer install para generar el autoloader optimizado y correr scripts
 RUN composer install --no-dev --no-interaction --optimize-autoloader
