@@ -22,4 +22,4 @@ php artisan migrate --force
 echo "=== Bootstrap completado. Levantando Nginx y PHP-FPM ==="
 
 # Ejecutar el entrypoint original de la imagen base webdevops
-exec /entrypoint.sh "$@"
+exec /entrypoint "$@"
