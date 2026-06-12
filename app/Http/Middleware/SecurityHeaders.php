@@ -29,7 +29,7 @@ class SecurityHeaders
 
         $response->headers->set('Content-Security-Policy',
             "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://us-assets.i.posthog.com https://eu-assets.i.posthog.com{$devCsp}; " .
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://us-assets.i.posthog.com https://eu-assets.i.posthog.com{$devCsp}; " .
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
             "img-src 'self' data: blob: https: https://us-assets.i.posthog.com https://eu-assets.i.posthog.com; " .
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " .
