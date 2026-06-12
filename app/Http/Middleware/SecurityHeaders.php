@@ -33,7 +33,7 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
             "img-src 'self' data: blob: https: https://us-assets.i.posthog.com https://eu-assets.i.posthog.com; " .
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " .
-            "connect-src 'self' https://res.cloudinary.com https://us-assets.i.posthog.com https://us.i.posthog.com https://eu-assets.i.posthog.com https://eu.i.posthog.com{$devCsp}; " .
+            "connect-src 'self' wss: https://res.cloudinary.com https://us-assets.i.posthog.com https://us.i.posthog.com https://eu-assets.i.posthog.com https://eu.i.posthog.com{$devCsp}; " .
             "frame-src 'none'; " .
             "object-src 'none'; " .
             "base-uri 'self'; " .
