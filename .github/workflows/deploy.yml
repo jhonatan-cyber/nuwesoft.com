@@ -1,0 +1,40 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true
+          script: |
+            echo "=== Iniciando Despliegue en el VPS ==="
+            
+            # Entrar a la carpeta del proyecto
+            cd /var/www/nuwesoft.com
+            
+            # Descargar los últimos cambios desde GitHub
+            echo "Descargando últimos cambios desde GitHub..."
+            git pull origin main
+            
+            # Recompilar y levantar los contenedores de producción en segundo plano
+            echo "Reconstruyendo y levantando contenedores Docker..."
+            docker compose -f compose.prod.yaml up -d --build
+            
+            # Opcional: Limpiar imágenes huérfanas/antiguas para ahorrar espacio en el VPS
+            echo "Limpiando imágenes antiguas en desuso..."
+            docker image prune -f
+            
+            echo "=== Despliegue completado con éxito ==="
