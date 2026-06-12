@@ -24,6 +24,10 @@ defineProps({
     status: {
         type: String,
     },
+    isDatabaseEmpty: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const form = useForm({
@@ -245,7 +249,18 @@ const gridSvg = "data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 6
                             </template>
                         </Button>
 
-                        <!-- Register link removed — admin-only access -->
+                        <!-- Register link if database is empty -->
+                        <div v-if="isDatabaseEmpty" class="mt-6 pt-6 border-t border-dashed border-black/10 dark:border-white/10 text-center">
+                            <p class="text-xs font-bold uppercase tracking-wider text-black/40 dark:text-white/40 mb-3">
+                                {{ t('auth.database_empty_notice') }}
+                            </p>
+                            <Link
+                                :href="route('register')"
+                                class="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-brutalist-pink font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-brutalist-yellow hover:text-black active:scale-[0.98]"
+                            >
+                                {{ t('auth.create_first_admin') }}
+                            </Link>
+                        </div>
                     </form>
                 </div>
             </div>

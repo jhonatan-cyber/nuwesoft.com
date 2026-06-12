@@ -139,7 +139,9 @@
         "control_title": "CONTROL",
         "nuwesoft_brand": "NUWESOFT",
         "tagline": "MANAGE YOUR DIGITAL INFRASTRUCTURE",
-        "copyright": "© 2026 — NUWESOFT ENGINEERING"
+        "copyright": "© 2026 — NUWESOFT ENGINEERING",
+        "database_empty_notice": "No users found in the database.",
+        "create_first_admin": "CREATE FIRST ADMINISTRATOR"
     },
     "settings": {
         "title": "SETTINGS",
