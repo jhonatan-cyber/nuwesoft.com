@@ -65,6 +65,7 @@ COPY docker/nginx.prod.conf /opt/docker/etc/nginx/vhost.conf
 
 # Copiar la configuración de supervisor para ejecutar Reverb y la cola en producción
 COPY docker/laravel-workers.conf /opt/docker/etc/supervisor.d/laravel-workers.conf
+RUN sed -i 's/\r$//' /opt/docker/etc/supervisor.d/laravel-workers.conf
 
 # Limpiar finales de línea CRLF de Windows para evitar errores en Alpine Linux (shell scripts)
 RUN sed -i 's/\r$//' docker/bootstrap.sh
