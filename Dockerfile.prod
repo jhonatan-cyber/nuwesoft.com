@@ -51,6 +51,9 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader
 # Sobreescribir la configuración de Nginx de la imagen webdevops con la nuestra optimizada
 COPY docker/nginx.prod.conf /opt/docker/etc/nginx/vhost.conf
 
+# Limpiar finales de línea CRLF de Windows para evitar errores en Alpine Linux (shell scripts)
+RUN sed -i 's/\r$//' docker/bootstrap.sh
+
 # Configurar permisos adecuados para el script bootstrap
 RUN chmod +x docker/bootstrap.sh
 
