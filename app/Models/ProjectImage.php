@@ -18,4 +18,10 @@ class ProjectImage extends Model
     {
         return $this->belongsTo(Project::class);
     }
+
+    protected static function booted()
+    {
+        static::saved(fn () => event(new \App\Events\EntityUpdated('project')));
+        static::deleted(fn () => event(new \App\Events\EntityUpdated('project')));
+    }
 }
