@@ -1,0 +1,58 @@
+# ==========================================
+# STAGE 1: Compilación de Assets Frontend
+# ==========================================
+FROM oven/bun:1.1-alpine AS frontend-builder
+
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package.json bun.lock ./
+
+# Instalar dependencias
+RUN bun install --frozen-lockfile
+
+# Copiar código del frontend y archivos de configuración
+COPY resources/ ./resources/
+COPY vite.config.js tailwind.config.js tsconfig.json ./
+
+# Compilar assets con Vite para producción
+RUN bun run build
+
+# ==========================================
+# STAGE 2: Aplicación PHP + Nginx en Producción
+# ==========================================
+FROM webdevops/php-nginx:8.3-alpine
+
+WORKDIR /var/www/html
+
+# Configuración de variables de entorno de la imagen webdevops
+ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
+    WEB_DOCUMENT_INDEX=index.php \
+    PHP_DISMOD=xdebug \
+    LOG_STDOUT=/dev/stdout \
+    LOG_STDERR=/dev/stderr
+
+# Copiar archivos de configuración de dependencias de PHP
+COPY composer.json composer.lock ./
+
+# Instalar dependencias de Composer (Laravel) optimizadas para producción
+# (Corremos con --no-scripts primero para evitar que corran cosas que requieran todo el código)
+RUN composer install --no-dev --no-interaction --no-autoloader --no-scripts
+
+# Copiar todo el código de la aplicación Laravel
+COPY . .
+
+# Copiar los assets de frontend compilados en el Stage 1
+COPY --from=frontend-builder /app/public/build ./public/build
+
+# Volver a correr composer install para generar el autoloader optimizado y disparar scripts de Laravel
+RUN composer install --no-dev --no-interaction --optimize-autoloader
+
+# Sobreescribir la configuración de Nginx de la imagen webdevops con la nuestra optimizada
+COPY docker/nginx.prod.conf /opt/docker/etc/nginx/vhost.conf
+
+# Configurar permisos adecuados para el script bootstrap
+RUN chmod +x docker/bootstrap.sh
+
+# Definir el script de bootstrap como entrypoint
+ENTRYPOINT ["docker/bootstrap.sh"]
