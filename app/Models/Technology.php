@@ -23,6 +23,10 @@ class Technology extends Model
         'invert_dark' => 'boolean',
     ];
 
+    protected $appends = [
+        'optimized_logo_url',
+    ];
+
     public function projects()
     {
         return $this->belongsToMany(Project::class);
@@ -30,7 +34,37 @@ class Technology extends Model
 
     protected static function booted()
     {
-        static::saved(fn () => event(new \App\Events\EntityUpdated('technology')));
-        static::deleted(fn () => event(new \App\Events\EntityUpdated('technology')));
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('active_technologies');
+            \Illuminate\Support\Facades\Cache::forget('active_technologies_servicios');
+            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
+            event(new \App\Events\EntityUpdated('technology'));
+        });
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('active_technologies');
+            \Illuminate\Support\Facades\Cache::forget('active_technologies_servicios');
+            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
+            event(new \App\Events\EntityUpdated('technology'));
+        });
+    }
+
+    protected function optimizedLogoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->optimizeCloudinaryUrl($this->logo_url)
+        );
+    }
+
+    private function optimizeCloudinaryUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        if (!str_contains($url, 'res.cloudinary.com')) {
+            return $url;
+        }
+
+        return str_replace('/upload/', '/upload/f_auto,q_auto/', $url);
     }
 }

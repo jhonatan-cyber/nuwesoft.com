@@ -15,19 +15,25 @@ Route::get('/', function () {
 
 Route::get('/servicios', function () {
     return Inertia::render('Servicios', [
-        'technologies' => Technology::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']),
+        'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
+            return Technology::where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
+        }),
     ]);
 })->name('servicios');
 
 Route::get('/portafolio', function () {
     return Inertia::render('Portafolio', [
-        'projects' => Project::with(['images', 'technologies'])
-            ->where('is_active', true)
-            ->latest('created_at')
-            ->get(),
-        'technologies' => Technology::where('is_active', true)->get(),
+        'projects' => \Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
+            return Project::with(['images', 'technologies'])
+                ->where('is_active', true)
+                ->latest('created_at')
+                ->get();
+        }),
+        'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
+            return Technology::where('is_active', true)->get();
+        }),
     ]);
 })->name('portafolio');
 Route::get('/portafolio/{project}', [ProjectController::class, 'publicShow'])->name('portafolio.show');

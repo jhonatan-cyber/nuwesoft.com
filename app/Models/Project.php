@@ -80,7 +80,13 @@ class Project extends Model
 
     protected static function booted()
     {
-        static::saved(fn () => event(new \App\Events\EntityUpdated('project')));
-        static::deleted(fn () => event(new \App\Events\EntityUpdated('project')));
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
+            event(new \App\Events\EntityUpdated('project'));
+        });
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
+            event(new \App\Events\EntityUpdated('project'));
+        });
     }
 }
