@@ -5,7 +5,7 @@
         "title2": "SOFTWARE",
         "title3": "AL SIGUIENTE NIVEL",
         "kicker": "INGENIERIA MAESTRA DIGITAL",
-        "subtitle": "NO SOLO ESCRIBIMOS CODIGO. DISENAMOS VENTAJAS COMPETITIVAS CON INGENIERIA DE ALTO IMPACTO, EJECUCION PRECISA Y SISTEMAS DIGITALES ESCALABLES.",
+        "subtitle": "NO SOLO ESCRIBIMOS CODIGO. DISEÑAMOS VENTAJAS COMPETITIVAS CON INGENIERIA DE ALTO IMPACTO, EJECUCION PRECISA Y SISTEMAS DIGITALES ESCALABLES.",
         "cta_start": "INICIAR PROYECTO",
         "cta_solutions": "SOLUCIONES",
         "stats": {
@@ -47,6 +47,7 @@
     "services": "SERVICIOS",
     "portfolio": "PORTAFOLIO",
     "contact": "CONTACTO",
+    "blog": "BLOG",
     "dashboard": "DASHBOARD",
     "actions": {
         "edit": "EDITAR",
@@ -74,14 +75,27 @@
             "name": "NOMBRE",
             "category": "CATEGORIA",
             "is_active": "ESTADO ACTIVO",
-            "logo": "LOGO"
+            "logo": "LOGO",
+            "date": "FECHA",
+            "invert_dark": "INVERTIR EN MODO OSCURO"
+        },
+        "categories": {
+            "languages": "LENGUAJES",
+            "frontend": "FRONTEND",
+            "backend": "BACKEND",
+            "mobile": "MOVIL",
+            "database": "BASE DE DATOS",
+            "infrastructure": "INFRAESTRUCTURA",
+            "automation": "AUTOMATIZACION",
+            "ui": "UI / COMPONENTES"
         },
         "placeholders": {
             "name": "EJ. LARAVEL, VUE.JS, DOCKER...",
             "category": "SELECCIONA UNA CATEGORIA"
         },
         "descriptions": {
-            "is_active": "DETERMINA SI LA TECNOLOGIA SE MUESTRA EN EL PORTAFOLIO"
+            "is_active": "DETERMINA SI LA TECNOLOGIA SE MUESTRA EN EL PORTAFOLIO",
+            "invert_dark": "ACTIVAR PARA LOGOS OSCUROS QUE NO SE VEN EN MODO OSCURO"
         },
         "modals": {
             "create_title": "CREAR TECNOLOGIA",
@@ -90,23 +104,96 @@
             "edit_desc": "ACTUALIZA LA INFORMACION DE LA HERRAMIENTA",
             "save": "GUARDAR",
             "cancel": "CANCELAR"
+        },
+        "status": {
+            "active": "ACTIVO",
+            "inactive": "OFF"
+        },
+        "delete_modal": {
+            "confirm": "ELIMINAR",
+            "cancel": "CANCELAR",
+            "deleting": "ELIMINANDO..."
         }
     },
     "logout": "CERRAR SESION",
     "profile": "PERFIL",
     "home": "INICIO",
-    "login": "ACCESO MAESTRO",
+    "login": "INGRESAR",
     "auth": {
-        "login_title": "Acceso Maestro",
+        "login_title": "Ingresa tus credenciales",
         "login_subtitle": "INGRESE SUS CREDENCIALES DE SISTEMA",
-        "email": "Protocolo de Email",
-        "password": "Password",
+        "email": "Correo",
+        "password": "Contraseña",
         "remember_me": "Recordar sesión",
         "forgot_password": "¿Recuperar Acceso?",
         "sign_in": "INICIAR SESION",
         "processing": "PROCESANDO...",
-        "email_placeholder": "admin@nuwesoft.com",
-        "password_placeholder": "••••••••"
+        "email_placeholder": "admin{'@'}nuwesoft.com",
+        "password_placeholder": "••••••••",
+        "no_account": "¿No tenés cuenta? Crear acceso",
+        "feature_projects": "GESTION DE PROYECTOS",
+        "feature_tech": "CONTROL DE TECNOLOGIAS",
+        "feature_multilang": "PANEL MULTILENGUAJE",
+        "system_online": "SISTEMA ONLINE",
+        "admin_version": "PANEL ADMIN v1.0",
+        "control_title": "CONTROL",
+        "nuwesoft_brand": "NUWESOFT",
+        "tagline": "GESTIONA TU INFRAESTRUCTURA DIGITAL",
+        "copyright": "© 2026 — NUWESOFT ENGINEERING"
+    },
+    "settings": {
+        "title": "CONFIGURACION",
+        "subtitle": "CONFIGURACION DEL SITIO",
+        "save": "GUARDAR CONFIGURACION",
+        "saving": "GUARDANDO...",
+        "sections": {
+            "identity": "IDENTIDAD DEL SITIO",
+            "identity_desc": "CONFIGURACION DE MARCA Y VISUAL",
+            "contact": "INFORMACION DE CONTACTO",
+            "contact_desc": "EMAIL, TELEFONO Y DIRECCION",
+            "social": "REDES SOCIALES",
+            "social_desc": "CONECTA TUS REDES SOCIALES"
+        },
+        "fields": {
+            "logo": "LOGO DEL SITIO",
+            "site_name": "NOMBRE DEL SITIO",
+            "tagline": "ESLOGAN",
+            "email": "EMAIL",
+            "phone": "TELEFONO",
+            "address": "DIRECCION"
+        },
+        "hints": {
+            "logo": "Recomendado: PNG o SVG, max 2MB"
+        }
+    },
+    "messages": {
+        "title": "MENSAJES",
+        "subtitle": "SOLICITUDES DE CONTACTO",
+        "filters": {
+            "all": "TODOS",
+            "unread": "SIN LEER",
+            "read": "LEIDOS"
+        },
+        "actions": {
+            "mark_all_read": "MARCAR TODOS COMO LEIDOS",
+            "reply_by_email": "RESPONDER POR EMAIL",
+            "delete": "ELIMINAR MENSAJE",
+            "delete_confirm": "De {name}. Esta accion no se puede deshacer.",
+            "cancel": "CANCELAR",
+            "deleting": "ELIMINANDO..."
+        },
+        "empty": {
+            "title": "SIN MENSAJES",
+            "unread": "NINGUN MENSAJE SIN LEER",
+            "all": "AUN NO HAY MENSAJES DE CONTACTO"
+        },
+        "pagination": {
+            "showing": "MOSTRANDO {from}–{to} DE {total}"
+        },
+        "stats": {
+            "pending": "MENSAJES PEND.",
+            "unread": "{count} SIN LEER"
+        }
     },
     "dashboard_panel": {
         "welcome": "BIENVENIDO, MAESTRO",
@@ -114,6 +201,8 @@
         "stats": {
             "projects": "PROYECTOS ACTIVOS",
             "uptime": "UPTIME DEL SISTEMA",
+            "technologies": "TECNOLOGIAS",
+            "pending_messages": "MENSAJES PEND.",
             "deploy": "ULTIMO DEPLOY",
             "commits": "COMMITS / SEMANA"
         },
@@ -122,7 +211,8 @@
             "projects_admin": "GESTIONAR PROYECTOS",
             "services": "GESTIONAR SERVICIOS",
             "portfolio": "VER PORTAFOLIO",
-            "contact": "SOLICITUDES DE CONTACTO"
+            "contact": "SOLICITUDES DE CONTACTO",
+            "messages": "BANDEJA DE MENSAJES"
         },
         "projects": {
             "title": "GESTION DE PROYECTOS",
@@ -136,14 +226,20 @@
                 "category": "CATEGORIA",
                 "stack": "TECNOLOGIAS (JSON O COMAS)",
                 "desc": "DESCRIPCION",
+                "description": "DESCRIPCION",
                 "icon": "NOMBRE DEL ICONO (LUCIDE)",
                 "image_url": "URL DE IMAGEN",
                 "project_url": "URL DEL PROYECTO",
-                "is_active": "ACTIVO"
+                "url": "URL DEL PROYECTO",
+                "is_active": "ACTIVO",
+                "active": "PROYECTO ACTIVO",
+                "images": "GALERIA DE IMAGENES"
             },
             "actions": {
                 "edit": "EDITAR",
                 "save": "GUARDAR PROYECTO",
+                "saving": "GUARDANDO...",
+                "upload": "SUBIR IMAGENES",
                 "delete": "ELIMINAR",
                 "cancel": "CANCELAR",
                 "confirm_delete": "ESTAS SEGURO DE ELIMINAR ESTE PROYECTO?"
@@ -164,7 +260,9 @@
     "marquee": {
         "clean_code": "CODIGO LIMPIO GARANTIZADO",
         "scalable": "ARQUITECTURA ESCALABLE",
-        "support": "SOPORTE 24/7"
+        "support": "SOPORTE 24/7",
+        "agile": "METODOLOGIAS AGILES",
+        "innovation": "INNOVACION CONSTANTE"
     },
     "skills": {
         "badge": "STACK TECNOLOGICO",
@@ -190,7 +288,7 @@
         "focus_label": "DONDE APUNTAMOS",
         "focus_text": "DECISIONES TECNICAS QUE REDUCEN FRICCION, ACELERAN ENTREGA Y ELEVAN LA CALIDAD DEL PRODUCTO.",
         "bridge_label": "LO QUE ESTO SIGNIFICA EN PRACTICA",
-        "bridge_text": "CADA PROYECTO SE PIENSA COMO SISTEMA, NO COMO PIEZA SUELTA. DISENAMOS PARA LANZAR RAPIDO SIN ROMPER ESCALA, CLARIDAD NI MANTENIBILIDAD.",
+        "bridge_text": "CADA PROYECTO SE PIENSA COMO SISTEMA, NO COMO PIEZA SUELTA. DISEÑAMOS PARA LANZAR RAPIDO SIN ROMPER ESCALA, CLARIDAD NI MANTENIBILIDAD.",
         "pillars": {
             "a": "ENTENDER EL NEGOCIO ANTES DE PROPONER SOLUCION",
             "b": "ENTREGAR CON RITMO, CLARIDAD Y CONTROL",
@@ -269,7 +367,7 @@
         "remote": "REMOTO PRIMERO",
         "global": "IMPACTO GLOBAL",
         "built": "CONSTRUIDO CON ESTRATEGIA, DISCIPLINA E INGENIERIA",
-        "rights": "COPYRIGHT 2026 NUWESOFT ENGINEERING.",
+        "rights": "© 2026 NUWESOFT ENGINEERING.",
         "privacy": "PRIVACIDAD",
         "terms": "TERMINOS",
         "facebook": "FACEBOOK",
@@ -286,6 +384,7 @@
     "portafolio": {
         "head_title": "Portafolio | NUWESOFT Engineering",
         "badge": "TRABAJOS SELECCIONADOS",
+        "back": "VOLVER AL PORTAFOLIO",
         "title1": "NUESTROS",
         "title2": "PROYECTOS",
         "title3": "DE IMPACTO",
@@ -311,6 +410,15 @@
         "images_label": "IMAGENES",
         "gallery_label": "GALERIA",
         "project_label": "PROYECTO",
+        "tech_stack_label": "TECH STACK",
+        "view_gallery": "VER GALERIA",
+        "project_overview": "DESCRIPCION",
+        "project_details": "DETALLES",
+        "category_label": "CATEGORIA",
+        "tech_count": "TECNOLOGIAS",
+        "images_count": "IMAGENES",
+        "cta_title": "EXPLORA MAS PROYECTOS",
+        "cta_desc": "Cada proyecto cuenta una historia diferente. Volvé al portfolio y descubrí más trabajos.",
         "empty_label": "SIN RESULTADOS",
         "empty_title": "NO HAY PROYECTOS EN ESTA CATEGORIA",
         "empty_text": "PRUEBA OTRO FILTRO O AGREGA NUEVOS CASOS AL PORTAFOLIO PARA COMPLETAR ESTA VISTA.",
@@ -350,13 +458,20 @@
         "label_email": "EMAIL CORPORATIVO",
         "label_message": "DETALLES DEL PROYECTO",
         "placeholder_name": "JOHN DOE",
-        "placeholder_email": "JOHN@COMPANY.COM",
+        "placeholder_email": "JOHN{'@'}COMPANY.COM",
         "placeholder_message": "DESCRIBE AQUI TU VISION...",
         "submit": "ENVIAR MENSAJE ->",
-        "alert": "MENSAJE ENVIADO CORRECTAMENTE (SIMULACION)",
+        "alert": "MENSAJE ENVIADO CORRECTAMENTE",
+        "validation": {
+            "required": "CAMPO OBLIGATORIO",
+            "email": "EMAIL INVALIDO",
+            "max": "DEMASIADOS CARACTERES",
+            "server_error": "ERROR DEL SERVIDOR, INTENTA DE NUEVO"
+        },
         "info": {
             "title": "CANALES DIRECTOS",
             "email_label": "EMAIL",
+            "phone_label": "TELEFONO",
             "location_label": "UBICACION",
             "location_value": "REMOTO PRIMERO / GLOBAL",
             "social_label": "REDES",
@@ -402,7 +517,7 @@
                 "eyebrow": "BUILD",
                 "title": "Software a Medida",
                 "desc": "CONSTRUIMOS ECOSISTEMAS DIGITALES ROBUSTOS Y ESCALABLES, DESDE MONOLITOS MODERNOS HASTA SERVICIOS DISTRIBUIDOS.",
-                "stack_desc": "DISENAMOS SISTEMAS CAPACES DE SOPORTAR CARGAS CRITICAS, EVOLUCIONAR CON ORDEN Y ACOMPANAR EL CRECIMIENTO DEL NEGOCIO SIN DEUDA TECNICA INNECESARIA.",
+                "stack_desc": "DISEÑAMOS SISTEMAS CAPACES DE SOPORTAR CARGAS CRITICAS, EVOLUCIONAR CON ORDEN Y ACOMPANAR EL CRECIMIENTO DEL NEGOCIO SIN DEUDA TECNICA INNECESARIA.",
                 "outcome": "UNA BASE TECNICA LISTA PARA CRECER SIN REPLANTEAR TODO EN LA SIGUIENTE ETAPA.",
                 "b1": "BACKEND, FRONTEND Y LOGICA DE NEGOCIO EN UNA SOLA DIRECCION.",
                 "b2": "PANELES, PLATAFORMAS Y MODULOS OPERATIVOS CON CRITERIO DE PRODUCTO.",
@@ -439,5 +554,47 @@
                 "b3": "DECISIONES VISUALES ALINEADAS CON CONVERSION Y USABILIDAD."
             }
         }
+    },
+    "privacy_page": {
+        "title": "POLITICA DE PRIVACIDAD",
+        "subtitle": "TRANSPARENCIA RADICAL EN EL TRATO DE TUS DATOS.",
+        "effective_date": "ULTIMA ACTUALIZACION: 1 DE ENERO, 2026",
+        "intro": "En NUWESOFT ENGINEERING valoramos tu privacidad. Esta política describe como recopilamos, usamos y protegemos tu información personal cuando visitas nuestro sitio o utilizas nuestros servicios.",
+        "s1_title": "1. INFORMACION QUE RECOPILAMOS",
+        "s1_body": "Recopilamos información que nos proporcionas directamente al contactarnos a través de formularios, incluyendo tu nombre, dirección de correo electrónico y detalles de tu proyecto. También recopilamos información de navegación de forma automática, como direcciones IP, tipo de navegador, páginas visitadas y tiempo de permanencia, mediante el uso de cookies y tecnologías similares.",
+        "s2_title": "2. USO DE LA INFORMACION",
+        "s2_body": "Utilizamos tu información para responder a tus consultas, proporcionar los servicios solicitados, mejorar nuestro sitio web, enviar comunicaciones relacionadas con nuestros servicios (con tu consentimiento), y cumplir con obligaciones legales y regulatorias.",
+        "s3_title": "3. COMPARTIR INFORMACION",
+        "s3_body": "No vendemos tu información personal a terceros. Podemos compartir datos con proveedores de servicios de confianza que nos ayudan a operar nuestro sitio y negocios (como servicios de hosting, analítica y comunicación), siempre bajo acuerdos de confidencialidad.",
+        "s4_title": "4. SEGURIDAD DE LOS DATOS",
+        "s4_body": "Implementamos medidas de seguridad técnicas y organizativas para proteger tu información contra acceso no autorizado, alteración, divulgación o destrucción. Sin embargo, ningún método de transmisión por Internet es 100% seguro.",
+        "s5_title": "5. COOKIES",
+        "s5_body": "Utilizamos cookies esenciales para el funcionamiento del sitio y cookies analíticas para entender como los usuarios interactuan con nuestro contenido. Puedes gestionar tus preferencias de cookies desde la configuración de tu navegador.",
+        "s6_title": "6. TUS DERECHOS",
+        "s6_body": "Tienes derecho a acceder, rectificar, eliminar y portar tus datos personales, así como a limitar u oponerte a su tratamiento. Para ejercer estos derechos, contáctanos a traves de los medios indicados.",
+        "s7_title": "7. CONTACTO",
+        "s7_body": "Si tienes preguntas sobre esta política de privacidad, puedes contactarnos en privacy{'@'}nuwesoft.com o a traves de nuestro formulario de contacto."
+    },
+    "terms_page": {
+        "title": "TERMINOS Y CONDICIONES",
+        "subtitle": "LAS REGLAS DEL JUEGO. CLARAS Y SIN LETRA CHICA.",
+        "effective_date": "ULTIMA ACTUALIZACION: 1 DE ENERO, 2026",
+        "intro": "Al acceder y utilizar este sitio web aceptas los siguientes terminos y condiciones. Si no estas de acuerdo con alguno de ellos, te recomendamos no utilizar nuestros servicios.",
+        "s1_title": "1. ACEPTACION DE LOS TERMINOS",
+        "s1_body": "Al utilizar nuestro sitio web y servicios, confirmas que has leido, entendido y aceptas estar sujeto a estos terminos y condiciones. NUWESOFT ENGINEERING se reserva el derecho de modificar estos terminos en cualquier momento, notificando los cambios a traves de la publicacion en esta pagina.",
+        "s2_title": "2. SERVICIOS",
+        "s2_body": "NUWESOFT ENGINEERING ofrece servicios de desarrollo de software, consultoria tecnologica, arquitectura de sistemas y diseño de experiencia de usuario. El alcance, precio y cronograma de cada proyecto se definiran en un acuerdo separado entre las partes.",
+        "s3_title": "3. PROPIEDAD INTELECTUAL",
+        "s3_body": "Todo el contenido de este sitio web, incluyendo textos, imagenes, logotipos y codigo, es propiedad de NUWESOFT ENGINEERING salvo que se indique lo contrario. El codigo fuente desarrollado para proyectos de clientes sera entregado en su totalidad al cliente una vez completado el pago acordado.",
+        "s4_title": "4. OBLIGACIONES DEL USUARIO",
+        "s4_body": "El usuario se compromete a utilizar el sitio web y los servicios de conformidad con la ley, la moral y el orden publico. Queda prohibido cualquier uso fraudulento, ilegal o que pueda dañar la imagen o los intereses de NUWESOFT ENGINEERING.",
+        "s5_title": "5. LIMITACION DE RESPONSABILIDAD",
+        "s5_body": "NUWESOFT ENGINEERING no sera responsable por daños directos, indirectos, incidentales o consecuentes derivados del uso o la imposibilidad de uso de nuestros servicios, en la maxima medida permitida por la ley aplicable.",
+        "s6_title": "6. TERMINACION",
+        "s6_body": "Cualquiera de las partes puede terminar la relacion contractual en cualquier momento, sujeto a los terminos establecidos en el acuerdo de proyecto correspondiente. Las disposiciones de propiedad intelectual y confidencialidad sobreviviran a la terminacion.",
+        "s7_title": "7. LEGISLACION APLICABLE",
+        "s7_body": "Estos terminos se rigen por las leyes de la Republica Argentina. Cualquier disputa relacionada con estos terminos sera sometida a la jurisdiccion de los tribunales de la Ciudad Autonoma de Buenos Aires.",
+        "s8_title": "8. CONTACTO",
+        "s8_body": "Para consultas sobre estos terminos y condiciones, puedes escribirnos a legal{'@'}nuwesoft.com o utilizar nuestro formulario de contacto."
     }
 }

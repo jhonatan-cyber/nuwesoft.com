@@ -1,224 +1,138 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { usePostHog } from '@/composables/usePostHog';
+import { usePageTracking } from '@/composables/usePageTracking';
+import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import PublicGridBackground from '@/Components/PublicGridBackground.vue';
 import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Textarea } from '@/Components/ui/textarea';
-import { Label } from '@/Components/ui/label';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/Components/ui/card';
-import { 
-    Mail, 
-    Clock, 
-    Send, 
-    Twitter, 
-    Linkedin, 
-    Github, 
-    MessageSquare,
-    Globe
-} from 'lucide-vue-next';
+import ContactHero from '@/Components/ContactHero.vue';
+import ContactInfo from '@/Components/ContactInfo.vue';
+import ContactForm from '@/Components/ContactForm.vue';
 
 const { t } = useI18n();
+const { skeletonReady } = useSkeletonLoader();
 
-const form = useForm({
-    nombre: '',
-    email: '',
-    mensaje: '',
-});
+const page = usePage();
+const { capture } = usePostHog();
+const settings = computed(() => page.props.settings || {});
+const siteName = computed(() => settings.value.site_name || 'NUWESOFT');
+const pageTitle = computed(() => t('contacto.head_title').replace('NUWESOFT', siteName.value));
+const pageUrl = computed(() => window.location.href);
+const pageDesc = computed(() => t('contacto.subtitle'));
 
-const isSubmitting = ref(false);
-const showSuccess = ref(false);
-
-const submit = () => {
-    isSubmitting.value = true;
-    // Simular envío
-    setTimeout(() => {
-        isSubmitting.value = false;
-        showSuccess.value = true;
-        form.reset();
-        setTimeout(() => showSuccess.value = false, 5000);
-    }, 1500);
-};
-
-const isVisible = ref(false);
 onMounted(() => {
-    isVisible.value = true;
+    // Track contact page visit as conversion step in A/B funnel
+    capture('contacto_page_view', {
+        referrer: document.referrer || 'direct',
+        source: window.location.href.includes('ref=') ? 'ad' : 'organic',
+    });
 });
-
-const socialLinks = [
-    { name: 'Twitter', icon: Twitter, href: '#', color: 'hover:bg-brutalist-blue' },
-    { name: 'LinkedIn', icon: Linkedin, href: '#', color: 'hover:bg-brutalist-pink' },
-    { name: 'GitHub', icon: Github, href: '#', color: 'hover:bg-brutalist-yellow hover:text-black' },
-];
 </script>
 
 <template>
-    <Head :title="t('contacto.head_title')" />
-    <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
+    <Head :title="pageTitle">
+        <meta name="description" :content="pageDesc" />
+        <meta property="og:title" :content="pageTitle" />
+        <meta property="og:description" :content="pageDesc" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" :content="pageUrl" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" :content="pageTitle" />
+        <meta name="twitter:description" :content="pageDesc" />
+        <link rel="canonical" :href="pageUrl" />
+    </Head>
+    <div
+        class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white"
+    >
         <PublicGridBackground />
         <PublicSiteHeader />
 
-        <main class="relative z-10">
-            <!-- Hero Section -->
-            <section class="pt-40 pb-20 px-6 border-b-8 border-black dark:border-white bg-brutalist-yellow dark:bg-brutalist-blue text-black dark:text-white">
-                <div class="max-w-[1400px] mx-auto">
-                    <div class="inline-block bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-black uppercase tracking-[0.2em] italic mb-8 transform -rotate-2">
-                        {{ t('contacto.badge') }}
-                    </div>
-                    
-                    <h1 class="text-[8vw] md:text-[10rem] font-display font-black leading-[0.8] uppercase italic tracking-tighter mb-12">
-                        <span class="block">{{ t('contacto.title1') }}</span>
-                        <span class="block text-black drop-shadow-[8px_8px_0px_rgba(255,255,255,0.35)] dark:text-white dark:drop-shadow-[8px_8px_0px_rgba(0,0,0,0.45)]">{{ t('contacto.title2') }}</span>
-                        <span class="block">{{ t('contacto.title3') }}</span>
-                    </h1>
-
-                    <p class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter max-w-4xl leading-none">
-                        {{ t('contacto.subtitle') }}
-                    </p>
-                </div>
-            </section>
-
-            <!-- Contact Grid -->
-            <section class="max-w-[1400px] mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
-                
-                <!-- Info Column -->
-                <div class="lg:col-span-5 space-y-12">
-                    <div class="p-10 border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white bg-white dark:bg-black relative group">
-                        <div class="absolute -top-6 -right-6 w-24 h-24 bg-brutalist-pink border-4 border-black dark:border-white flex items-center justify-center transform rotate-12 group-hover:rotate-0 transition-transform">
-                            <MessageSquare class="w-12 h-12 text-white" />
+        <main id="main-content" class="relative z-10">
+            <Transition name="fade" mode="out-in">
+                <!-- ═══ SKELETON ═══ -->
+                <div v-if="!skeletonReady" key="skeleton" class="relative overflow-hidden pointer-events-none select-none">
+                    <!-- Hero skeleton -->
+                    <section class="relative overflow-hidden border-b-8 border-black bg-brutalist-yellow px-6 pt-20 pb-10 text-black dark:border-white dark:bg-brutalist-blue dark:text-white">
+                        <div class="mx-auto max-w-[1400px]">
+                            <div class="mb-4 mt-4 md:mt-6">
+                                <div class="h-8 w-40 skeleton-bg border-4 border-black dark:border-white"></div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="h-24 w-full skeleton-bg md:h-32"></div>
+                                <div class="h-24 w-5/6 skeleton-bg md:h-32"></div>
+                                <div class="h-24 w-4/6 skeleton-bg md:h-32"></div>
+                            </div>
+                            <div class="mt-4 h-8 w-3/4 skeleton-bg md:h-10"></div>
                         </div>
-                        
-                        <h2 class="text-4xl font-display font-black uppercase italic mb-10 underline decoration-brutalist-yellow decoration-8 underline-offset-4 text-black dark:text-white">
-                            {{ t('contacto.info.title') }}
-                        </h2>
+                    </section>
 
-                        <div class="space-y-8">
-                            <div class="flex items-start space-x-6">
-                                <div class="w-12 h-12 bg-brutalist-blue border-4 border-black dark:border-white flex items-center justify-center shrink-0">
-                                    <Mail class="w-6 h-6 text-black" />
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-black uppercase text-gray-500">{{ t('contacto.info.email_label') }}</span>
-                                    <a href="mailto:hello@nuwesoft.com" class="text-2xl font-black uppercase italic hover:text-brutalist-pink transition-colors text-black dark:text-white">HELLO@NUWESOFT.COM</a>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start space-x-6">
-                                <div class="w-12 h-12 bg-brutalist-yellow border-4 border-black dark:border-white flex items-center justify-center shrink-0">
-                                    <Globe class="w-6 h-6 text-black" />
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-black uppercase text-gray-500">{{ t('contacto.info.location_label') }}</span>
-                                    <span class="text-2xl font-black uppercase italic text-black dark:text-white">{{ t('contacto.info.location_value') }}</span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start space-x-6">
-                                <div class="w-12 h-12 bg-brutalist-pink border-4 border-black dark:border-white flex items-center justify-center shrink-0">
-                                    <Clock class="w-6 h-6 text-white" />
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-black uppercase text-gray-500">{{ t('contacto.info.hours_label') }}</span>
-                                    <span class="text-2xl font-black uppercase italic text-black dark:text-white">{{ t('contacto.info.hours_value') }}</span>
+                    <!-- Grid skeleton -->
+                    <section class="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 py-24 lg:grid-cols-12">
+                        <!-- Left: Info blocks skeleton (4 items) -->
+                        <div class="lg:col-span-5 space-y-8">
+                            <div class="border-4 border-black bg-white p-10 shadow-brutalist dark:border-white dark:bg-black dark:shadow-brutalist-white">
+                                <div class="mb-10 h-10 w-48 skeleton-bg"></div>
+                                <div v-for="j in 4" :key="'info-' + j" class="mb-8 flex items-start gap-6">
+                                    <div class="h-12 w-12 shrink-0 skeleton-bg border-4 border-black dark:border-white"></div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="h-3 w-24 skeleton-bg"></div>
+                                        <div class="h-6 w-44 skeleton-bg"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-12 pt-12 border-t-4 border-black dark:border-white">
-                            <span class="block text-sm font-black uppercase text-gray-500 mb-6">{{ t('contacto.info.social_label') }}</span>
-                            <div class="flex space-x-4">
-                                <a v-for="social in socialLinks" :key="social.name" :href="social.href" 
-                                    class="w-16 h-16 border-4 border-black dark:border-white flex items-center justify-center transition-all shadow-brutalist dark:shadow-brutalist-white hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] text-black dark:text-white"
-                                    :class="social.color">
-                                    <component :is="social.icon" class="w-8 h-8" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Decoration Card -->
-                    <div class="hidden lg:block p-8 bg-brutalist-blue border-4 border-black dark:border-white transform -rotate-2 shadow-brutalist dark:shadow-brutalist-white">
-                         <p class="text-3xl font-black uppercase italic leading-none text-black">
-                            "{{ t('manifesto.quote') }}"
-                         </p>
-                    </div>
-                </div>
-
-                <!-- Form Column -->
-                <div class="lg:col-span-7">
-                    <Card class="bg-white dark:bg-black rounded-none border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white overflow-hidden">
-                        <CardHeader class="p-10 border-b-4 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black">
-                            <CardTitle class="text-5xl font-display font-black uppercase italic tracking-tighter leading-none mb-4">
-                                {{ t('contacto.card_title') }} <span class="bg-brutalist-pink text-white px-2">{{ t('contacto.card_title_span') }}</span>
-                            </CardTitle>
-                            <CardDescription class="text-white/80 dark:text-black/80 font-black uppercase italic tracking-widest text-lg">
-                                {{ t('contacto.card_desc') }}
-                            </CardDescription>
-                        </CardHeader>
-                        
-                        <CardContent class="p-10">
-                            <form @submit.prevent="submit" class="space-y-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="space-y-4">
-                                        <Label for="nombre" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
-                                            <span>01. {{ t('contacto.label_name') }}</span>
-                                        </Label>
-                                        <Input v-model="form.nombre" id="nombre" 
-                                            class="h-16 bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 focus-visible:ring-0 focus-visible:bg-brutalist-yellow/20 text-xl font-bold uppercase italic text-black dark:text-white transition-colors" 
-                                            :placeholder="t('contacto.placeholder_name')" required />
+                        <!-- Right: Form skeleton -->
+                        <div class="lg:col-span-7">
+                            <div class="border-4 border-black shadow-brutalist dark:border-white dark:shadow-brutalist-white">
+                                <div class="border-b-4 border-black bg-black p-10 text-white dark:border-white dark:bg-white">
+                                    <div class="h-12 w-3/4 skeleton-bg bg-white/20 dark:bg-black/20"></div>
+                                    <div class="mt-4 h-6 w-1/2 skeleton-bg bg-white/20 dark:bg-black/20"></div>
+                                </div>
+                                <div class="space-y-8 p-10">
+                                    <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                                        <div class="space-y-4">
+                                            <div class="h-5 w-32 skeleton-bg"></div>
+                                            <div class="h-16 w-full skeleton-bg border-4 border-black dark:border-white"></div>
+                                        </div>
+                                        <div class="space-y-4">
+                                            <div class="h-5 w-32 skeleton-bg"></div>
+                                            <div class="h-16 w-full skeleton-bg border-4 border-black dark:border-white"></div>
+                                        </div>
                                     </div>
                                     <div class="space-y-4">
-                                        <Label for="email" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
-                                            <span>02. {{ t('contacto.label_email') }}</span>
-                                        </Label>
-                                        <Input v-model="form.email" id="email" type="email" 
-                                            class="h-16 bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 focus-visible:ring-0 focus-visible:bg-brutalist-blue/20 text-xl font-bold uppercase italic text-black dark:text-white transition-colors" 
-                                            :placeholder="t('contacto.placeholder_email')" required />
+                                        <div class="h-5 w-32 skeleton-bg"></div>
+                                        <div class="h-40 w-full skeleton-bg border-4 border-black dark:border-white"></div>
                                     </div>
+                                    <div class="h-20 w-full skeleton-bg border-4 border-black dark:border-white"></div>
                                 </div>
-                                <div class="space-y-4">
-                                    <Label for="mensaje" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
-                                        <span>03. {{ t('contacto.label_message') }}</span>
-                                    </Label>
-                                    <Textarea v-model="form.mensaje" id="mensaje" rows="6" 
-                                        class="bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 py-4 focus-visible:ring-0 focus-visible:bg-brutalist-pink/20 text-xl font-bold uppercase italic resize-none text-black dark:text-white transition-colors" 
-                                        :placeholder="t('contacto.placeholder_message')" required />
-                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                                <div class="relative">
-                                    <Button type="submit" :disabled="isSubmitting"
-                                        class="w-full bg-brutalist-pink text-white font-black h-auto py-8 text-3xl border-4 border-black dark:border-white rounded-none shadow-brutalist dark:shadow-brutalist-white hover:shadow-brutalist-hover hover:translate-x-[4px] hover:translate-y-[4px] transition-all uppercase italic group overflow-hidden">
-                                        <span v-if="!isSubmitting" class="flex items-center justify-center space-x-4">
-                                            <span>{{ t('contacto.submit') }}</span>
-                                            <Send class="w-8 h-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-                                        </span>
-                                        <span v-else class="flex items-center space-x-4">
-                                            <span class="animate-pulse">PROCESSING...</span>
-                                        </span>
-                                    </Button>
-
-                                    <!-- Success Feedback -->
-                                    <div v-if="showSuccess" class="absolute inset-0 bg-brutalist-yellow border-4 border-black flex items-center justify-center z-20 animate-in fade-in zoom-in duration-300">
-                                        <span class="text-black font-black text-2xl uppercase italic flex items-center space-x-4">
-                                            <ArrowRight class="w-8 h-8" />
-                                            <span>{{ t('contacto.alert') }}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
+                    <div class="absolute inset-0 shimmer-sweep z-10"></div>
                 </div>
-            </section>
+
+                <!-- ═══ REAL CONTENT ═══ -->
+                <div v-else key="content">
+                    <ContactHero />
+
+                    <!-- Contact Grid -->
+                    <section
+                        class="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 py-24 lg:grid-cols-12"
+                    >
+                        <div class="lg:col-span-5">
+                            <ContactInfo />
+                        </div>
+                        <div class="lg:col-span-7">
+                            <ContactForm />
+                        </div>
+                    </section>
+                </div>
+            </Transition>
         </main>
 
         <PublicSiteFooter />
@@ -227,7 +141,7 @@ const socialLinks = [
 
 <style>
 .font-display { font-family: 'Space Grotesk', sans-serif; }
-body { 
+body {
     @apply bg-white dark:bg-black transition-colors duration-500;
 }
 

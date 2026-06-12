@@ -6,52 +6,49 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#FAFAFC] dark:bg-[#030303] text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col items-center justify-center p-6 relative transition-colors duration-300">
-        <!-- Subtle Background Elements (Dashboard Style) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-black focus:text-white focus:px-6 focus:py-3 focus:text-sm focus:font-black focus:uppercase focus:tracking-widest focus:border-4 focus:border-white focus:outline-none">
+        Saltar al contenido
+    </a>
+    <div id="main-content" class="min-h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black flex flex-col items-center justify-center p-6 relative transition-colors duration-300">
+        <!-- Background blobs -->
         <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[120px] dark:bg-indigo-500/10 transition-opacity duration-1000"></div>
-            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px] dark:bg-blue-500/10 transition-opacity duration-1000"></div>
+            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-black/5 blur-[120px] dark:bg-white/5"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-black/5 blur-[120px] dark:bg-white/5"></div>
         </div>
 
-        <div class="fixed top-6 right-6 z-50 flex gap-4">
+        <!-- Theme & Lang switchers -->
+        <div class="fixed top-6 right-6 z-50 flex gap-3">
             <DashboardThemeSwitcher />
             <DashboardLanguageSwitcher />
         </div>
 
         <div class="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-            <!-- Logo Master -->
+            <!-- Logo -->
             <div class="flex justify-center mb-8">
                 <Link href="/" class="group transition-transform hover:scale-105 active:scale-95">
-                    <div class="rounded-3xl border border-slate-200 bg-white/50 px-6 py-5 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-black/40">
+                    <div class="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-6 py-5 shadow-xl">
                         <ApplicationLogo class="w-48 sm:w-56" />
                     </div>
                 </Link>
             </div>
 
-            <!-- Dashboard Style Card -->
-            <div class="bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 shadow-2xl rounded-[2.5rem] overflow-hidden">
-                <slot />
-            </div>
+            <!-- Card with Page Transition -->
+            <Transition name="page" mode="out-in">
+                <div :key="$page.url" class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-8 shadow-2xl rounded-[2.5rem] overflow-hidden">
+                    <slot />
+                </div>
+            </Transition>
 
             <!-- Footer decorativo -->
-            <div class="mt-10 flex flex-col items-center gap-4 opacity-40">
-                <div class="flex items-center gap-6">
-                    <div class="h-px w-12 bg-slate-300 dark:bg-slate-700"></div>
-                    <p class="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            <div class="mt-8 flex flex-col items-center gap-3 opacity-30">
+                <div class="flex items-center gap-4">
+                    <div class="h-px w-12 bg-neutral-300 dark:bg-neutral-700"></div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">
                         NUWESOFT &bull; AUTH GATEWAY
                     </p>
-                    <div class="h-px w-12 bg-slate-300 dark:bg-slate-700"></div>
-                </div>
-                <div class="flex gap-2">
-                    <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
-                    <div class="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+                    <div class="h-px w-12 bg-neutral-300 dark:bg-neutral-700"></div>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-.font-display { font-family: 'Space Grotesk', sans-serif; }
-</style>

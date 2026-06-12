@@ -74,3 +74,180 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Utility: Space Grotesk for display headings */
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════
+   Skeleton / Shimmer Placeholder Utilities
+   Usado por componentes de skeleton (SkeletonCard,
+   SkeletonPostCard, SkeletonDashCard) y páginas con
+   transición de carga (useSkeletonLoader).
+
+   Uso:
+     <div class="skeleton-line" />              → línea de texto
+     <div class="skeleton-block" />             → bloque genérico
+     <div class="skeleton-circle" />            → círculo
+     <div class="skeleton-bg"></div>            → solo bg (usa overlay shimmer-sweep)
+     <div class="absolute inset-0 shimmer-sweep" /> → overlay animado
+   ══════════════════════════════════════════════════ */
+
+/* ── Skeleton base background ── */
+.skeleton-bg {
+    background: #e4e4e7;
+    animation: pulse-opacity 1.5s ease-in-out infinite;
+}
+
+.dark .skeleton-bg {
+    background: #27272a;
+}
+
+/* ── Shimmer sweep overlay ── */
+.shimmer-sweep {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    animation: shimmer-slide 1.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.dark .shimmer-sweep {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+}
+
+@keyframes shimmer-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-opacity {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ══════════════════════════════════════════════════
+   Fade Transition (usado por skeletons via useSkeletonLoader)
+   ══════════════════════════════════════════════════ */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* Selection */
+::selection {
+  @apply bg-brutalist-yellow text-black;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-black;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply border-4 border-black bg-brutalist-pink;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-brutalist-yellow;
+}
+
+/* Floating animations for decorative elements */
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(12deg); }
+  50% { transform: translate3d(0, -14px, 0) rotate(16deg); }
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-18px, 12px, 0); }
+}
+
+@keyframes float-slow-reverse {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(18px, -12px, 0); }
+}
+
+.float-slow { animation: float-slow 10s ease-in-out infinite; }
+.float-slower { animation: float-slower 14s ease-in-out infinite; }
+.float-slow-reverse { animation: float-slow-reverse 12s ease-in-out infinite; }
+
+/* Imperceptible scrollbar for admin modals */
+.scrollbar-imperceptible {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scrollbar-imperceptible::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-imperceptible::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-imperceptible::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+.scrollbar-imperceptible:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(163, 163, 163, 0.3);
+}
+.dark .scrollbar-imperceptible:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(115, 115, 115, 0.3);
+}
+
+/* ══════════════════════════════════════════════════
+   Inertia Progress Bar (Brutalist)
+   ══════════════════════════════════════════════════ */
+
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  height: 6px;
+  border-bottom: 4px solid currentColor;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 1);
+  background: #FF2E63;
+  border-bottom-color: #FF2E63;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  animation: nprogress-throb 1.5s ease-in-out infinite;
+}
+
+#nprogress .peg {
+  display: none !important;
+}
+
+#nprogress .spinner {
+  display: none !important;
+}
+
+/* Dark mode overrides */
+.dark #nprogress .bar {
+  background: #FF4400;
+  border-bottom-color: #FF4400;
+  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 1);
+}
+
+@keyframes nprogress-throb {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

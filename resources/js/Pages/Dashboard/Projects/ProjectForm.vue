@@ -26,7 +26,6 @@ const selectedTechnologies = ref(props.project?.technologies?.map(t => t.id) || 
 const form = useForm({
     name: props.project?.name ?? '',
     category: props.project?.category ?? 'web',
-    stack: props.project?.stack ? (Array.isArray(props.project.stack) ? props.project.stack.join(', ') : props.project.stack) : '',
     desc: props.project?.desc ?? '',
     icon: props.project?.icon ?? 'Briefcase',
     project_url: props.project?.project_url ?? '',
@@ -54,14 +53,9 @@ const getPreviewUrl = (file) => {
 };
 
 const submit = () => {
-    const formattedStack = typeof form.stack === 'string' 
-        ? form.stack.split(',').map(s => s.trim()).filter(s => s !== '')
-        : form.stack;
-
     const data = new FormData();
     data.append('name', form.name);
     data.append('category', form.category);
-    data.append('stack', JSON.stringify(formattedStack));
     data.append('desc', form.desc);
     data.append('icon', form.icon);
     data.append('project_url', form.project_url);
@@ -116,16 +110,10 @@ const submit = () => {
                     <select id="category" v-model="form.category" class="w-full flex h-10 rounded-xl border border-gray-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-offset-slate-950 dark:focus-visible:ring-blue-600 transition-colors">
                         <option value="web">Web</option>
                         <option value="mobile">Mobile</option>
-                        <option value="design">Design</option>
-                        <option value="other">Other</option>
+                        <option value="cloud">Cloud / DevOps</option>
+                        <option value="automation">Automatización</option>
                     </select>
                     <div v-if="form.errors.category" class="text-sm text-red-500">{{ form.errors.category }}</div>
-                </div>
-
-                <div class="space-y-2">
-                    <Label for="stack" class="dark:text-slate-200">{{ t('dashboard_panel.projects.fields.stack') }}</Label>
-                    <Input id="stack" v-model="form.stack" placeholder="Vue, Laravel, Tailwind" class="bg-white/50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 focus:border-blue-500 rounded-xl transition-colors" />
-                    <div v-if="form.errors.stack" class="text-sm text-red-500">{{ form.errors.stack }}</div>
                 </div>
 
                 <div class="space-y-2">
@@ -147,7 +135,7 @@ const submit = () => {
                                 class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-white dark:bg-slate-950"
                             />
                             <div class="flex items-center gap-2 overflow-hidden">
-                                <img v-if="tech.logo_url" :src="tech.logo_url" class="w-4 h-4 object-contain opacity-70 group-hover:opacity-100" />
+                                <img v-if="tech.logo_url" :src="tech.logo_url" :class="['w-4 h-4 object-contain opacity-70 group-hover:opacity-100', tech.invert_dark ? 'dark:invert dark:brightness-0 dark:invert' : '']" />
                                 <span class="text-[10px] font-bold uppercase tracking-tight text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white truncate">{{ tech.name }}</span>
                             </div>
                         </label>
@@ -161,7 +149,7 @@ const submit = () => {
                 </div>
 
                 <div class="flex items-center space-x-2 pt-4">
-                    <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                    <Switch id="is_active" v-model="form.is_active" />
                     <Label for="is_active" class="dark:text-slate-200">{{ t('dashboard_panel.projects.fields.active') }}</Label>
                 </div>
             </div>
@@ -177,7 +165,7 @@ const submit = () => {
                 <!-- Existing Images -->
                 <div v-for="image in existingImages" :key="image.id" class="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
                     <img :src="image.url" class="w-full h-full object-cover" />
-                    <button type="button" @click="removeExistingImage(image.id)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" @click="removeExistingImage(image.id)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:opacity-100">
                         <XCircle class="w-4 h-4" />
                     </button>
                 </div>
@@ -185,7 +173,7 @@ const submit = () => {
                 <!-- New Images Previews -->
                 <div v-for="(file, index) in newImages" :key="index" class="relative group aspect-video rounded-xl overflow-hidden border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-900/20">
                     <img :src="getPreviewUrl(file)" class="w-full h-full object-cover" />
-                    <button type="button" @click="removeNewImage(index)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" @click="removeNewImage(index)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:opacity-100">
                         <XCircle class="w-4 h-4" />
                     </button>
                 </div>

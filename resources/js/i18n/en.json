@@ -47,6 +47,7 @@
     "services": "SERVICES",
     "portfolio": "PORTFOLIO",
     "contact": "CONTACT",
+    "blog": "BLOG",
     "dashboard": "DASHBOARD",
     "actions": {
         "edit": "EDIT",
@@ -74,14 +75,27 @@
             "name": "NAME",
             "category": "CATEGORY",
             "is_active": "ACTIVE STATUS",
-            "logo": "LOGO"
+            "logo": "LOGO",
+            "date": "DATE",
+            "invert_dark": "INVERT IN DARK MODE"
+        },
+        "categories": {
+            "languages": "LANGUAGES",
+            "frontend": "FRONTEND",
+            "backend": "BACKEND",
+            "mobile": "MOBILE",
+            "database": "DATABASE",
+            "infrastructure": "INFRASTRUCTURE",
+            "automation": "AUTOMATION",
+            "ui": "UI / COMPONENTS"
         },
         "placeholders": {
             "name": "E.G. LARAVEL, VUE.JS, DOCKER...",
             "category": "SELECT A CATEGORY"
         },
         "descriptions": {
-            "is_active": "DETERMINES IF THE TECHNOLOGY IS DISPLAYED IN THE PORTFOLIO"
+            "is_active": "DETERMINES IF THE TECHNOLOGY IS DISPLAYED IN THE PORTFOLIO",
+            "invert_dark": "ACTIVATE FOR DARK LOGOS THAT AREN'T VISIBLE IN DARK MODE"
         },
         "modals": {
             "create_title": "CREATE TECHNOLOGY",
@@ -90,23 +104,96 @@
             "edit_desc": "UPDATE TOOL INFORMATION",
             "save": "SAVE",
             "cancel": "CANCEL"
+        },
+        "status": {
+            "active": "ACTIVE",
+            "inactive": "OFF"
+        },
+        "delete_modal": {
+            "confirm": "DELETE",
+            "cancel": "CANCEL",
+            "deleting": "DELETING..."
         }
     },
     "logout": "LOG OUT",
     "profile": "PROFILE",
     "home": "HOME",
-    "login": "MASTER ACCESS",
+    "login": "LOGIN",
     "auth": {
-        "login_title": "Master Access",
+        "login_title": "Sign in to your account",
         "login_subtitle": "ENTER YOUR SYSTEM CREDENTIALS",
-        "email": "Email Protocol",
+        "email": "Email",
         "password": "Password",
         "remember_me": "Remember session",
         "forgot_password": "Recover Access?",
         "sign_in": "SIGN IN",
         "processing": "PROCESSING...",
-        "email_placeholder": "admin@nuwesoft.com",
-        "password_placeholder": "••••••••"
+        "email_placeholder": "admin{'@'}nuwesoft.com",
+        "password_placeholder": "••••••••",
+        "no_account": "Don't have an account? Create one",
+        "feature_projects": "PROJECT MANAGEMENT",
+        "feature_tech": "TECH CONTROL",
+        "feature_multilang": "MULTILANG PANEL",
+        "system_online": "SYSTEM ONLINE",
+        "admin_version": "ADMIN PANEL v1.0",
+        "control_title": "CONTROL",
+        "nuwesoft_brand": "NUWESOFT",
+        "tagline": "MANAGE YOUR DIGITAL INFRASTRUCTURE",
+        "copyright": "© 2026 — NUWESOFT ENGINEERING"
+    },
+    "settings": {
+        "title": "SETTINGS",
+        "subtitle": "SITE CONFIGURATION",
+        "save": "SAVE SETTINGS",
+        "saving": "SAVING...",
+        "sections": {
+            "identity": "SITE IDENTITY",
+            "identity_desc": "BRAND AND VISUAL CONFIGURATION",
+            "contact": "CONTACT INFORMATION",
+            "contact_desc": "EMAIL, PHONE AND ADDRESS",
+            "social": "SOCIAL LINKS",
+            "social_desc": "CONNECT YOUR SOCIAL NETWORKS"
+        },
+        "fields": {
+            "logo": "SITE LOGO",
+            "site_name": "SITE NAME",
+            "tagline": "TAGLINE",
+            "email": "EMAIL",
+            "phone": "PHONE",
+            "address": "ADDRESS"
+        },
+        "hints": {
+            "logo": "Recommended: PNG or SVG, max 2MB"
+        }
+    },
+    "messages": {
+        "title": "MESSAGES",
+        "subtitle": "CONTACT REQUESTS",
+        "filters": {
+            "all": "ALL",
+            "unread": "UNREAD",
+            "read": "READ"
+        },
+        "actions": {
+            "mark_all_read": "MARK ALL AS READ",
+            "reply_by_email": "REPLY BY EMAIL",
+            "delete": "DELETE MESSAGE",
+            "delete_confirm": "From {name}. This action cannot be undone.",
+            "cancel": "CANCEL",
+            "deleting": "DELETING..."
+        },
+        "empty": {
+            "title": "NO MESSAGES",
+            "unread": "NO UNREAD MESSAGES",
+            "all": "NO CONTACT MESSAGES YET"
+        },
+        "pagination": {
+            "showing": "SHOWING {from}–{to} OF {total}"
+        },
+        "stats": {
+            "pending": "PENDING MESSAGES",
+            "unread": "{count} UNREAD"
+        }
     },
     "dashboard_panel": {
         "welcome": "WELCOME, MASTER",
@@ -114,6 +201,8 @@
         "stats": {
             "projects": "ACTIVE PROJECTS",
             "uptime": "SYSTEM UPTIME",
+            "technologies": "TECHNOLOGIES",
+            "pending_messages": "PENDING MESSAGES",
             "deploy": "LAST DEPLOY",
             "commits": "COMMITS / WEEK"
         },
@@ -122,7 +211,8 @@
             "projects_admin": "MANAGE PROJECTS",
             "services": "MANAGE SERVICES",
             "portfolio": "VIEW PORTFOLIO",
-            "contact": "CONTACT REQUESTS"
+            "contact": "CONTACT REQUESTS",
+            "messages": "MESSAGES INBOX"
         },
         "projects": {
             "title": "PROJECT MANAGEMENT",
@@ -135,9 +225,13 @@
                 "name": "PROJECT NAME",
                 "category": "CATEGORY",
                 "stack": "TECHNOLOGIES (Comma separated)",
+                "desc": "DESCRIPTION",
                 "description": "DESCRIPTION",
                 "icon": "ICON",
+                "image_url": "IMAGE URL",
+                "project_url": "PROJECT URL",
                 "url": "PROJECT URL",
+                "is_active": "ACTIVE",
                 "active": "PROJECT ACTIVE",
                 "images": "ASSETS GALLERY"
             },
@@ -166,7 +260,9 @@
     "marquee": {
         "clean_code": "CLEAN CODE GUARANTEED",
         "scalable": "SCALABLE ARCHITECTURE",
-        "support": "24/7 SUPPORT"
+        "support": "24/7 SUPPORT",
+        "agile": "AGILE METHODOLOGIES",
+        "innovation": "CONSTANT INNOVATION"
     },
     "skills": {
         "badge": "TECH STACK",
@@ -271,7 +367,7 @@
         "remote": "REMOTE FIRST",
         "global": "GLOBAL IMPACT",
         "built": "BUILT WITH STRATEGY, DISCIPLINE, AND ENGINEERING",
-        "rights": "COPYRIGHT 2026 NUWESOFT ENGINEERING.",
+        "rights": "© 2026 NUWESOFT ENGINEERING.",
         "privacy": "PRIVACY",
         "terms": "TERMS",
         "facebook": "FACEBOOK",
@@ -288,6 +384,7 @@
     "portafolio": {
         "head_title": "Portfolio | NUWESOFT Engineering",
         "badge": "SELECTED WORK",
+        "back": "BACK TO PORTFOLIO",
         "title1": "OUR",
         "title2": "PROJECTS",
         "title3": "OF IMPACT",
@@ -313,6 +410,15 @@
         "images_label": "IMAGES",
         "gallery_label": "GALLERY",
         "project_label": "PROJECT",
+        "tech_stack_label": "TECH STACK",
+        "view_gallery": "VIEW GALLERY",
+        "project_overview": "OVERVIEW",
+        "project_details": "DETAILS",
+        "category_label": "CATEGORY",
+        "tech_count": "TECHNOLOGIES",
+        "images_count": "IMAGES",
+        "cta_title": "EXPLORE MORE PROJECTS",
+        "cta_desc": "Every project tells a different story. Go back to the portfolio and discover more work.",
         "empty_label": "NO RESULTS",
         "empty_title": "THERE ARE NO PROJECTS IN THIS CATEGORY",
         "empty_text": "TRY ANOTHER FILTER OR ADD NEW CASES TO THE PORTFOLIO TO COMPLETE THIS VIEW.",
@@ -352,13 +458,20 @@
         "label_email": "BUSINESS EMAIL",
         "label_message": "PROJECT DETAILS",
         "placeholder_name": "JOHN DOE",
-        "placeholder_email": "JOHN@COMPANY.COM",
+        "placeholder_email": "JOHN{'@'}COMPANY.COM",
         "placeholder_message": "DESCRIBE YOUR VISION HERE...",
         "submit": "SEND MESSAGE ->",
-        "alert": "MESSAGE SENT SUCCESSFULLY (SIMULATION)",
+        "alert": "MESSAGE SENT SUCCESSFULLY",
+        "validation": {
+            "required": "REQUIRED FIELD",
+            "email": "INVALID EMAIL",
+            "max": "TOO MANY CHARACTERS",
+            "server_error": "SERVER ERROR, TRY AGAIN"
+        },
         "info": {
             "title": "DIRECT CHANNELS",
             "email_label": "EMAIL",
+            "phone_label": "PHONE",
             "location_label": "LOCATION",
             "location_value": "REMOTE FIRST / GLOBAL",
             "social_label": "SOCIAL",
@@ -441,5 +554,47 @@
                 "b3": "VISUAL DECISIONS ALIGNED WITH CONVERSION AND USABILITY."
             }
         }
+    },
+    "privacy_page": {
+        "title": "PRIVACY POLICY",
+        "subtitle": "RADICAL TRANSPARENCY IN HOW WE HANDLE YOUR DATA.",
+        "effective_date": "LAST UPDATED: JANUARY 1, 2026",
+        "intro": "At NUWESOFT ENGINEERING we value your privacy. This policy describes how we collect, use, and protect your personal information when you visit our site or use our services.",
+        "s1_title": "1. INFORMATION WE COLLECT",
+        "s1_body": "We collect information you provide directly through contact forms, including your name, email address, and project details. We also automatically collect browsing information such as IP addresses, browser type, pages visited, and time spent, through cookies and similar technologies.",
+        "s2_title": "2. HOW WE USE YOUR INFORMATION",
+        "s2_body": "We use your information to respond to your inquiries, provide requested services, improve our website, send communications related to our services (with your consent), and comply with legal and regulatory obligations.",
+        "s3_title": "3. INFORMATION SHARING",
+        "s3_body": "We do not sell your personal information to third parties. We may share data with trusted service providers who help us operate our site and business (such as hosting, analytics, and communication services), always under confidentiality agreements.",
+        "s4_title": "4. DATA SECURITY",
+        "s4_body": "We implement technical and organizational security measures to protect your information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure.",
+        "s5_title": "5. COOKIES",
+        "s5_body": "We use essential cookies for site operation and analytical cookies to understand how users interact with our content. You can manage your cookie preferences through your browser settings.",
+        "s6_title": "6. YOUR RIGHTS",
+        "s6_body": "You have the right to access, rectify, delete, and port your personal data, as well as to limit or object to its processing. To exercise these rights, contact us through the means indicated.",
+        "s7_title": "7. CONTACT",
+        "s7_body": "If you have questions about this privacy policy, you can contact us at privacy{'@'}nuwesoft.com or through our contact form."
+    },
+    "terms_page": {
+        "title": "TERMS AND CONDITIONS",
+        "subtitle": "THE RULES OF THE GAME. CLEAR AND WITHOUT FINE PRINT.",
+        "effective_date": "LAST UPDATED: JANUARY 1, 2026",
+        "intro": "By accessing and using this website you agree to the following terms and conditions. If you do not agree with any of them, we recommend that you do not use our services.",
+        "s1_title": "1. ACCEPTANCE OF TERMS",
+        "s1_body": "By using our website and services, you confirm that you have read, understood, and agree to be bound by these terms and conditions. NUWESOFT ENGINEERING reserves the right to modify these terms at any time, notifying changes through publication on this page.",
+        "s2_title": "2. SERVICES",
+        "s2_body": "NUWESOFT ENGINEERING provides software development, technology consulting, systems architecture, and user experience design services. The scope, pricing, and timeline of each project will be defined in a separate agreement between the parties.",
+        "s3_title": "3. INTELLECTUAL PROPERTY",
+        "s3_body": "All content on this website, including text, images, logos, and code, is the property of NUWESOFT ENGINEERING unless otherwise stated. Source code developed for client projects will be fully delivered to the client upon completion of agreed payment.",
+        "s4_title": "4. USER OBLIGATIONS",
+        "s4_body": "The user agrees to use the website and services in accordance with the law, morality, and public order. Any fraudulent, illegal, or damaging use of the image or interests of NUWESOFT ENGINEERING is prohibited.",
+        "s5_title": "5. LIMITATION OF LIABILITY",
+        "s5_body": "NUWESOFT ENGINEERING shall not be liable for direct, indirect, incidental, or consequential damages arising from the use or inability to use our services, to the maximum extent permitted by applicable law.",
+        "s6_title": "6. TERMINATION",
+        "s6_body": "Either party may terminate the contractual relationship at any time, subject to the terms established in the corresponding project agreement. Intellectual property and confidentiality provisions shall survive termination.",
+        "s7_title": "7. GOVERNING LAW",
+        "s7_body": "These terms are governed by the laws of the Argentine Republic. Any dispute related to these terms shall be submitted to the jurisdiction of the courts of the City of Buenos Aires.",
+        "s8_title": "8. CONTACT",
+        "s8_body": "For inquiries about these terms and conditions, you can write to legal{'@'}nuwesoft.com or use our contact form."
     }
 }

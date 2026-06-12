@@ -1,0 +1,109 @@
+/* ══════════════════════════════════════════════════
+   Lightbox Animations (compartido)
+   Usado por PortfolioProjectDetail.vue y PortfolioLightbox.vue
+   ══════════════════════════════════════════════════ */
+
+/* ── Image transition inside the lightbox ── */
+.lightbox-image-enter-active {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lightbox-image-leave-active {
+    transition: all 0.15s ease-in;
+}
+.lightbox-image-enter-from {
+    opacity: 0;
+    transform: scale(0.95);
+}
+.lightbox-image-leave-to {
+    opacity: 0;
+    transform: scale(1.05);
+}
+
+/* ── Dialog enter/exit ── */
+.lightbox-dialog-enter[data-state="open"] {
+    animation: lightbox-scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.lightbox-dialog-enter[data-state="closed"] {
+    animation: lightbox-scale-out 0.2s ease-in forwards;
+}
+
+@keyframes lightbox-scale-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes lightbox-scale-out {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+}
+
+/* ══════════════════════════════════════════════════
+   Dashboard Dialog Animations
+   Usado por todos los Dialog del dashboard
+   ══════════════════════════════════════════════════ */
+
+.dashboard-dialog-enter[data-state="open"] {
+    animation: dashboard-scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.dashboard-dialog-enter[data-state="closed"] {
+    animation: dashboard-scale-out 0.18s ease-in forwards !important;
+}
+
+@keyframes dashboard-scale-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes dashboard-scale-out {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.97) translateY(4px);
+    }
+}
+
+/* ══════════════════════════════════════════════════
+   Page Transitions (entre páginas/navegación)
+   Usado por AuthenticatedLayout y GuestLayout
+   ══════════════════════════════════════════════════ */
+
+.page-enter-active {
+    transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.page-enter-from {
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+.page-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+}

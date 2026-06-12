@@ -53,6 +53,8 @@ const toggleTheme = (newTheme) => {
                     ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
                     : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
             ]"
+            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+            aria-label="Modo Claro"
             title="Modo Claro"
         >
             <Sun class="w-4 h-4" />
@@ -66,6 +68,8 @@ const toggleTheme = (newTheme) => {
                     ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
                     : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
             ]"
+            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+            aria-label="Modo Oscuro"
             title="Modo Oscuro"
         >
             <Moon class="w-4 h-4" />
@@ -79,6 +83,8 @@ const toggleTheme = (newTheme) => {
                     ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
                     : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
             ]"
+            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+            aria-label="Sistema"
             title="Sistema"
         >
             <Monitor class="w-4 h-4" />

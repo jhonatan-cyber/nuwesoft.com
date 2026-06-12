@@ -1,7 +1,7 @@
 <script setup>
 import { PaginationListItem } from 'radix-vue'
 import { Button } from '@/Components/ui/button'
-import { cn } from '@/utils'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
   value: { type: Number, required: true },
@@ -17,8 +17,8 @@ const props = defineProps({
       size="icon"
       :class="cn('w-10 h-10 rounded-xl font-bold transition-all active:scale-95', 
                  value === $parent.page 
-                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 border-transparent' 
-                 : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600',
+                 ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg border-transparent' 
+                 : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white',
                  props.class)"
     >
       {{ value }}

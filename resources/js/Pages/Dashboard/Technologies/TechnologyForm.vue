@@ -3,8 +3,6 @@ import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Button } from '@/Components/ui/button';
-import { Switch } from '@/Components/ui/switch';
 import { 
     Select,
     SelectContent,
@@ -12,17 +10,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
-import { Loader2, Upload, Trash2, X } from 'lucide-vue-next';
+import { Upload, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { Switch } from '@/Components/ui/switch';
 
 const props = defineProps({
     technology: {
         type: Object,
-        default: null
-    }
+        default: null,
+    },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'submit']);
 const { t } = useI18n();
 const logoPreview = ref(props.technology?.logo_url || null);
 const fileInput = ref(null);
@@ -31,6 +30,7 @@ const form = useForm({
     name: props.technology?.name || '',
     category: props.technology?.category || 'backend',
     is_active: props.technology ? !!props.technology.is_active : true,
+    invert_dark: props.technology ? !!props.technology.invert_dark : false,
     logo: null,
     _method: props.technology ? 'PUT' : 'POST'
 });
@@ -58,47 +58,57 @@ const submit = () => {
         ? route('technologies.update', props.technology.id) 
         : route('technologies.store');
 
+    // Only send logo if it's a File object, otherwise remove it
+    if (!(form.logo instanceof File)) {
+        form.logo = undefined;
+    }
+
     form.post(url, {
-        onSuccess: () => emit('close'),
+        onSuccess: () => {
+            // Small delay so Radix Vue can finish its dialog close animation
+            // and remove data-scroll-locked from <body> before Inertia navigates.
+            setTimeout(() => emit('close'), 80);
+        },
+        forceFormData: true,
     });
 };
 </script>
 
 <template>
-    <form @submit.prevent="submit" class="space-y-6">
+    <form id="technology-form" @submit.prevent="submit" class="space-y-6 px-6">
         <div class="grid gap-6">
             <!-- Name -->
             <div class="space-y-2">
-                <Label for="name" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <Label for="name" class="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                     {{ t('technologies.fields.name') }}
                 </Label>
                 <Input 
                     id="name" 
                     v-model="form.name" 
                     :placeholder="t('technologies.placeholders.name')"
-                    class="bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500"
+                    class="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 rounded-xl focus:ring-black dark:focus:ring-white px-5 py-5"
                 />
                 <p v-if="form.errors.name" class="text-xs text-rose-500 font-medium">{{ form.errors.name }}</p>
             </div>
 
             <!-- Category -->
             <div class="space-y-2">
-                <Label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <Label class="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                     {{ t('technologies.fields.category') }}
                 </Label>
                 <Select v-model="form.category">
-                    <SelectTrigger class="bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl">
+                    <SelectTrigger class="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 rounded-xl px-5 py-5">
                         <SelectValue :placeholder="t('technologies.placeholders.category')" />
                     </SelectTrigger>
-                    <SelectContent class="rounded-xl border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl">
-                        <SelectItem value="languages">Languages</SelectItem>
-                        <SelectItem value="frameworks">Frameworks</SelectItem>
-                        <SelectItem value="libraries">Libraries</SelectItem>
-                        <SelectItem value="database">Database</SelectItem>
-                        <SelectItem value="cloud">Cloud / DevOps</SelectItem>
-                        <SelectItem value="mobile">Mobile</SelectItem>
-                        <SelectItem value="ai">Artificial Intelligence</SelectItem>
-                        <SelectItem value="tools">Tools</SelectItem>
+                    <SelectContent class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+                        <SelectItem value="languages">{{ t('technologies.categories.languages') }}</SelectItem>
+                        <SelectItem value="frontend">{{ t('technologies.categories.frontend') }}</SelectItem>
+                        <SelectItem value="backend">{{ t('technologies.categories.backend') }}</SelectItem>
+                        <SelectItem value="mobile">{{ t('technologies.categories.mobile') }}</SelectItem>
+                        <SelectItem value="database">{{ t('technologies.categories.database') }}</SelectItem>
+                        <SelectItem value="infrastructure">{{ t('technologies.categories.infrastructure') }}</SelectItem>
+                        <SelectItem value="automation">{{ t('technologies.categories.automation') }}</SelectItem>
+                        <SelectItem value="ui">{{ t('technologies.categories.ui') }}</SelectItem>
                     </SelectContent>
                 </Select>
                 <p v-if="form.errors.category" class="text-xs text-rose-500 font-medium">{{ form.errors.category }}</p>
@@ -106,25 +116,25 @@ const submit = () => {
 
             <!-- Logo Upload -->
             <div class="space-y-2">
-                <Label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <Label class="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                     {{ t('technologies.fields.logo') || 'LOGO' }}
                 </Label>
                 
-                <div v-if="logoPreview" class="relative group w-24 h-24 mx-auto mb-4">
-                    <img :src="logoPreview" class="w-full h-full object-contain rounded-2xl border border-slate-200 dark:border-slate-800 p-2 bg-white dark:bg-slate-900 shadow-sm" />
+                <div v-if="logoPreview" class="relative group w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4">
+                    <img :src="logoPreview" class="w-full h-full object-contain rounded-xl border border-neutral-200 dark:border-neutral-800 p-2 bg-white dark:bg-neutral-900 shadow-sm" />
                     <button 
                         type="button"
                         @click="removeLogo"
                         class="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                        <Trash2 class="w-3.5 h-3.5" />
+                        <Trash2 class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     </button>
                 </div>
 
                 <div 
                     v-else
                     @click="$refs.fileInput.click()"
-                    class="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center cursor-pointer hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all group"
+                    class="border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-xl p-6 sm:p-8 text-center cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all group"
                 >
                     <input 
                         type="file" 
@@ -134,42 +144,24 @@ const submit = () => {
                         accept="image/*"
                     />
                     <div class="flex flex-col items-center gap-2">
-                        <div class="p-3 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors">
-                            <Upload class="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
+                        <div class="p-3 rounded-full bg-neutral-100 dark:bg-neutral-800 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700 transition-colors">
+                            <Upload class="w-5 h-5 text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300" />
                         </div>
-                        <span class="text-xs font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 uppercase tracking-widest">{{ t('technologies.actions.upload_logo') || 'SUBIR LOGO' }}</span>
+                        <span class="text-xs font-bold text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 uppercase tracking-widest">{{ t('technologies.actions.upload_logo') || 'SUBIR LOGO' }}</span>
                     </div>
                 </div>
                 <p v-if="form.errors.logo" class="text-xs text-rose-500 font-medium">{{ form.errors.logo }}</p>
             </div>
 
-            <!-- Status -->
-            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800">
-                <div class="space-y-0.5">
-                    <Label class="text-sm font-bold">{{ t('technologies.fields.is_active') }}</Label>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ t('technologies.descriptions.is_active') }}</p>
+            <!-- Invert Dark Mode -->
+            <div class="flex items-center justify-between gap-4 p-3 sm:p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <div class="space-y-0.5 min-w-0">
+                    <Label class="text-sm font-bold truncate">{{ t('technologies.fields.invert_dark') }}</Label>
+                    <p class="text-[9px] sm:text-[10px] text-neutral-500 uppercase tracking-wider">{{ t('technologies.descriptions.invert_dark') }}</p>
                 </div>
-                <Switch :checked="form.is_active" @update:checked="val => form.is_active = val" />
+                <Switch v-model="form.invert_dark" class="shrink-0" />
             </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <Button 
-                type="button" 
-                variant="ghost" 
-                @click="emit('close')"
-                class="rounded-xl font-bold uppercase text-[10px] tracking-widest"
-            >
-                {{ t('technologies.modals.cancel') }}
-            </Button>
-            <Button 
-                type="submit" 
-                :disabled="form.processing"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 shadow-lg shadow-indigo-600/20 font-bold uppercase text-[10px] tracking-[0.2em]"
-            >
-                <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                {{ t('technologies.modals.save') }}
-            </Button>
-        </div>
     </form>
 </template>

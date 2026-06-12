@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { 
     Plus, 
@@ -10,7 +10,12 @@ import {
     Trash2, 
     Code2,
     CheckCircle2,
-    XCircle
+    XCircle,
+    X,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
+    AlertTriangle,
 } from 'lucide-vue-next';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -20,7 +25,8 @@ import {
     DialogHeader, 
     DialogTitle, 
     DialogDescription,
-    DialogTrigger 
+    DialogTrigger,
+    DialogFooter,
 } from '@/Components/ui/dialog';
 import {
     DropdownMenu,
@@ -30,8 +36,8 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Badge } from '@/Components/ui/badge';
 import TechnologyForm from './TechnologyForm.vue';
-import { ref, computed, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, watch, nextTick, onUnmounted } from 'vue';
+import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import {
     Select,
     SelectContent,
@@ -49,74 +55,175 @@ import {
     PaginationNext,
     PaginationPrev,
 } from '@/Components/ui/pagination';
-
 const props = defineProps({
-    technologies: Object
+    technologies: Object,
+    filters: {
+        type: Object,
+        default: () => ({ search: '', sort_field: 'created_at', sort_order: 'desc' }),
+    },
 });
 
 const { t } = useI18n();
-const search = ref('');
-const isCreateModalOpen = ref(false);
-const editingTechnology = ref(null);
 
+const { skeletonReady } = useSkeletonLoader();
+
+// ── Filter state (initialized from server props) ──
+const search = ref(props.filters?.search || '');
+const sortField = ref(props.filters?.sort_field || 'created_at');
+const sortOrder = ref(props.filters?.sort_order || 'desc');
 const perPage = ref(String(props.technologies.per_page || 24));
 
-watch(perPage, (newValue) => {
-    router.get(route('technologies.index'), { per_page: newValue }, {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true
-    });
-});
+// ── Delete confirmation ──
+const deleteTarget = ref(null);
+const isDeleteModalOpen = ref(false);
+const deleteForm = useForm({});
 
-const handlePageChange = (page) => {
-    router.get(route('technologies.index'), { 
-        page: page,
-        per_page: perPage.value 
+// ── Create / Edit modals ──
+const isCreateModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const editingTechnology = ref(null);
+
+// ── Helpers ──
+function applyFilters(extra = {}) {
+    router.get(route('technologies.index'), {
+        search: search.value || '',
+        sort_field: sortField.value,
+        sort_order: sortOrder.value,
+        per_page: perPage.value,
+        ...extra,
     }, {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
+        replace: true,
+        only: ['technologies', 'filters'],
+    });
+}
+
+// ── Watchers ──
+let debounceTimer;
+watch(search, () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => applyFilters(), 400);
+});
+
+watch(perPage, () => applyFilters());
+
+watch([sortField, sortOrder], () => applyFilters());
+
+// Clean up deleteTarget when delete dialog closes (Escape, click-outside, or cancel)
+watch(isDeleteModalOpen, (val) => {
+    if (!val) {
+        deleteTarget.value = null;
+    }
+});
+
+// ── Pagination ──
+const handlePageChange = (page) => {
+    applyFilters({ page });
+};
+
+// ── Sort toggle ──
+function toggleSort(field) {
+    if (sortField.value === field) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortField.value = field;
+        sortOrder.value = 'asc';
+    }
+}
+
+function sortIcon(field) {
+    if (sortField.value !== field) return ArrowUpDown;
+    return sortOrder.value === 'asc' ? ArrowUp : ArrowDown;
+}
+
+// ── Edit / Delete ──
+const openEditModal = (tech) => {
+    editingTechnology.value = tech;
+    // Let dropdown menu finish closing before opening the dialog
+    nextTick(() => {
+        isEditModalOpen.value = true;
     });
 };
 
-const filteredTechnologies = computed(() => {
-    // Note: With server-side pagination, "filteredTechnologies" only filters the current page.
-    // In a real app with many items, search should probably be server-side too.
-    return props.technologies.data.filter(tech => 
-        tech.name.toLowerCase().includes(search.value.toLowerCase()) ||
-        tech.category.toLowerCase().includes(search.value.toLowerCase())
-    );
-});
+// ─────────────────────────────────────────────────────────────────
+// Radix Vue / reka-ui cleanup
+//
+// reka-ui's DismissableLayer has a cleanup ordering bug: when a dialog
+// closes, two watchEffect cleanups run LIFO. The first removes the
+// layer from the internal set; the second checks whether it was the
+// *last* layer before restoring body.style.pointerEvents. Since the
+// layer is already gone, the check fails and pointer-events is never
+// restored — leaving the entire page unclickable.
+//
+// Additionally, Presence delays unmount of the overlay until the exit
+// animation finishes (~200ms). If the page navigates mid-animation the
+// overlay stays permanently in the DOM, blocking all clicks forever.
+// ─────────────────────────────────────────────────────────────────
 
-const openEditModal = (tech) => {
-    editingTechnology.value = tech;
-};
+/**
+ * Force-clean every trace reka-ui leaves behind.
+ *
+ * reka-ui's DismissableLayer has a cleanup ordering bug: when a dialog
+ * closes, two watchEffect cleanups run LIFO. The first removes the
+ * layer from the internal set; the second checks whether it was the
+ * *last* layer before restoring `body.style.pointerEvents`. Since the
+ * layer is already gone, the check fails and pointer-events is never
+ * restored — leaving the entire page unclickable.
+ *
+ * Additionally, reka-ui's Presence delays unmount of the overlay until
+ * the exit animation finishes (~200ms). If something interrupts the
+ * animation (e.g. Inertia navigation), the overlay stays in the DOM,
+ * blocking all clicks.
+ *
+ * This function removes body styles/attributes AND nukes any leftover
+ * overlay elements that might be stuck in the DOM.
+ */
+import { useRekaCleanup } from '@/composables/useRekaCleanup';
+
+useRekaCleanup(isCreateModalOpen, isEditModalOpen, isDeleteModalOpen);
+
 
 const closeModals = () => {
     isCreateModalOpen.value = false;
-    editingTechnology.value = null;
+    isEditModalOpen.value = false;
+    nextTick(() => {
+        editingTechnology.value = null;
+    });
 };
 
-const deleteForm = useForm({});
-const deleteTechnology = (id) => {
-    if (confirm(t('actions.confirm_delete'))) {
-        deleteForm.delete(route('technologies.destroy', id));
-    }
+const openDeleteConfirm = (tech) => {
+    deleteTarget.value = tech;
+    nextTick(() => {
+        isDeleteModalOpen.value = true;
+    });
 };
 
-const getCategoryColor = (category) => {
-    const colors = {
-        languages: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-        frameworks: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
-        libraries: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-        database: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-        cloud: 'bg-sky-500/10 text-sky-500 border-sky-500/20',
-        tools: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-        ai: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-        mobile: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-    };
-    return colors[category] || 'bg-slate-500/10 text-slate-500 border-slate-500/20';
+const confirmDelete = () => {
+    if (!deleteTarget.value) return;
+    deleteForm.delete(route('technologies.destroy', deleteTarget.value.id), {
+        onSuccess: () => { 
+            isDeleteModalOpen.value = false;
+            deleteTarget.value = null; 
+        },
+    });
 };
+
+// ── Category colors ──
+const categoryColors = {
+    languages: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700',
+    frontend: 'bg-neutral-900 dark:bg-white text-white dark:text-black border-neutral-900 dark:border-white',
+    backend: 'bg-neutral-300 dark:bg-neutral-600 text-neutral-900 dark:text-white border-neutral-400 dark:border-neutral-500',
+    mobile: 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-600',
+    database: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700',
+    infrastructure: 'bg-neutral-300 dark:bg-neutral-600 text-neutral-900 dark:text-white border-neutral-400 dark:border-neutral-500',
+    automation: 'bg-neutral-900 dark:bg-white text-white dark:text-black border-neutral-900 dark:border-white',
+    ui: 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-neutral-300 dark:border-neutral-600',
+};
+
+function getCategoryColor(category) {
+    return categoryColors[category] || 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
+}
 </script>
 
 <template>
@@ -126,52 +233,127 @@ const getCategoryColor = (category) => {
         <template #header>
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+                    <h2 class="text-3xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
                         {{ t('technologies.title') }}
                     </h2>
-                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">
+                    <p class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em] mt-1">
                         {{ t('technologies.subtitle') }}
                     </p>
                 </div>
 
                 <Dialog v-model:open="isCreateModalOpen">
                     <DialogTrigger as-child>
-                        <Button class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-6 py-6 shadow-xl shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] group">
-                            <Plus class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                            <span class="font-bold uppercase tracking-widest text-xs">{{ t('technologies.actions.add') }}</span>
+                        <Button size="sm" class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-4 py-2 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group">
+                            <Plus class="w-4 h-4 mr-1.5 group-hover:rotate-90 transition-transform duration-300" />
+                            <span class="font-bold uppercase tracking-widest text-[10px]">{{ t('technologies.actions.add') }}</span>
                         </Button>
                     </DialogTrigger>
-                    <DialogContent class="sm:max-w-[500px] rounded-[2rem] border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl shadow-2xl">
-                        <DialogHeader>
-                            <DialogTitle class="text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.create_title') }}</DialogTitle>
-                            <DialogDescription class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ t('technologies.modals.create_desc') }}</DialogDescription>
+                    <DialogContent class="sm:max-w-[500px] max-h-[85dvh] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl dashboard-dialog-enter">
+                        <DialogHeader class="shrink-0">
+                            <DialogTitle class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.create_title') }}</DialogTitle>
+                            <DialogDescription class="text-[9px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.create_desc') }}</DialogDescription>
                         </DialogHeader>
-                        <TechnologyForm @close="closeModals" />
+                        <div class="flex-1 overflow-y-auto scrollbar-imperceptible min-h-0">
+                            <TechnologyForm @close="closeModals" />
+                        </div>
+                        <DialogFooter class="shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800 mt-4">
+                            <Button 
+                                type="button" 
+                                variant="ghost" 
+                                @click="closeModals"
+                                class="rounded-xl font-bold uppercase text-xs tracking-wider w-full sm:w-auto"
+                            >
+                                {{ t('technologies.modals.cancel') }}
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                form="technology-form"
+                                class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-8 shadow-lg font-bold uppercase text-xs tracking-wider w-full sm:w-auto"
+                            >
+                                {{ t('technologies.modals.save') }}
+                            </Button>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
         </template>
 
         <div class="space-y-6">
-            <!-- Filters & Per Page -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-4 rounded-[28px]">
+            <Transition name="fade" mode="out-in">
+                <!-- Skeleton Grid -->
+                <div v-if="!skeletonReady" key="skeleton" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
+                    <div v-for="i in 16" :key="'skel-' + i"
+                        class="relative bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-3xl p-4 overflow-hidden pointer-events-none select-none">
+                        <div class="absolute inset-0 shimmer-sweep z-10"></div>
+                        <div class="flex flex-col items-center text-center gap-3">
+                            <div class="w-full h-6 flex justify-end">
+                                <div class="w-8 h-8 rounded-lg skeleton-bg"></div>
+                            </div>
+                            <div class="w-16 h-16 rounded-full skeleton-bg"></div>
+                            <div class="space-y-2 w-full">
+                                <div class="h-3 w-3/4 mx-auto rounded skeleton-bg"></div>
+                                <div class="h-5 w-20 mx-auto rounded-full skeleton-bg"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex justify-center">
+                            <div class="h-3 w-16 rounded skeleton-bg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else key="content">
+                    <!-- Filters Bar -->
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-4 rounded-3xl shadow-xl">
+                <!-- Search -->
                 <div class="relative w-full md:flex-1 group">
-                    <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
                     <Input 
                         v-model="search"
                         :placeholder="t('technologies.search_placeholder')"
-                        class="pl-12 py-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-indigo-500 shadow-sm transition-all text-xs font-bold uppercase tracking-wider"
+                        class="pl-12 pr-10 py-6 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 rounded-2xl focus:ring-black dark:focus:ring-white shadow-sm transition-all text-xs font-bold uppercase tracking-wider"
                     />
+                    <button 
+                        v-if="search" 
+                        @click="search = ''"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+                    >
+                        <X class="w-4 h-4" />
+                    </button>
                 </div>
 
+                <!-- Sort & Per Page -->
                 <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end px-2">
+                    <!-- Sort by -->
+                    <div class="hidden sm:flex items-center gap-1 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-1 shadow-sm">
+                        <button
+                            v-for="opt in [
+                                { key: 'name', label: t('technologies.fields.name') },
+                                { key: 'category', label: t('technologies.fields.category') },
+                                { key: 'created_at', label: t('technologies.fields.date') },
+                            ]"
+                            :key="opt.key"
+                            @click="toggleSort(opt.key)"
+                            :class="['inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2',
+                                    sortField === opt.key
+                                        ? 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white shadow-sm'
+                                        : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
+                            ]"
+                        >
+                            <component :is="sortIcon(opt.key)" class="w-3 h-3" />
+                            {{ opt.label }}
+                        </button>
+                    </div>
+
+                    <div class="h-6 w-px bg-neutral-200 dark:bg-neutral-800 hidden md:block"></div>
+
+                    <!-- Per page -->
                     <div class="flex items-center gap-3">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ t('pagination.per_page') }}</p>
+                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest hidden sm:block">{{ t('pagination.per_page') }}</p>
                         <Select v-model="perPage">
-                            <SelectTrigger class="w-24 h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-xs">
+                            <SelectTrigger class="w-24 h-10 rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-bold text-xs">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent class="rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                            <SelectContent class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                                 <SelectItem value="12" class="text-xs font-bold">12</SelectItem>
                                 <SelectItem value="24" class="text-xs font-bold">24</SelectItem>
                                 <SelectItem value="48" class="text-xs font-bold">48</SelectItem>
@@ -179,41 +361,34 @@ const getCategoryColor = (category) => {
                             </SelectContent>
                         </Select>
                     </div>
-
-                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block mx-2"></div>
-
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
-                        {{ t('pagination.showing') }} {{ technologies.from }}-{{ technologies.to }} {{ t('pagination.of') }} {{ technologies.total }}
-                    </div>
                 </div>
             </div>
 
             <!-- Grid -->
-            <div v-if="filteredTechnologies.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
+            <div v-if="technologies.data.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
                 <div 
-                    v-for="tech in filteredTechnologies" 
+                    v-for="tech in technologies.data" 
                     :key="tech.id"
-                    class="group relative bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/50 rounded-3xl p-4 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden"
+                    class="group relative bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-3xl p-4 hover:shadow-2xl transition-all duration-500 overflow-hidden"
                 >
                     <!-- Background Accent -->
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-neutral-100 dark:bg-neutral-800 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
 
                     <div class="relative flex flex-col items-center text-center gap-3">
                         <div class="w-full flex justify-end absolute -top-1 -right-1 z-10">
-                            <!-- Actions -->
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
-                                    <Button variant="ghost" class="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                        <MoreHorizontal class="h-4 w-4 text-slate-400" />
+                                    <Button variant="ghost" class="h-8 w-8 p-0 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700">
+                                        <MoreHorizontal class="h-4 w-4 text-neutral-400" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" class="w-48 p-2 rounded-2xl border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-black/90 backdrop-blur-xl shadow-2xl">
-                                    <DropdownMenuItem @click="openEditModal(tech)" class="rounded-xl cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-500/10 focus:text-indigo-600 dark:focus:text-indigo-400 py-2.5">
+                                <DropdownMenuContent align="end" class="w-48 p-2 rounded-2xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black shadow-2xl">
+                                    <DropdownMenuItem @click="openEditModal(tech)" class="rounded-xl cursor-pointer focus:bg-neutral-100 dark:focus:bg-neutral-800 focus:text-black dark:focus:text-white py-2.5">
                                         <Pencil class="mr-2 h-4 w-4" />
                                         <span class="font-bold uppercase text-[10px] tracking-widest">{{ t('actions.edit') }}</span>
                                     </DropdownMenuItem>
-                                    <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
-                                    <DropdownMenuItem @click="deleteTechnology(tech.id)" class="rounded-xl cursor-pointer text-rose-500 focus:bg-rose-50 dark:focus:bg-rose-500/10 focus:text-rose-600 py-2.5">
+                                    <div class="h-px bg-neutral-100 dark:bg-neutral-800 my-1"></div>
+                                    <DropdownMenuItem @click="openDeleteConfirm(tech)" class="rounded-xl cursor-pointer text-rose-500 focus:bg-rose-50 dark:focus:bg-rose-500/10 focus:text-rose-600 py-2.5">
                                         <Trash2 class="mr-2 h-4 w-4" />
                                         <span class="font-bold uppercase text-[10px] tracking-widest">{{ t('actions.delete') }}</span>
                                     </DropdownMenuItem>
@@ -222,48 +397,52 @@ const getCategoryColor = (category) => {
                         </div>
 
                         <!-- Logo -->
-                        <div class="w-12 h-12 shrink-0 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-2 shadow-sm group-hover:scale-110 transition-transform duration-500">
-                            <img v-if="tech.logo_url" :src="tech.logo_url" :alt="tech.name" class="w-full h-full object-contain" />
-                            <Code2 v-else class="w-6 h-6 text-slate-300 dark:text-slate-700" />
+                        <div class="w-full h-16 shrink-0 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                            <img v-if="tech.logo_url" :src="tech.logo_url" :alt="tech.name" :class="['max-w-full max-h-full object-contain', tech.invert_dark ? 'dark:invert dark:brightness-0 dark:invert' : '']" />
+                            <Code2 v-else class="w-8 h-8 text-neutral-300 dark:text-neutral-700" />
                         </div>
 
                         <div class="w-full min-w-0">
-                            <h3 class="font-black text-[11px] tracking-tight text-slate-900 dark:text-white uppercase truncate px-1">
+                            <h3 class="font-black text-[11px] tracking-tight text-neutral-900 dark:text-white uppercase truncate px-1">
                                 {{ tech.name }}
                             </h3>
                             <div class="flex flex-col items-center gap-1 mt-1.5">
                                 <Badge variant="outline" :class="['rounded-full px-2 py-0 text-[8px] font-bold uppercase tracking-widest', getCategoryColor(tech.category)]">
-                                    {{ tech.category }}
+                                    {{ t(`technologies.categories.${tech.category}`) }}
                                 </Badge>
                                 <Badge v-if="!tech.is_active" variant="destructive" class="rounded-full px-2 py-0 text-[8px] font-bold uppercase tracking-widest">
-                                    {{ t('status.inactive') }}
+                                    {{ t('technologies.status.inactive') }}
                                 </Badge>
                             </div>
                         </div>
                     </div>
 
                     <!-- Compact Status -->
-                    <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-center">
+                    <div class="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-center">
                         <div class="flex items-center gap-1.5">
-                            <component :is="tech.is_active ? CheckCircle2 : XCircle" :class="['w-3 h-3', tech.is_active ? 'text-emerald-500' : 'text-slate-400']" />
-                            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-slate-400">{{ tech.is_active ? 'Active' : 'Off' }}</span>
+                            <component :is="tech.is_active ? CheckCircle2 : XCircle" :class="['w-3 h-3', tech.is_active ? 'text-neutral-900 dark:text-white' : 'text-neutral-400']" />
+                            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400">{{ tech.is_active ? t('technologies.status.active') : t('technologies.status.inactive') }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-col items-center justify-center py-20 bg-white/30 dark:bg-slate-900/20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem]">
-                <div class="p-6 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
-                    <Code2 class="w-12 h-12 text-slate-300 dark:text-slate-600" />
+            <div v-else class="flex flex-col items-center justify-center py-20 bg-white dark:bg-black border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-3xl">
+                <div class="p-6 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-6">
+                    <Code2 class="w-12 h-12 text-neutral-300 dark:text-neutral-600" />
                 </div>
-                <h3 class="text-xl font-black uppercase tracking-tight text-slate-400">{{ t('technologies.empty') }}</h3>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">{{ t('technologies.empty_desc') }}</p>
+                <h3 class="text-xl font-black uppercase tracking-tight text-neutral-400">{{ t('technologies.empty') }}</h3>
+                <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest mt-2">{{ t('technologies.empty_desc') }}</p>
             </div>
 
+                </div>
+            </Transition>
+
             <!-- Pagination Centered -->
-            <div v-if="technologies.last_page > 1" class="flex justify-center pt-8">
+            <div v-if="technologies.total > 0" class="flex flex-col items-center gap-3 pt-8">
                 <Pagination
+                    v-if="technologies.last_page > 1"
                     v-slot="{ page }"
                     :total="technologies.total"
                     :sibling-count="1"
@@ -271,7 +450,7 @@ const getCategoryColor = (category) => {
                     :default-page="technologies.current_page"
                     @update:page="handlePageChange"
                 >
-                    <PaginationList v-slot="{ items }" class="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-xl">
+                    <PaginationList v-slot="{ items }" class="flex items-center gap-2 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl">
                         <PaginationFirst />
                         <PaginationPrev />
 
@@ -284,18 +463,80 @@ const getCategoryColor = (category) => {
                         <PaginationLast />
                     </PaginationList>
                 </Pagination>
+                <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                    {{ t('pagination.showing') }} {{ technologies.from }}–{{ technologies.to }} {{ t('pagination.of') }} {{ technologies.total }}
+                </p>
             </div>
         </div>
 
         <!-- Edit Modal -->
-        <Dialog :open="!!editingTechnology" @update:open="val => !val && closeModals()">
-            <DialogContent class="sm:max-w-[500px] rounded-[2rem] border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl shadow-2xl">
-                <DialogHeader>
-                    <DialogTitle class="text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.edit_title') }}</DialogTitle>
-                    <DialogDescription class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ t('technologies.modals.edit_desc') }}</DialogDescription>
+        <Dialog v-model:open="isEditModalOpen">
+            <DialogContent class="sm:max-w-[500px] max-h-[85dvh] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl dashboard-dialog-enter">
+                <DialogHeader class="shrink-0">
+                    <DialogTitle class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.edit_title') }}</DialogTitle>
+                    <DialogDescription class="text-[9px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.edit_desc') }}</DialogDescription>
                 </DialogHeader>
-                <TechnologyForm v-if="editingTechnology" :technology="editingTechnology" @close="closeModals" />
+                <div class="flex-1 overflow-y-auto scrollbar-imperceptible min-h-0">
+                    <TechnologyForm v-if="editingTechnology" :technology="editingTechnology" @close="closeModals" />
+                </div>
+                <DialogFooter class="shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800 mt-4">
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        @click="closeModals"
+                        class="rounded-xl font-bold uppercase text-xs tracking-wider w-full sm:w-auto"
+                    >
+                        {{ t('technologies.modals.cancel') }}
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        form="technology-form"
+                        class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-8 shadow-lg font-bold uppercase text-xs tracking-wider w-full sm:w-auto"
+                    >
+                        {{ t('technologies.modals.save') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Delete Confirmation Modal -->
+        <Dialog v-model:open="isDeleteModalOpen">
+            <DialogContent class="sm:max-w-[420px] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl p-4 sm:p-8 dashboard-dialog-enter">
+                <DialogHeader class="shrink-0">
+                    <div class="mx-auto mb-4 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                        <AlertTriangle class="h-6 w-6 sm:h-7 sm:w-7 text-rose-500" />
+                    </div>
+                    <DialogTitle class="text-center text-lg sm:text-xl font-black uppercase tracking-tight">{{ t('actions.confirm_delete') }}</DialogTitle>
+                    <DialogDescription class="text-center text-[10px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">
+                        ¿Vas a eliminar <span class="text-neutral-900 dark:text-white underline underline-offset-2">{{ deleteTarget?.name }}</span>? Esta acción no se puede deshacer.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="shrink-0 flex flex-col-reverse sm:flex-row gap-3 sm:justify-center pt-2">
+                    <Button
+                        variant="outline"
+                        @click="isDeleteModalOpen = false"
+                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest px-6 sm:px-8 w-full sm:w-auto"
+                    >
+                        {{ t('technologies.delete_modal.cancel') }}
+                    </Button>
+                    <Button
+                        @click="confirmDelete"
+                        :disabled="deleteForm.processing"
+                        class="rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold uppercase text-[10px] tracking-widest px-6 sm:px-8 w-full sm:w-auto shadow-lg shadow-rose-500/20"
+                    >
+                        <template v-if="deleteForm.processing">
+                            <span class="animate-pulse">{{ t('technologies.delete_modal.deleting') }}</span>
+                        </template>
+                        <template v-else>
+                            {{ t('technologies.delete_modal.confirm') }}
+                        </template>
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     </AuthenticatedLayout>
 </template>
+
+<style>
+/* Shimmer classes are global in app.css */
+</style>

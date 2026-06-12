@@ -2,7 +2,7 @@
 import { PaginationPrev } from 'radix-vue'
 import { ChevronLeft } from 'lucide-vue-next'
 import { Button } from '@/Components/ui/button'
-import { cn } from '@/utils'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
   asChild: { type: Boolean, default: true },
@@ -15,7 +15,7 @@ const props = defineProps({
     <Button
       variant="outline"
       size="icon"
-      :class="cn('w-10 h-10 rounded-xl border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition-all active:scale-95', props.class)"
+      :class="cn('w-10 h-10 rounded-xl border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all active:scale-95', props.class)"
     >
       <ChevronLeft class="h-4 w-4" />
     </Button>
