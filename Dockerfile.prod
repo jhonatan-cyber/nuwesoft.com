@@ -1,7 +1,7 @@
 # ==========================================
 # STAGE 1: Compilación de Assets Frontend
 # ==========================================
-FROM oven/bun:1.1-alpine AS frontend-builder
+FROM oven/bun:latest AS frontend-builder
 
 WORKDIR /app
 
