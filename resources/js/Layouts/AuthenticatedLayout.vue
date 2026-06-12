@@ -135,7 +135,7 @@ router.on('navigate', () => {
         <!-- Main Content Area -->
         <div 
             :class="[
-                'transition-all duration-300 h-screen overflow-y-auto flex flex-col px-4 md:px-6 py-6',
+                'transition-all duration-300 h-screen overflow-y-auto scrollbar-imperceptible flex flex-col px-4 md:px-6 py-6',
                 isSidebarOpen ? 'lg:ml-72' : 'lg:ml-28'
             ]"
         >
