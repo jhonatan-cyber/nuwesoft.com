@@ -47,8 +47,7 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Desactivamos prefetch global para evitar ráfagas concurrentes que saturen el VPS
-        // Vite::prefetch(concurrency: 3);
+         Vite::prefetch(concurrency: 3);
 
         RateLimiter::for('contact', function (Request $request) {
             return Limit::perMinute(3)->by($request->ip());
