@@ -53,11 +53,13 @@ services:
             POSTGRES_USER: '${DB_USERNAME}'
             POSTGRES_PASSWORD: '${DB_PASSWORD}'
         volumes:
-            - 'pgsql_data:/var/lib/postgresql/data'
+            # En Postgres 18+ el volumen debe apuntar a la raíz /var/lib/postgresql
+            - 'pgsql_data:/var/lib/postgresql'
         networks:
             - production-network
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -d $${DB_DATABASE} -U $${DB_USERNAME}"]
+            # Usar las variables de entorno internas del contenedor para el healthcheck
+            test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
             interval: 5s
             timeout: 5s
             retries: 5
