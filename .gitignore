@@ -1,6 +1,9 @@
 *.log
 .DS_Store
 .env
+.env.example
+.env.testing
+.env.local
 .env.backup
 .env.production
 .phpactor.json
@@ -22,3 +25,11 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# LAN IP cache for Vite dev server
+scripts/.lan-ip-cache.json
+
+# Debug / local artifacts
+add-port.php
+cookies.txt
+curl/
+*.http
