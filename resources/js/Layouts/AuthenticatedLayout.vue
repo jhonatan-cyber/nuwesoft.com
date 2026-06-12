@@ -317,7 +317,12 @@ router.on('navigate', () => {
 
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-neutral-200 dark:bg-neutral-800 rounded-full; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #e5e5e5;
+  border-radius: 9999px;
+}
 
-
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #262626;
+}
 </style>
