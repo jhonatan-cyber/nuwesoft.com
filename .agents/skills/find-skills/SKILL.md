@@ -140,3 +140,34 @@ I can still help you with this task directly! Would you like me to proceed?
 If this is something you do often, you could create your own skill:
 npx skills init my-xyz-skill
 ```
+
+---
+
+## Troubleshooting Installation Errors (SSH vs. HTTPS)
+
+Behind corporate firewalls, custom proxies, or in sandbox environments, the standard short format for adding skills (`npx skills add owner/repo@skill`) might fail because git defaults to SSH cloning.
+
+### 1. SSH Auth / Publickey Failures
+If you encounter git clone errors, credential prompt freezes, or SSH publickey denied errors:
+```bash
+# Error: Permission denied (publickey).
+# Fatal: Could not read from remote repository.
+```
+**Solution**: Force git to use HTTPS instead of SSH, or pass the full GitHub HTTPS URL along with the `--skill` flag:
+
+```bash
+# Option A: Globally force Git to use HTTPS instead of SSH (run once)
+git config --global url."https://github.com/".insteadOf git@github.com:
+
+# Option B: Install using the explicit HTTPS URL and the --skill flag
+npx skills add https://github.com/owner/repo --skill name-of-skill
+```
+
+### 2. Sandbox Network Restrictions
+If the network is completely restricted or you cannot run `npx`, suggest download or manual configuration steps:
+* Check if a proxy is configured and apply npm proxy settings:
+  ```bash
+  npm config set proxy http://proxy.company.com:8080
+  npm config set https-proxy http://proxy.company.com:8080
+  ```
+* Fall back to manual file creation if adding via CLI fails repeatedly.

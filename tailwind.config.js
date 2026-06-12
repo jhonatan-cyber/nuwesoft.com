@@ -1,5 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
 import animate from 'tailwindcss-animate';
 
 /** @type {import('tailwindcss').Config} */
@@ -67,9 +68,11 @@ export default {
                 },
                 // Nuevos colores para Neubrutalismo
                 brutalist: {
-                    yellow: '#F4FF5E',
+                    yellow: '#FF4400',
                     pink: '#FF2E63',
-                    blue: '#08D9D6',
+                    blue: '#00F0FF',
+                    lime: '#39FF14',
+                    purple: '#B026FF',
                     black: '#1A1A1A',
                     white: '#F9F9F9',
                 }
@@ -109,5 +112,5 @@ export default {
         },
     },
 
-    plugins: [forms, animate],
+    plugins: [forms, typography, animate],
 };
