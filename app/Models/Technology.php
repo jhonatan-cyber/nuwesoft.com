@@ -4,7 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $logo_url
+ * @property string $logo_public_id
+ * @property string $category
+ * @property bool $is_active
+ * @property bool $invert_dark
+ * @property string|null $optimized_logo_url
+ */
+#[TypeScript]
 class Technology extends Model
 {
     use HasFactory;

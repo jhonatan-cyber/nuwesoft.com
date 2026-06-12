@@ -3,12 +3,23 @@
 namespace App\Models;
 
 use App\Jobs\UploadToCloudinary;
-use App\Services\CloudinaryService;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $category
+ * @property string $desc
+ * @property string|null $icon
+ * @property string|null $project_url
+ * @property bool $is_active
+ */
+#[TypeScript]
 class Project extends Model
 {
     use HasFactory;
@@ -52,7 +63,7 @@ class Project extends Model
         $image = $this->images()->find($imageId);
         if ($image && $image->public_id) {
             try {
-                app(CloudinaryService::class)->delete($image->public_id);
+                app(StorageServiceInterface::class)->delete($image->public_id);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -65,7 +76,7 @@ class Project extends Model
         foreach ($this->images as $image) {
             if ($image->public_id) {
                 try {
-                    app(CloudinaryService::class)->delete($image->public_id);
+                    app(StorageServiceInterface::class)->delete($image->public_id);
                 } catch (\Throwable $e) {
                     report($e);
                 }

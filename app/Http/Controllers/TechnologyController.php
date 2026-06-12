@@ -96,7 +96,7 @@ class TechnologyController extends Controller
         // Delete logo from Cloudinary if exists
         if ($technology->logo_public_id) {
             try {
-                app(\App\Services\CloudinaryService::class)->delete($technology->logo_public_id);
+                app(\App\Contracts\StorageServiceInterface::class)->delete($technology->logo_public_id);
             } catch (\Throwable $e) {
                 report($e);
             }

@@ -15,6 +15,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(
+            \App\Contracts\StorageServiceInterface::class,
+            \App\Services\CloudinaryStorageService::class
+        );
+
         $this->app->singleton(\Illuminate\Foundation\Vite::class, function ($app) {
             return new class extends \Illuminate\Foundation\Vite {
                 protected function hotAsset($asset)

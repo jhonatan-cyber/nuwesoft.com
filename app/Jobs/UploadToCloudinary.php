@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Models\Project;
 use App\Models\ProjectImage;
 use App\Models\Technology;
-use App\Services\CloudinaryService;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
@@ -36,7 +36,7 @@ class UploadToCloudinary implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(CloudinaryService $cloudinary): void
+    public function handle(StorageServiceInterface $storage): void
     {
         $fullPath = Storage::path($this->filePath);
 
@@ -46,7 +46,7 @@ class UploadToCloudinary implements ShouldQueue
         }
 
         try {
-            $result = $cloudinary->upload($fullPath, $this->folder);
+            $result = $storage->upload($fullPath, $this->folder);
 
             match ($this->modelType) {
                 'project_image' => $this->handleProjectImage($result),
@@ -105,7 +105,7 @@ class UploadToCloudinary implements ShouldQueue
         // Delete old logo from Cloudinary if exists
         if ($technology->logo_public_id) {
             try {
-                app(CloudinaryService::class)->delete($technology->logo_public_id);
+                app(\App\Contracts\StorageServiceInterface::class)->delete($technology->logo_public_id);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -126,7 +126,7 @@ class UploadToCloudinary implements ShouldQueue
         $oldPublicId = \App\Models\Setting::getValue('logo_public_id');
         if ($oldPublicId) {
             try {
-                app(CloudinaryService::class)->delete($oldPublicId);
+                app(\App\Contracts\StorageServiceInterface::class)->delete($oldPublicId);
             } catch (\Throwable $e) {
                 report($e);
             }

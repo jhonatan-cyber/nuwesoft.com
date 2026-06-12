@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\StorageServiceInterface;
 use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Illuminate\Http\UploadedFile;
 
-class CloudinaryService
+class CloudinaryStorageService implements StorageServiceInterface
 {
     protected Cloudinary $cloudinary;
 

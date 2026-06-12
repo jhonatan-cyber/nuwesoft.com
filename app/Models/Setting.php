@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Support\Facades\Cache;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * @property int $id
+ * @property string $key
+ * @property string|null $value
+ */
+#[TypeScript]
 class Setting extends Model
 {
     protected $fillable = [
