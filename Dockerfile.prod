@@ -29,7 +29,7 @@ COPY --from=composer-builder /app/vendor ./vendor
 
 # Copiar código del frontend y archivos de configuración
 COPY resources/ ./resources/
-COPY vite.config.js tailwind.config.js ./
+COPY vite.config.js tailwind.config.js postcss.config.js ./
 
 # Compilar assets con Vite para producción
 RUN bun run build
