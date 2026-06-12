@@ -1,26 +1,42 @@
-# ==========================================
-# STAGE 1: Compilación de Assets Frontend
-# ==========================================
+# ========================================================
+# STAGE 1: Descarga de Dependencias PHP (Composer Builder)
+# ========================================================
+FROM composer:2 AS composer-builder
+
+WORKDIR /app
+
+# Copiar archivos de dependencias de PHP
+COPY composer.json composer.lock ./
+
+# Instalar dependencias de Laravel para producción (incluyendo Ziggy)
+RUN composer install --no-dev --no-interaction --no-autoloader --no-scripts --ignore-platform-reqs
+
+# ========================================================
+# STAGE 2: Compilación de Assets Frontend (Vite Builder)
+# ========================================================
 FROM oven/bun:latest AS frontend-builder
 
 WORKDIR /app
 
-# Copiar archivos de dependencias
-COPY package.json bun.lock ./
+# Copiar archivos de dependencias de frontend
+COPY package.json bun.lock tsconfig.json ./
 
-# Instalar dependencias
+# Instalar dependencias de JS
 RUN bun install --frozen-lockfile
+
+# Copiar la carpeta vendor del Stage 1 (Necesario para que Vite/Ziggy compilen)
+COPY --from=composer-builder /app/vendor ./vendor
 
 # Copiar código del frontend y archivos de configuración
 COPY resources/ ./resources/
-COPY vite.config.js tailwind.config.js tsconfig.json ./
+COPY vite.config.js tailwind.config.js ./
 
 # Compilar assets con Vite para producción
 RUN bun run build
 
-# ==========================================
-# STAGE 2: Aplicación PHP + Nginx en Producción
-# ==========================================
+# ========================================================
+# STAGE 3: Aplicación PHP + Nginx en Producción
+# ========================================================
 FROM webdevops/php-nginx:8.4-alpine
 
 WORKDIR /var/www/html
@@ -32,20 +48,16 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
     LOG_STDOUT=/dev/stdout \
     LOG_STDERR=/dev/stderr
 
-# Copiar archivos de configuración de dependencias de PHP
-COPY composer.json composer.lock ./
+# Copiar dependencias de Composer ya descargadas en el Stage 1
+COPY --from=composer-builder /app/vendor ./vendor
 
-# Instalar dependencias de Composer (Laravel) optimizadas para producción
-# (Corremos con --no-scripts primero para evitar que corran cosas que requieran todo el código)
-RUN composer install --no-dev --no-interaction --no-autoloader --no-scripts
+# Copiar los assets de frontend compilados en el Stage 2
+COPY --from=frontend-builder /app/public/build ./public/build
 
 # Copiar todo el código de la aplicación Laravel
 COPY . .
 
-# Copiar los assets de frontend compilados en el Stage 1
-COPY --from=frontend-builder /app/public/build ./public/build
-
-# Volver a correr composer install para generar el autoloader optimizado y disparar scripts de Laravel
+# Volver a correr composer install para generar el autoloader optimizado y correr scripts
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 # Sobreescribir la configuración de Nginx de la imagen webdevops con la nuestra optimizada
