@@ -59,7 +59,7 @@ class SecurityHeaders
 
         // Permissions Policy
         $response->headers->set('Permissions-Policy',
-            'camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(), usb=()'
+            'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
         );
 
         return $response;
