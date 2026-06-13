@@ -33,73 +33,19 @@
         <!-- Canonical URL -->
         <link rel="canonical" href="{{ url()->current() }}">
 
-        @php
-            $socialLinks = array_filter([
-                $siteSettings['social_facebook'] ?? null,
-                $siteSettings['social_twitter'] ?? null,
-                $siteSettings['social_linkedin'] ?? null,
-                $siteSettings['social_github'] ?? null,
-            ]);
-            $orgEmail = $siteSettings['email'] ?? '';
-        @endphp
-
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "Organization",
-    "name": "{{ $siteName }}",
-    "url": "{{ url('/') }}",
-    @if($logoUrl)"logo": "{{ $logoUrl }}",
-    @endif"description": "{{ $tagline }}",
-    "foundingDate": "2024",
-    @if($orgEmail)"contactPoint": {
-        "@@type": "ContactPoint",
-        "contactType": "customer support",
-        "email": "{{ $orgEmail }}",
-        "availableLanguage": ["English", "Spanish"]
-    },
-    @endif"sameAs": {{ json_encode(array_values($socialLinks)) }}
-}
+{!! json_encode(\App\Helpers\SchemaHelper::organization($siteSettings), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "WebSite",
-    "name": "{{ $siteName }}",
-    "url": "{{ url('/') }}",
-    "description": "{{ $tagline }}",
-    "potentialAction": {
-        "@@type": "SearchAction",
-        "target": {
-            "@@type": "EntryPoint",
-            "urlTemplate": "{{ url('/') }}/?s={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-    }
-}
+{!! json_encode(\App\Helpers\SchemaHelper::website($siteSettings), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "BreadcrumbList",
-    "name": "{{ $siteName }} Breadcrumb",
-    "itemListElement": [
-        {
-            "@@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "{{ url('/') }}"
-        },
-        {
-            "@@type": "ListItem",
-            "position": 2,
-            "name": "{{ $siteName }}",
-            "item": "{{ url()->current() }}"
-        }
-    ]
-}
+{!! json_encode(\App\Helpers\SchemaHelper::breadcrumb([
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => $siteName, 'url' => url()->current()]
+]), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
         <!-- Fonts -->
