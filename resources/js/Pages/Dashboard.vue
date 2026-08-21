@@ -19,22 +19,28 @@ import {
     Globe,
     Server,
     Database,
-    Layers
+    Layers,
+    Mail
 } from 'lucide-vue-next';
 
 const { t } = useI18n();
 
-const stats = [
-    { label: 'dashboard_panel.stats.projects', value: '12', icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-    { label: 'dashboard_panel.stats.uptime', value: '99.9%', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'dashboard_panel.stats.deploy', value: '2h ago', icon: Rocket, color: 'text-rose-500', bg: 'bg-rose-500/10' },
-    { label: 'dashboard_panel.stats.commits', value: '142', icon: Code, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+const props = defineProps({
+    stats: Object,
+    recent_projects: Array,
+});
+
+const dynamicStats = [
+    { label: 'Proyectos Activos', value: props.stats.active_projects, icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { label: 'Tecnologías', value: props.stats.active_technologies, icon: Code, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'Mensajes Sin Leer', value: props.stats.unread_messages, icon: Mail, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+    { label: 'Total Proyectos', value: props.stats.total_projects, icon: Layers, color: 'text-blue-500', bg: 'bg-blue-500/10' },
 ];
 
 const shortcuts = [
     { label: 'dashboard_panel.shortcuts.projects_admin', href: route('projects.index'), icon: Layers, desc: 'Gestión técnica de proyectos' },
+    { label: 'Mensajes de Contacto', href: route('messages.index'), icon: Mail, desc: 'Bandeja de mensajes' },
     { label: 'dashboard_panel.shortcuts.services', href: '/servicios', icon: Cpu, desc: 'Servicios y arquitectura' },
-    { label: 'dashboard_panel.shortcuts.contact', href: '/contacto', icon: Globe, desc: 'Interacciones y mensajes' },
 ];
 </script>
 
@@ -73,7 +79,7 @@ const shortcuts = [
         <div class="space-y-10 pb-10">
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div v-for="stat in stats" :key="stat.label" 
+                <div v-for="stat in dynamicStats" :key="stat.label" 
                     class="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all group overflow-hidden relative">
                     <div class="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                         <component :is="stat.icon" class="w-20 h-20 -mr-6 -mt-6" />
@@ -222,17 +228,5 @@ const shortcuts = [
 </template>
 
 <style scoped>
-.font-display { font-family: 'Space Grotesk', sans-serif; }
-
-/* Custom animations for the terminal dots */
-@keyframes pulse-emerald {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-}
-</style>
-
-<style scoped>
-.font-display {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-}
+.font-display { font-family: 'Space Grotesk', system-ui, sans-serif; }
 </style>

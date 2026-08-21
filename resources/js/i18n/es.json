@@ -60,6 +60,9 @@
         "of": "DE",
         "results": "RESULTADOS"
     },
+    "status": {
+        "inactive": "INACTIVO"
+    },
     "technologies": {
         "title": "TECNOLOGIAS",
         "subtitle": "GESTION DE STACK TECNICO",

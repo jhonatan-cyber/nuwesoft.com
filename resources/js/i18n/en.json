@@ -60,6 +60,9 @@
         "of": "OF",
         "results": "RESULTS"
     },
+    "status": {
+        "inactive": "INACTIVE"
+    },
     "technologies": {
         "title": "TECHNOLOGIES",
         "subtitle": "TECHNICAL STACK MANAGEMENT",

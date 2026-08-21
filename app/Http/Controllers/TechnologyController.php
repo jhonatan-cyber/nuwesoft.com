@@ -39,7 +39,7 @@ class TechnologyController extends Controller
 
         Technology::create($validated);
 
-        return redirect()->back();
+        return redirect()->route('technologies.index');
     }
 
     public function update(Request $request, Technology $technology)
@@ -57,12 +57,12 @@ class TechnologyController extends Controller
 
         $technology->update($validated);
 
-        return redirect()->back();
+        return redirect()->route('technologies.index');
     }
 
     public function destroy(Technology $technology)
     {
         $technology->delete();
-        return redirect()->back();
+        return redirect()->route('technologies.index');
     }
 }

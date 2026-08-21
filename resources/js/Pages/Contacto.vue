@@ -30,23 +30,31 @@ import {
 const { t } = useI18n();
 
 const form = useForm({
-    nombre: '',
+    name: '',
     email: '',
-    mensaje: '',
+    message: '',
 });
 
 const isSubmitting = ref(false);
 const showSuccess = ref(false);
+const showErrors = ref(false);
 
 const submit = () => {
     isSubmitting.value = true;
-    // Simular envío
-    setTimeout(() => {
-        isSubmitting.value = false;
-        showSuccess.value = true;
-        form.reset();
-        setTimeout(() => showSuccess.value = false, 5000);
-    }, 1500);
+    showErrors.value = false;
+    form.post(route('contacto.store'), {
+        onSuccess: () => {
+            isSubmitting.value = false;
+            showSuccess.value = true;
+            form.reset();
+            setTimeout(() => showSuccess.value = false, 5000);
+        },
+        onError: () => {
+            isSubmitting.value = false;
+            showErrors.value = true;
+            setTimeout(() => showErrors.value = false, 5000);
+        },
+    });
 };
 
 const isVisible = ref(false);
@@ -172,7 +180,8 @@ const socialLinks = [
                                         <Label for="nombre" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
                                             <span>01. {{ t('contacto.label_name') }}</span>
                                         </Label>
-                                        <Input v-model="form.nombre" id="nombre" 
+                                        <div v-if="form.errors.name" class="text-sm text-red-500 font-bold">{{ form.errors.name }}</div>
+                                        <Input v-model="form.name" id="nombre" 
                                             class="h-16 bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 focus-visible:ring-0 focus-visible:bg-brutalist-yellow/20 text-xl font-bold uppercase italic text-black dark:text-white transition-colors" 
                                             :placeholder="t('contacto.placeholder_name')" required />
                                     </div>
@@ -180,16 +189,17 @@ const socialLinks = [
                                         <Label for="email" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
                                             <span>02. {{ t('contacto.label_email') }}</span>
                                         </Label>
+                                        <div v-if="form.errors.email" class="text-sm text-red-500 font-bold">{{ form.errors.email }}</div>
                                         <Input v-model="form.email" id="email" type="email" 
                                             class="h-16 bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 focus-visible:ring-0 focus-visible:bg-brutalist-blue/20 text-xl font-bold uppercase italic text-black dark:text-white transition-colors" 
                                             :placeholder="t('contacto.placeholder_email')" required />
                                     </div>
                                 </div>
-                                <div class="space-y-4">
-                                    <Label for="mensaje" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
-                                        <span>03. {{ t('contacto.label_message') }}</span>
-                                    </Label>
-                                    <Textarea v-model="form.mensaje" id="mensaje" rows="6" 
+                                <div class="space-y-4">                                        <Label for="mensaje" class="text-lg font-black uppercase italic tracking-widest flex items-center space-x-2 text-black dark:text-white">
+                                            <span>03. {{ t('contacto.label_message') }}</span>
+                                        </Label>
+                                        <div v-if="form.errors.message" class="text-sm text-red-500 font-bold">{{ form.errors.message }}</div>
+                                        <Textarea v-model="form.message" id="mensaje" rows="6" 
                                         class="bg-white dark:bg-black border-4 border-black dark:border-white rounded-none px-6 py-4 focus-visible:ring-0 focus-visible:bg-brutalist-pink/20 text-xl font-bold uppercase italic resize-none text-black dark:text-white transition-colors" 
                                         :placeholder="t('contacto.placeholder_message')" required />
                                 </div>

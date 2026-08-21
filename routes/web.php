@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TechnologyController;
@@ -29,8 +30,23 @@ Route::get('/contacto', function () {
     return Inertia::render('Contacto');
 })->name('contacto');
 
+Route::post('/contacto', [ContactMessageController::class, 'store'])->name('contacto.store');
+
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $activeProjects = \App\Models\Project::where('is_active', true)->count();
+    $totalTechnologies = \App\Models\Technology::where('is_active', true)->count();
+    $unreadMessages = \App\Models\ContactMessage::where('is_read', false)->count();
+    $recentProjects = \App\Models\Project::latest()->limit(5)->get();
+
+    return Inertia::render('Dashboard', [
+        'stats' => [
+            'active_projects' => $activeProjects,
+            'active_technologies' => $totalTechnologies,
+            'unread_messages' => $unreadMessages,
+            'total_projects' => \App\Models\Project::count(),
+        ],
+        'recent_projects' => $recentProjects,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -43,6 +59,10 @@ Route::middleware('auth')->group(function () {
 
     // Projects CRUD
     Route::resource('dashboard/projects', ProjectController::class)->names('projects');
+
+    // Contact Messages
+    Route::resource('dashboard/messages', ContactMessageController::class)->only(['index', 'destroy'])->names('messages');
+    Route::patch('dashboard/messages/{message}/read', [ContactMessageController::class, 'markAsRead'])->name('messages.markAsRead');
 });
 
 require __DIR__.'/auth.php';

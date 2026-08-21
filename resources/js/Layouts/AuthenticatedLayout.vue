@@ -14,6 +14,7 @@ import {
     LayoutDashboard, 
     Briefcase,
     Code2,
+    Mail,
     ChevronRight,
     Bell,
     ChevronDown,
@@ -43,6 +44,7 @@ const navigation = [
     { name: t('dashboard'), href: 'dashboard', icon: LayoutDashboard },
     { name: t('dashboard_panel.projects.title'), href: 'projects.index', icon: Briefcase },
     { name: t('technologies.title'), href: 'technologies.index', icon: Code2 },
+    { name: 'Mensajes', href: 'messages.index', icon: Mail },
 ];
 
 const secondaryNavigation = [
