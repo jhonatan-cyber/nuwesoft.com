@@ -33,3 +33,6 @@ add-port.php
 cookies.txt
 curl/
 *.http
+
+# Freebuff tool cache
+.freebuff/
