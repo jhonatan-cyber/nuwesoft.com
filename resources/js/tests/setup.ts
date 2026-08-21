@@ -79,6 +79,19 @@ vi.mock('@/composables/usePostHog', () => ({
     }),
 }))
 
+// ── Mock heavy markdown deps (prevent highlight.js OOM on Windows) ──
+vi.mock('highlight.js', () => ({
+    default: {
+        getLanguage: vi.fn(() => false),
+        highlight: vi.fn((code: string) => ({ value: code })),
+        highlightAuto: vi.fn((code: string) => ({ value: code })),
+    },
+}))
+
+vi.mock('marked-highlight', () => ({
+    markedHighlight: vi.fn(() => ({})),
+}))
+
 // ── Mock @/Components/ui/badge ──
 vi.mock('@/Components/ui/badge', () => ({
     Badge: {

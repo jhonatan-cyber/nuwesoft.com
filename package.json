@@ -7,7 +7,7 @@
         "dev": "vite",
         "preview": "vite preview --host",
         "analyze": "ANALYZE=true vite build",
-        "test": "NODE_OPTIONS='--max-old-space-size=4096' vitest run",
+        "test": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vitest run",
         "test:watch": "vitest"
     },
     "devDependencies": {
@@ -21,6 +21,7 @@
         "autoprefixer": "^10.4.12",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
+        "cross-env": "^10.1.0",
         "jsdom": "^29.1.1",
         "laravel-echo": "^2.3.7",
         "laravel-vite-plugin": "^3.0.0",
