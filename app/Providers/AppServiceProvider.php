@@ -13,12 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use App\Observers\ProjectObserver;
-use App\Observers\PostObserver;
-use App\Observers\TechnologyObserver;
-use App\Observers\ContactMessageObserver;
-use App\Observers\TestimonialObserver;
-use App\Observers\ProjectImageObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
