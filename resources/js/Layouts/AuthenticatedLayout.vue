@@ -20,6 +20,8 @@ import {
     Bell,
     ChevronDown,
     MessageSquare,
+    Star,
+    Mail,
 } from 'lucide-vue-next';
 import Toast from '@/Components/Toast.vue';
 import {
@@ -50,6 +52,8 @@ const navigation = [
     { name: t('dashboard_panel.projects.title'), href: 'projects.index', icon: Briefcase },
     { name: t('technologies.title'), href: 'technologies.index', icon: Code2 },
     { name: 'MENSAJES', href: 'messages.index', icon: MessageSquare, badge: unreadMessages },
+    { name: 'TESTIMONIOS', href: 'testimonials.index', icon: Star },
+    { name: 'SUSCRIPTORES', href: 'subscribers.index', icon: Mail },
     { name: t('settings.title'), href: 'dashboard.settings.index', icon: Settings },
     { name: '404 LOGS', href: 'logs.index', icon: AlertTriangle },
 ];

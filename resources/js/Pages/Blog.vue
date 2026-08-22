@@ -7,6 +7,7 @@ import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 import PublicGridBackground from '@/Components/PublicGridBackground.vue'
 import PublicSiteHeader from '@/Components/PublicSiteHeader.vue'
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue'
+import NewsletterForm from '@/Components/NewsletterForm.vue'
 import SkeletonPostCard from '@/Components/SkeletonPostCard.vue'
 import LazyLoad from '@/Components/LazyLoad.vue'
 import BlurImage from '@/Components/BlurImage.vue'
@@ -301,6 +302,11 @@ const blogJsonLd = computed(() => {
                 </Transition>
             </div>
         </main>
+
+        <!-- Newsletter -->
+        <section class="relative z-10 mx-auto max-w-2xl px-6 py-16">
+            <NewsletterForm source="blog" />
+        </section>
 
         <PublicSiteFooter />
     </div>

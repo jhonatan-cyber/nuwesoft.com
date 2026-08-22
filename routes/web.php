@@ -73,9 +73,15 @@ Route::middleware('throttle:public')->group(function () {
 
     // Public reviews listing
     Route::get('/reseñas-publicas', [App\Http\Controllers\PublicReviewsController::class, 'index'])->name('reviews.index');
+
+    // Newsletter unsubscribe link
+    Route::get('/desuscribir', [App\Http\Controllers\PublicNewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 });
 
 Route::post('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'store'])->middleware('throttle:contact')->name('review.store');
+
+// Newsletter subscription (throttled: 5/min per IP)
+Route::post('/newsletter', [App\Http\Controllers\PublicNewsletterController::class, 'subscribe'])->middleware('throttle:contact')->name('newsletter.subscribe');
 
 // ── API endpoints (throttled 60/min per IP) ──
 Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middleware('throttle:api')->name('portafolio.data');
@@ -280,6 +286,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
         Route::match(['post', 'patch'], '/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
     });
+
+    // Newsletter subscribers
+    Route::get('/dashboard/subscribers', [App\Http\Controllers\NewsletterController::class, 'index'])->name('subscribers.index');
+    Route::delete('/dashboard/subscribers/{subscriber}', [App\Http\Controllers\NewsletterController::class, 'destroy'])->name('subscribers.destroy');
+    Route::post('/dashboard/subscribers/bulk-delete', [App\Http\Controllers\NewsletterController::class, 'bulkDestroy'])->name('subscribers.bulk-destroy');
+    Route::get('/dashboard/subscribers/export/csv', [App\Http\Controllers\NewsletterController::class, 'export'])->name('subscribers.export');
 
     // Two-Factor Authentication
     Route::get('/dashboard/2fa/setup', [App\Http\Controllers\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
