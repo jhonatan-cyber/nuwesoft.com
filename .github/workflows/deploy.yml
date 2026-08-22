@@ -65,10 +65,47 @@ jobs:
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
 
-      - name: Notify success
+      # ──────────────────────────────────────────────
+      # Discord notifications
+      # ──────────────────────────────────────────────
+      - name: Notify Discord — Deploy Success
         if: success()
-        run: echo "✅ Deploy succeeded"
+        run: |
+          curl -s -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "✅ Deploy Exitoso",
+                "description": "Nuwesoft se desplegó correctamente en producción.",
+                "color": 3066993,
+                "fields": [
+                  {"name": "🌐 URL", "value": "https://nuwesoft.nuwesomme.cloud", "inline": false},
+                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true}
+                ],
+                "footer": {"text": "GitHub Actions"},
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
 
-      - name: Notify failure
+      - name: Notify Discord — Deploy Failed
         if: failure()
-        run: echo "❌ Deploy failed — rollback executed"
+        run: |
+          curl -s -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "❌ Deploy Falló",
+                "description": "El despliegue de Nuwesoft falló. Puede haberse ejecutado un rollback automático.",
+                "color": 15158332,
+                "fields": [
+                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true},
+                  {"name": "🔗 Logs", "value": "[Ver logs del workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+                ],
+                "footer": {"text": "GitHub Actions"},
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
