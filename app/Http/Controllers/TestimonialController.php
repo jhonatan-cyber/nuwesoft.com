@@ -15,11 +15,16 @@ class TestimonialController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $status = $request->input('status', 'all');
+        $rating = $request->input('rating', null);
 
         $query = Testimonial::orderBy('sort_order');
 
         if ($status !== 'all') {
             $query->where('status', $status);
+        }
+
+        if ($rating !== null && $rating !== '') {
+            $query->where('rating', (int) $rating);
         }
 
         $testimonials = $query->paginate($perPage)->withQueryString();
@@ -29,6 +34,7 @@ class TestimonialController extends Controller
             'testimonials' => $testimonials,
             'pendingCount' => $pendingCount,
             'currentStatus' => $status,
+            'currentRating' => $rating,
         ]);
     }
 
