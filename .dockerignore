@@ -44,7 +44,6 @@ commitlint.config.js
 eslint.config.js
 phpstan.neon
 pint.json
-tsconfig.json
 skills-lock.json
 
 # Staging and dev compose
