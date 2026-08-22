@@ -51,21 +51,21 @@ class ActivityLog extends Model
         ]);
     }
 
-    public static function created(Model $subject, string $extra = ''): static
+    public static function logCreated(Model $subject, string $extra = ''): static
     {
         $name = $subject->name ?? $subject->title ?? '#' . $subject->id;
 
         return static::log('created', 'Creó ' . class_basename($subject) . " \"{$name}\" {$extra}", $subject);
     }
 
-    public static function updated(Model $subject, string $extra = ''): static
+    public static function logUpdated(Model $subject, string $extra = ''): static
     {
         $name = $subject->name ?? $subject->title ?? '#' . $subject->id;
 
         return static::log('updated', 'Actualizó ' . class_basename($subject) . " \"{$name}\" {$extra}", $subject);
     }
 
-    public static function deleted(Model $subject): static
+    public static function logDeleted(Model $subject): static
     {
         $name = $subject->name ?? $subject->title ?? '#' . $subject->id;
 
