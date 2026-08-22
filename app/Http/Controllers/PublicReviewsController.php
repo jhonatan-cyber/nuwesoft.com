@@ -25,9 +25,9 @@ class PublicReviewsController extends Controller
                 Testimonial::approved()->where('is_active', true)->avg('rating'),
                 1
             ),
-            '5_star' => Testimonial::approved()->where('is_active', true)->where('rating', 5)->count(),
-            '4_star' => Testimonial::approved()->where('is_active', true)->where('rating', 4)->count(),
-            '3_star' => Testimonial::approved()->where('is_active', true)->where('rating', 3)->count(),
+            'star_5' => Testimonial::approved()->where('is_active', true)->where('rating', 5)->count(),
+            'star_4' => Testimonial::approved()->where('is_active', true)->where('rating', 4)->count(),
+            'star_3' => Testimonial::approved()->where('is_active', true)->where('rating', 3)->count(),
         ];
 
         return Inertia::render('PublicReviews', [

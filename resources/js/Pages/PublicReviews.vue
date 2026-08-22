@@ -9,7 +9,7 @@ const { t } = useI18n()
 
 const props = defineProps({
     testimonials: { type: Object, default: () => ({ data: [], links: [] }) },
-    stats: { type: Object, default: () => ({ total: 0, avg_rating: 0, 5_star: 0, 4_star: 0, 3_star: 0 }) },
+    stats: { type: Object, default: () => ({ total: 0, avg_rating: 0 }) },
 })
 
 const paginatedLinks = computed(() => {
@@ -88,9 +88,9 @@ const starPercentage = (count) => {
                             <span class="text-sm font-black text-white w-8">{{ stars }}<Star class="inline w-3 h-3 text-brutalist-yellow fill-brutalist-yellow" /></span>
                             <div class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
                                 <div class="h-full bg-brutalist-yellow rounded-full transition-all duration-500"
-                                    :style="{ width: starPercentage(stats[`${stars}_star`]) + '%' }"></div>
+                                    :style="{ width: starPercentage(stats['star_' + stars]) + '%' }"></div>
                             </div>
-                            <span class="text-xs font-black text-white/40 w-10 text-right">{{ stats[`${stars}_star`] }}</span>
+                            <span class="text-xs font-black text-white/40 w-10 text-right">{{ stats['star_' + stars] }}</span>
                         </div>
                     </div>
                 </div>
