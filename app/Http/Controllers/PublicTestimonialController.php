@@ -72,7 +72,9 @@ class PublicTestimonialController extends Controller
     private function notifyAdmin(Testimonial $testimonial): void
     {
         try {
-            $adminEmail = Setting::getValue('admin_email') ?? config('mail.from.address');
+            $adminEmail = Setting::getValue('admin_email')
+                ?? config('mail.admin_address')
+                ?? config('mail.from.address');
 
             if ($adminEmail) {
                 Mail::to($adminEmail)->send(new NewTestimonialMail($testimonial));
