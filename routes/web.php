@@ -70,6 +70,9 @@ Route::middleware('throttle:public')->group(function () {
     // Public testimonial submission
     Route::get('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'show'])->name('review.show');
     Route::get('/gracias', [App\Http\Controllers\PublicTestimonialController::class, 'thanks'])->name('review.thanks');
+
+    // Public reviews listing
+    Route::get('/reseñas-publicas', [App\Http\Controllers\PublicReviewsController::class, 'index'])->name('reviews.index');
 });
 
 Route::post('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'store'])->middleware('throttle:contact')->name('review.store');
@@ -92,6 +95,8 @@ Route::get('/sitemap.xml', function () {
         ['loc' => url('/servicios'), 'priority' => '0.9', 'changefreq' => 'monthly'],
         ['loc' => url('/portafolio'), 'priority' => '0.9', 'changefreq' => 'weekly', 'lastmod' => $projects->isNotEmpty() ? $projects->first()->updated_at?->toW3cString() : null],
         ['loc' => url('/contacto'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+        ['loc' => url('/reseñas-publicas'), 'priority' => '0.7', 'changefreq' => 'weekly'],
+        ['loc' => url('/reseñas'), 'priority' => '0.6', 'changefreq' => 'monthly'],
         ['loc' => url('/blog'), 'priority' => '0.8', 'changefreq' => 'weekly', 'lastmod' => $posts->isNotEmpty() ? $posts->first()->updated_at?->toW3cString() : null],
         ['loc' => url('/privacidad'), 'priority' => '0.3', 'changefreq' => 'yearly'],
         ['loc' => url('/terminos'), 'priority' => '0.3', 'changefreq' => 'yearly'],
