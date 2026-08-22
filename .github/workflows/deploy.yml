@@ -70,6 +70,7 @@ jobs:
       # ──────────────────────────────────────────────
       - name: Notify Discord — Deploy Success
         if: success()
+        continue-on-error: true
         run: |
           curl -s -H "Content-Type: application/json" \
             -d '{
@@ -91,6 +92,7 @@ jobs:
 
       - name: Notify Discord — Deploy Failed
         if: failure()
+        continue-on-error: true
         run: |
           curl -s -H "Content-Type: application/json" \
             -d '{
