@@ -32,6 +32,12 @@ jobs:
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
 
+            # Backup database BEFORE pulling new code
+            echo "Backing up database..."
+            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
+            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            echo "Backup size: $BACKUP_SIZE"
+
             # Pull latest changes
             echo "Pulling latest changes..."
             git pull origin main || { echo "ERROR: git pull failed"; exit 1; }
@@ -62,6 +68,9 @@ jobs:
             # Cleanup old images (ignore errors)
             docker image prune -f 2>/dev/null || true
 
+            # Cleanup backups older than 30 days
+            docker compose -f compose.prod.yaml exec -T web find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
+
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
 
@@ -81,6 +90,7 @@ jobs:
                 "fields": [
                   {"name": "🌐 URL", "value": "https://nuwesoft.nuwesomme.cloud", "inline": false},
                   {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "💾 Backup", "value": "DB antes del deploy", "inline": true},
                   {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
                   {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true}
                 ],
