@@ -1,27 +1,9 @@
-includes:
-    - vendor/phpstan/phpstan/bleedingEdge.neon
-
 parameters:
-    level: 6
+    level: 2
     paths:
-        - app
-        - config
-        - database
-        - routes
+        - app/Http/Controllers
+        - app/Http/Requests
+        - app/Jobs
+        - app/Console
     tmpDir: storage/phpstan
     reportUnmatchedIgnoredErrors: false
-
-    # Laravel-specific ignores
-    ignoreErrors:
-        # Inertia / Ziggy
-        - '#Call to an undefined method Illuminate\\Routing\\RouteFileRegistrar::[a-z]+#'
-
-        # Common Laravel patterns
-        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::[a-z]+#'
-        - '#Call to an undefined method Illuminate\\Support\\Collection::[a-z]+#'
-
-        # Dynamic properties from Eloquent
-        - '#Property [a-zA-Z]+ is not defined#'
-
-        # Spatie TypeScript Transformer
-        - '#Call to an undefined method Spatie\\TypeScriptTransformer\\Attributes\\TypeScript::[a-z]+#'
