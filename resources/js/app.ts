@@ -64,7 +64,7 @@ router.on('navigate', (event) => {
     window.__nuwesoft_navStart = Date.now();
 
     // Scroll to top on page navigation (unless preserveScroll is set)
-    if (!event.detail.visit.preserveScroll) {
+    if (!event.detail?.visit?.preserveScroll) {
         const scrollable = document.querySelector('.scrollbar-imperceptible');
         if (scrollable) {
             scrollable.scrollTo({ top: 0, behavior: 'smooth' });
