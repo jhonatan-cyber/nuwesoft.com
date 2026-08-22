@@ -9,6 +9,7 @@ import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
 import PortfolioHero from '@/Components/PortfolioHero.vue';
 import PortfolioProjectCard from '@/Components/PortfolioProjectCard.vue';
+import LazyLoad from '@/Components/LazyLoad.vue';
 import PortfolioStats from '@/Components/PortfolioStats.vue';
 import PortfolioCta from '@/Components/PortfolioCta.vue';
 import PortfolioLightbox from '@/Components/PortfolioLightbox.vue';
@@ -227,6 +228,30 @@ const handleKeydown = (event) => {
 
 // ── Stagger Delays ──
 const staggerDelay = (index, step = 80) => `${index * step}ms`;
+
+// ── JSON-LD Structured Data ──
+const portfolioJsonLd = computed(() => {
+    const projectList = (props.projects || []).map((project, index) => ({
+        '@type': 'ListItem',
+        'position': index + 1,
+        'item': {
+            '@type': 'CreativeWork',
+            'name': project.name,
+            'description': project.desc,                'url': `${window.location.origin}/portafolio/${project.slug || project.id}`,
+            'genre': project.category,
+            ...(project.images?.length ? { 'image': project.images[0].image_url } : {}),
+        },
+    }));
+
+    return [{
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        'name': `${siteName.value} — Portafolio`,
+        'description': t('portafolio.subtitle'),
+        'numberOfItems': projectList.length,
+        'itemListElement': projectList,
+    }];
+});
 </script>
 
 <template>
@@ -241,6 +266,17 @@ const staggerDelay = (index, step = 80) => `${index * step}ms`;
         <meta name="twitter:description" :content="pageDesc" />
         <link rel="canonical" :href="pageUrl" />
     </Head>
+
+    <Teleport to="head">
+        <component
+            v-for="(schema, idx) in portfolioJsonLd"
+            :key="idx"
+            :is="'script'"
+            type="application/ld+json"
+            v-html="JSON.stringify(schema)"
+        />
+    </Teleport>
+
     <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
         <PublicGridBackground />
         <PublicSiteHeader />
@@ -273,15 +309,19 @@ const staggerDelay = (index, step = 80) => `${index * step}ms`;
                                 tag="div"
                                 class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3"
                             >
-                                <PortfolioProjectCard
+                                <LazyLoad
                                     v-for="(project, i) in displayProjects"
                                     :key="project.id"
-                                    :project="project"
-                                    :index="i"
-                                    :get-tech-logo="getTechLogo"
-                                    :get-icon="getIcon"
-                                    @open-lightbox="(project, index) => openLightbox(project, index)"
-                                />
+                                    root-margin="300px"
+                                >
+                                    <PortfolioProjectCard
+                                        :project="project"
+                                        :index="i"
+                                        :get-tech-logo="getTechLogo"
+                                        :get-icon="getIcon"
+                                        @open-lightbox="(project, index) => openLightbox(project, index)"
+                                    />
+                                </LazyLoad>
                             </TransitionGroup>
 
                             <!-- Empty State -->

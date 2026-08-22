@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactMessageRequest;
 use App\Mail\ContactNotification;
 use App\Models\ContactMessage;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
@@ -15,21 +16,58 @@ class ContactController extends Controller
      */
     public function show()
     {
-        return Inertia::render('Contacto');
+        // Generate a signed timestamp token for anti-spam timing check.
+        // The token is encrypted so bots can't forge a valid future timestamp.
+        $antiSpamToken = Crypt::encryptString(json_encode([
+            'ts' => now()->timestamp,
+        ]));
+
+        return Inertia::render('Contacto', [
+            'anti_spam_token' => $antiSpamToken,
+        ]);
     }
 
     /**
      * Handle contact form submission.
      */
-    public function send(Request $request)
+    public function send(ContactMessageRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'mensaje' => 'required|string|max:5000',
+        $validated = $request->validated();
+
+        // Handle file attachment if provided
+        $attachmentUrl = null;
+        $attachmentName = null;
+        $tempPath = null;
+        if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+            $file = $request->file('attachment');
+            $attachmentName = $file->getClientOriginalName();
+
+            try {
+                $tempPath = $file->store('temp/contact-attachments');
+                // Note: URL will be set asynchronously by the UploadToCloudinary job.
+            } catch (\Throwable $e) {
+                report($e);
+                $tempPath = null;
+            }
+        }
+
+        $message = ContactMessage::create([
+            'nombre' => $validated['nombre'],
+            'email' => $validated['email'],
+            'mensaje' => $validated['mensaje'] ?? '',
+            'attachment_url' => $attachmentUrl,
+            'attachment_name' => $attachmentName,
         ]);
 
-        $message = ContactMessage::create($validated);
+        // Dispatch async upload to Cloudinary — the job updates the message with the public URL
+        if ($tempPath) {
+            \App\Jobs\UploadToCloudinary::dispatch(
+                filePath: $tempPath,
+                folder: 'contact-attachments',
+                modelType: 'contact_attachment',
+                modelId: $message->id,
+            );
+        }
 
         // Send email notification to admin
         try {

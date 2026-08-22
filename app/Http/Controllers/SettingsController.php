@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateSettingsRequest;
 use App\Jobs\UploadToCloudinary;
 use App\Models\Setting;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -22,22 +22,9 @@ class SettingsController extends Controller
     /**
      * Update settings.
      */
-    public function update(Request $request)
+    public function update(UpdateSettingsRequest $request)
     {
-        $validated = $request->validate([
-            'site_name'      => 'nullable|string|max:255',
-            'tagline'        => 'nullable|string|max:255',
-            'email'          => 'nullable|email|max:255',
-            'phone'          => 'nullable|string|max:50',
-            'address'        => 'nullable|string|max:500',
-            'social_facebook'=> 'nullable|url|max:500',
-            'social_twitter' => 'nullable|url|max:500',
-            'social_linkedin'=> 'nullable|url|max:500',
-            'social_github'  => 'nullable|url|max:500',
-            'social_youtube' => 'nullable|url|max:500',
-            'social_tiktok'  => 'nullable|url|max:500',
-            'logo'           => 'nullable|image|mimes:jpeg,jpg,png,gif,webp,svg|max:2048',
-        ]);
+        $validated = $request->validated();
 
         // Handle logo upload via queue
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {

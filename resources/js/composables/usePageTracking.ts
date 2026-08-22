@@ -1,30 +1,36 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { usePostHog } from '@/composables/usePostHog'
 
+interface ScrollEventProperties {
+    depth_percent: number
+    page_url: string
+    time_elapsed: number
+}
+
+interface TimeOnPageProperties {
+    seconds: number
+    page_url: string
+}
+
 /**
  * Tracks scroll depth and time on page via PostHog events.
- * Call in any page/component's setup to enrich analytics data.
  *
  * Events fired:
- * - scroll_depth: at 25%, 50%, 75%, 90%, 100% scroll
- * - time_on_page: at 30s, 60s, 120s intervals
- *
- * Usage:
- *   import { usePageTracking } from '@/composables/usePageTracking'
- *   usePageTracking()  // in setup()
+ * - `scroll_depth` at 25%, 50%, 75%, 90%, 100%
+ * - `time_on_page` at 30s, 60s, 120s, 300s
  */
-export function usePageTracking() {
+export function usePageTracking(): void {
     const { capture } = usePostHog()
     const startTime = ref(Date.now())
-    const trackedDepths = new Set()
-    const trackedTimes = new Set()
-    let scrollTimer = null
-    let timeInterval = null
+    const trackedDepths = new Set<number>()
+    const trackedTimes = new Set<number>()
+    let scrollTimer: number | null = null
+    let timeInterval: ReturnType<typeof setInterval> | null = null
 
-    // ── Scroll Depth ──
     const SCROLL_THRESHOLDS = [25, 50, 75, 90, 100]
+    const TIME_THRESHOLDS = [30, 60, 120, 300]
 
-    function handleScroll() {
+    function handleScroll(): void {
         if (scrollTimer) return
         scrollTimer = requestAnimationFrame(() => {
             scrollTimer = null
@@ -40,16 +46,13 @@ export function usePageTracking() {
                         depth_percent: threshold,
                         page_url: window.location.href,
                         time_elapsed: Math.round((Date.now() - startTime.value) / 1000),
-                    })
+                    } satisfies ScrollEventProperties)
                 }
             }
         })
     }
 
-    // ── Time on Page ──
-    const TIME_THRESHOLDS = [30, 60, 120, 300] // seconds
-
-    function checkTimeOnPage() {
+    function checkTimeOnPage(): void {
         const elapsed = Math.round((Date.now() - startTime.value) / 1000)
         for (const threshold of TIME_THRESHOLDS) {
             if (elapsed >= threshold && !trackedTimes.has(threshold)) {
@@ -57,15 +60,14 @@ export function usePageTracking() {
                 capture('time_on_page', {
                     seconds: threshold,
                     page_url: window.location.href,
-                })
+                } satisfies TimeOnPageProperties)
             }
         }
     }
 
-    // ── Lifecycle ──
     onMounted(() => {
         window.addEventListener('scroll', handleScroll, { passive: true })
-        timeInterval = setInterval(checkTimeOnPage, 10_000) // check every 10s
+        timeInterval = setInterval(checkTimeOnPage, 10_000)
     })
 
     onUnmounted(() => {

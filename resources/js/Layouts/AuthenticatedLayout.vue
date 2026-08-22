@@ -21,6 +21,7 @@ import {
     ChevronDown,
     MessageSquare,
 } from 'lucide-vue-next';
+import Toast from '@/Components/Toast.vue';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +75,8 @@ router.on('navigate', () => {
 
 <template>
     <div class="min-h-screen bg-white dark:bg-black text-neutral-900 dark:text-white font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black overflow-x-hidden transition-colors duration-300">
+        <!-- Toast Notifications -->
+        <Toast />
         <!-- Subtle Background Elements -->
         <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-black/5 blur-[120px] dark:bg-white/5 transition-opacity duration-1000"></div>
@@ -97,7 +100,7 @@ router.on('navigate', () => {
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar" role="navigation" aria-label="Dashboard sidebar">
                 <Link 
                     v-for="item in navigation" 
                     :key="item.name"
@@ -154,6 +157,8 @@ router.on('navigate', () => {
                         <button 
                             @click="toggleMobileMenu" 
                             class="lg:hidden p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+                            aria-label="Open navigation menu"
+                            :aria-expanded="isMobileMenuOpen"
                         >
                             <Menu class="w-5 h-5" />
                         </button>
@@ -259,12 +264,12 @@ router.on('navigate', () => {
                                 <ApplicationLogo class="w-28" />
                             </div>
                         </Link>
-                        <button @click="toggleMobileMenu" class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2">
+                        <button @click="toggleMobileMenu" class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2" aria-label="Close navigation menu">
                             <X class="w-6 h-6" />
                         </button>
                     </div>
 
-                    <nav class="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+                    <nav class="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2" role="navigation" aria-label="Mobile dashboard menu">
                         <Link 
                             v-for="item in navigation" 
                             :key="item.name"
@@ -301,6 +306,7 @@ router.on('navigate', () => {
                         <button 
                             @click="router.post(route('logout'))"
                             class="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-rose-500 text-white hover:bg-rose-600 transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-rose-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                            aria-label="Log out"
                         >
                             <LogOut class="w-5 h-5" />
                             {{ t('logout') }}

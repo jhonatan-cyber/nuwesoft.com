@@ -6,8 +6,8 @@ use App\Models\ContactMessage;
 use App\Models\Project;
 use App\Models\Technology;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class HealthController extends Controller
 {
@@ -74,6 +74,7 @@ class HealthController extends Controller
     {
         try {
             DB::connection()->getPdo();
+
             return 'connected';
         } catch (\Exception $e) {
             return 'error: ' . $e->getMessage();
@@ -87,6 +88,7 @@ class HealthController extends Controller
             Cache::put($key, true, 1);
             $result = Cache::get($key);
             Cache::forget($key);
+
             return $result ? 'operational' : 'failed';
         } catch (\Exception $e) {
             return 'error: ' . $e->getMessage();
@@ -101,6 +103,7 @@ class HealthController extends Controller
             $bytes /= 1024;
             $i++;
         }
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 
@@ -115,8 +118,10 @@ class HealthController extends Controller
             $days = floor($seconds / 86400);
             $hours = floor(($seconds % 86400) / 3600);
             $minutes = floor(($seconds % 3600) / 60);
+
             return "{$days}d {$hours}h {$minutes}m";
         }
+
         return 'N/A';
     }
 }

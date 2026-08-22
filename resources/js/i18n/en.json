@@ -182,8 +182,10 @@
             "delete": "DELETE MESSAGE",
             "delete_confirm": "From {name}. This action cannot be undone.",
             "cancel": "CANCEL",
-            "deleting": "DELETING..."
+            "deleting": "DELETING...",
+            "download": "DOWNLOAD"
         },
+        "no_message": "No message (attachment only)",
         "empty": {
             "title": "NO MESSAGES",
             "unread": "NO UNREAD MESSAGES",
@@ -202,6 +204,7 @@
         "subtitle": "TECHNICAL CONTROL CENTER",
         "stats": {
             "projects": "ACTIVE PROJECTS",
+            "posts": "ARTICLES",
             "uptime": "SYSTEM UPTIME",
             "technologies": "TECHNOLOGIES",
             "pending_messages": "PENDING MESSAGES",
@@ -459,6 +462,9 @@
         "label_name": "FULL NAME",
         "label_email": "BUSINESS EMAIL",
         "label_message": "PROJECT DETAILS",
+        "label_attachment": "ATTACHMENT",
+        "attachment_prompt": "UPLOAD FILE (PDF/WORD)",
+        "attachment_max_size": "MAX 10MB",
         "placeholder_name": "JOHN DOE",
         "placeholder_email": "JOHN{'@'}COMPANY.COM",
         "placeholder_message": "DESCRIBE YOUR VISION HERE...",
@@ -509,10 +515,22 @@
         "cta_title2": "LEVEL?",
         "cta_button": "START PROJECT",
         "steps": {
-            "discovery": { "name": "DISCOVERY", "desc": "DEEP IMMERSION IN YOUR BUSINESS MODEL AND VISION." },
-            "architect": { "name": "ARCHITECTURE", "desc": "SCALABLE SYSTEM DESIGN AND TECHNICAL BLUEPRINTS." },
-            "develop": { "name": "DEVELOPMENT", "desc": "ITERATIVE SPRINTS OF CLEAN CODE AND HIGH IMPACT." },
-            "deploy": { "name": "DEPLOY", "desc": "CONTROLLED LAUNCH WITH 24/7 MONITORING." }
+            "discovery": {
+                "name": "DISCOVERY",
+                "desc": "DEEP IMMERSION IN YOUR BUSINESS MODEL AND VISION."
+            },
+            "architect": {
+                "name": "ARCHITECTURE",
+                "desc": "SCALABLE SYSTEM DESIGN AND TECHNICAL BLUEPRINTS."
+            },
+            "develop": {
+                "name": "DEVELOPMENT",
+                "desc": "ITERATIVE SPRINTS OF CLEAN CODE AND HIGH IMPACT."
+            },
+            "deploy": {
+                "name": "DEPLOY",
+                "desc": "CONTROLLED LAUNCH WITH 24/7 MONITORING."
+            }
         },
         "items": {
             "software": {

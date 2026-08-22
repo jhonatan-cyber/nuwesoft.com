@@ -1,7 +1,7 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, type Ref } from 'vue'
 
-export function useInView(threshold = 0.1) {
-    const el = ref(null)
+export function useInView(threshold = 0.1): { el: Ref<HTMLElement | null>; isVisible: Ref<boolean> } {
+    const el = ref<HTMLElement | null>(null)
     const isVisible = ref(false)
 
     onMounted(() => {

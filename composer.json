@@ -3,7 +3,10 @@
     "name": "nuwesoft/nuwesoft.com",
     "type": "project",
     "description": "nuwesoft.com",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
@@ -14,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "posthog/posthog-php": "^4.5",
+        "pragmarx/google2fa-laravel": "^3.0",
         "spatie/laravel-typescript-transformer": "^3.2",
         "tightenco/ziggy": "^2.0"
     },
@@ -26,6 +30,7 @@
         "laravel/sail": "^1.62",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^12.5.12"
     },
     "autoload": {
@@ -60,6 +65,15 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "analyse": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "pint": [
+            "@php vendor/bin/pint"
+        ],
+        "pint:test": [
+            "@php vendor/bin/pint --test"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

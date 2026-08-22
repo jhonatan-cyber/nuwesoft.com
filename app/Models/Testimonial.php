@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Testimonial extends Model
 {
-    use HasFactory;
+    use HasFactory, LogActivity;
 
     protected $fillable = [
         'client_name',
@@ -31,9 +32,5 @@ class Testimonial extends Model
         return $query->where('is_active', true)->orderBy('sort_order');
     }
 
-    protected static function booted()
-    {
-        static::saved(fn () => event(new \App\Events\EntityUpdated('testimonial')));
-        static::deleted(fn () => event(new \App\Events\EntityUpdated('testimonial')));
-    }
+    // boot() logic moved to TestimonialObserver
 }

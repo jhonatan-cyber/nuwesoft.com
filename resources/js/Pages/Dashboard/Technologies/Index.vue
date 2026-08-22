@@ -36,6 +36,7 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Badge } from '@/Components/ui/badge';
 import TechnologyForm from './TechnologyForm.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { ref, watch, nextTick, onUnmounted } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import {
@@ -499,41 +500,14 @@ function getCategoryColor(category) {
             </DialogContent>
         </Dialog>
 
-        <!-- Delete Confirmation Modal -->
-        <Dialog v-model:open="isDeleteModalOpen">
-            <DialogContent class="sm:max-w-[420px] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl p-4 sm:p-8 dashboard-dialog-enter">
-                <DialogHeader class="shrink-0">
-                    <div class="mx-auto mb-4 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-                        <AlertTriangle class="h-6 w-6 sm:h-7 sm:w-7 text-rose-500" />
-                    </div>
-                    <DialogTitle class="text-center text-lg sm:text-xl font-black uppercase tracking-tight">{{ t('actions.confirm_delete') }}</DialogTitle>
-                    <DialogDescription class="text-center text-[10px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">
-                        ¿Vas a eliminar <span class="text-neutral-900 dark:text-white underline underline-offset-2">{{ deleteTarget?.name }}</span>? Esta acción no se puede deshacer.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter class="shrink-0 flex flex-col-reverse sm:flex-row gap-3 sm:justify-center pt-2">
-                    <Button
-                        variant="outline"
-                        @click="isDeleteModalOpen = false"
-                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest px-6 sm:px-8 w-full sm:w-auto"
-                    >
-                        {{ t('technologies.delete_modal.cancel') }}
-                    </Button>
-                    <Button
-                        @click="confirmDelete"
-                        :disabled="deleteForm.processing"
-                        class="rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold uppercase text-[10px] tracking-widest px-6 sm:px-8 w-full sm:w-auto shadow-lg shadow-rose-500/20"
-                    >
-                        <template v-if="deleteForm.processing">
-                            <span class="animate-pulse">{{ t('technologies.delete_modal.deleting') }}</span>
-                        </template>
-                        <template v-else>
-                            {{ t('technologies.delete_modal.confirm') }}
-                        </template>
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <!-- Delete Confirmation -->
+        <ConfirmDialog
+            v-model:open="isDeleteModalOpen"
+            :icon="AlertTriangle"
+            :description="t('actions.confirm_delete') + ' ' + (deleteTarget?.name || '')"
+            :loading="deleteForm.processing"
+            @confirm="confirmDelete"
+        />
     </AuthenticatedLayout>
 </template>
 

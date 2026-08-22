@@ -19,9 +19,8 @@ class ContactMessage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nombre',
-        'email',
-        'mensaje',
+        'nombre', 'email', 'mensaje',
+        'attachment_url', 'attachment_name', 'attachment_public_id',
         'read_at',
     ];
 
@@ -29,9 +28,5 @@ class ContactMessage extends Model
         'read_at' => 'datetime',
     ];
 
-    protected static function booted()
-    {
-        static::saved(fn () => event(new \App\Events\EntityUpdated('message')));
-        static::deleted(fn () => event(new \App\Events\EntityUpdated('message')));
-    }
+    // boot() logic moved to ContactMessageObserver
 }

@@ -168,14 +168,7 @@ const socialFields = [
                 </div>
 
                 <div v-else key="content">
-                    <!-- Success Alert -->
-                    <div v-if="$page.props.flash?.success"
-                class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl px-6 py-4 flex items-center gap-3"
-            >
-                <span class="text-emerald-600 dark:text-emerald-400 text-sm font-bold">{{ $page.props.flash.success }}</span>
-            </div>
-
-            <!-- Site Identity -->
+                    <!-- Site Identity -->
             <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
                 <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
                     <div class="flex items-center gap-4">

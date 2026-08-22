@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTestimonialRequest;
+use App\Http\Requests\UpdateTestimonialRequest;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -19,34 +21,18 @@ class TestimonialController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreTestimonialRequest $request)
     {
-        $validated = $request->validate([
-            'client_name' => 'required|string|max:255',
-            'client_role' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'content' => 'required|string|max:2000',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         Testimonial::create($validated);
 
         return Redirect::route('testimonials.index')->with('success', 'Testimonial created.');
     }
 
-    public function update(Request $request, Testimonial $testimonial)
+    public function update(UpdateTestimonialRequest $request, Testimonial $testimonial)
     {
-        $validated = $request->validate([
-            'client_name' => 'required|string|max:255',
-            'client_role' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'content' => 'required|string|max:2000',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         $testimonial->update($validated);
 

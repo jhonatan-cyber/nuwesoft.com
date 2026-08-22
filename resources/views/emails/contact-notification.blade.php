@@ -7,7 +7,11 @@
 **Email:** {{ $message->email }}
 
 **Mensaje:**
-{{ $message->mensaje }}
+{{ $message->mensaje ?: 'Sin mensaje (solo adjunto)' }}
+
+@if ($message->attachment_url)
+**Adjunto:** [{{ $message->attachment_name }}]({{ $message->attachment_url }})
+@endif
 
 <x-mail::button :url="url('/dashboard')">
 Ir al Dashboard
@@ -22,7 +26,11 @@ Ir al Dashboard
 **Email:** {{ $message->email }}
 
 **Message:**
-{{ $message->mensaje }}
+{{ $message->message ?: 'No message (attachment only)' }}
+
+@if ($message->attachment_url)
+**Attachment:** [{{ $message->attachment_name }}]({{ $message->attachment_url }})
+@endif
 
 <x-mail::button :url="url('/dashboard')">
 Go to Dashboard

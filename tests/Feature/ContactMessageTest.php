@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ContactMessage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Tests\TestCase;
 
 class ContactMessageTest extends TestCase
@@ -16,11 +17,14 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_submits_successfully(): void
     {
+        $token = Crypt::encryptString(json_encode(['ts' => now()->subSeconds(10)->timestamp]));
+
         $messageData = [
             'nombre' => 'John Doe',
             'email' => 'john@example.com',
             'subject' => 'Inquiry',
             'mensaje' => 'Hello, I would like to get a quote.',
+            'form_token' => $token,
         ];
 
         $response = $this->post('/contacto', $messageData);

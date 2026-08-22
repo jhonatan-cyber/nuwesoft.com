@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\FourOhFourLog;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class LogController extends Controller

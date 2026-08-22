@@ -9,56 +9,64 @@ use App\Models\Technology;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+// ── Public read-only routes (throttled 120/min per IP) ──
+Route::middleware('throttle:public')->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('Welcome');
+    })->name('home');
 
-Route::get('/servicios', function () {
-    return Inertia::render('Servicios', [
-        'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
-            return Technology::where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
-        }),
-    ]);
-})->name('servicios');
+    Route::get('/servicios', function () {
+        return Inertia::render('Servicios', [
+            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
+                return Technology::where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
+            }),
+        ]);
+    })->name('servicios');
 
-Route::get('/portafolio', function () {
-    return Inertia::render('Portafolio', [
-        'projects' => \Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
-            return Project::with(['images', 'technologies'])
-                ->where('is_active', true)
-                ->latest('created_at')
-                ->get();
-        }),
-        'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
-            return Technology::where('is_active', true)->get();
-        }),
-    ]);
-})->name('portafolio');
-Route::get('/portafolio/{project}', [ProjectController::class, 'publicShow'])->name('portafolio.show');
+    Route::get('/portafolio', function () {
+        return Inertia::render('Portafolio', [
+            'projects' => Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
+                return Project::with(['images', 'technologies'])
+                    ->where('is_active', true)
+                    ->latest('created_at')
+                    ->get();
+            }),
+            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
+                return Technology::where('is_active', true)->get();
+            }),
+        ]);
+    })->name('portafolio');
+
+    Route::get('/portafolio/{project:slug}', [ProjectController::class, 'publicShow'])->name('portafolio.show');
+
+    Route::get('/contacto', [ContactController::class, 'show'])->name('contacto');
+
+    Route::get('/privacidad', function () {
+        return Inertia::render('Privacidad');
+    })->name('privacidad');
+
+    Route::get('/blog', [App\Http\Controllers\PostController::class, 'publicIndex'])->name('blog.index');
+    Route::get('/blog/{post:slug}', [App\Http\Controllers\PostController::class, 'publicShow'])->name('blog.show');
+
+    Route::get('/terminos', function () {
+        return Inertia::render('Terminos');
+    })->name('terminos');
+});
+
+// ── API endpoints (throttled 60/min per IP) ──
 Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middleware('throttle:api')->name('portafolio.data');
 
-Route::get('/contacto', [ContactController::class, 'show'])->name('contacto');
+// ── Contact form submission (throttled 3/min per IP — anti-spam) ──
 Route::post('/contacto', [ContactController::class, 'send'])->middleware('throttle:contact')->name('contacto.send');
 
-Route::get('/privacidad', function () {
-    return Inertia::render('Privacidad');
-})->name('privacidad');
-
-Route::get('/blog', [App\Http\Controllers\PostController::class, 'publicIndex'])->name('blog.index');
-Route::get('/blog/{post:slug}', [App\Http\Controllers\PostController::class, 'publicShow'])->name('blog.show');
-
-Route::get('/terminos', function () {
-    return Inertia::render('Terminos');
-})->name('terminos');
-
 Route::get('/sitemap.xml', function () {
-    $settings = \App\Models\Setting::getAll();
+    $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
 
-    $projects = \App\Models\Project::where('is_active', true)->get(['id', 'updated_at']);
-    $posts = \App\Models\Post::published()->get(['slug', 'updated_at']);
+    $projects = Project::where('is_active', true)->get(['id', 'updated_at']);
+    $posts = App\Models\Post::published()->get(['slug', 'updated_at']);
 
     $pages = [
         ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $projects->isNotEmpty() ? $projects->first()->updated_at?->toW3cString() : null],
@@ -71,8 +79,7 @@ Route::get('/sitemap.xml', function () {
     ];
 
     foreach ($projects as $project) {
-        $pages[] = [
-            'loc' => url('/portafolio/' . $project->id),
+        $pages[] = ['loc' => url('/portafolio/' . $project->slug),
             'priority' => '0.7',
             'changefreq' => 'monthly',
             'lastmod' => $project->updated_at?->toW3cString(),
@@ -105,15 +112,15 @@ Route::get('/sitemap.xml', function () {
     $xml .= '</urlset>';
 
     return response($xml, 200, ['Content-Type' => 'application/xml']);
-});
+})->middleware('throttle:feeds');
 
 Route::get('/rss.xml', function () {
-    $projects = \App\Models\Project::with(['technologies'])
+    $projects = Project::with(['technologies'])
         ->where('is_active', true)
         ->latest('created_at')
         ->get();
 
-    $settings = \App\Models\Setting::getAll();
+    $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
     $tagline = $settings['tagline'] ?? '';
 
@@ -130,8 +137,8 @@ Route::get('/rss.xml', function () {
     foreach ($projects as $project) {
         $xml .= '<item>' . "\n";
         $xml .= '<title>' . e($project->name) . '</title>' . "\n";
-        $xml .= '<link>' . e(url('/portafolio/' . $project->id)) . '</link>' . "\n";
-        $xml .= '<guid isPermaLink="true">' . e(url('/portafolio/' . $project->id)) . '</guid>' . "\n";
+        $xml .= '<link>' . e(url('/portafolio/' . $project->slug)) . '</link>' . "\n";
+        $xml .= '<guid isPermaLink="true">' . e(url('/portafolio/' . $project->slug)) . '</guid>' . "\n";
         $xml .= '<description>' . e($project->desc) . '</description>' . "\n";
         $xml .= '<pubDate>' . e($project->created_at?->toRssString() ?? now()->toRssString()) . '</pubDate>' . "\n";
         $xml .= '<category>' . e($project->category) . '</category>' . "\n";
@@ -142,7 +149,74 @@ Route::get('/rss.xml', function () {
     $xml .= '</rss>' . "\n";
 
     return response($xml, 200, ['Content-Type' => 'application/rss+xml']);
-});
+})->middleware('throttle:feeds');
+
+Route::get('/rss/blog.xml', function () {
+    $posts = App\Models\Post::published()
+        ->latest('published_at')
+        ->get();
+
+    $settings = App\Models\Setting::getAll();
+    $siteName = $settings['site_name'] ?? 'NUWESOFT';
+    $tagline = $settings['tagline'] ?? '';
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content" xmlns:dc="http://purl.org/dc/elements/1.1/">' . "\n";
+    $xml .= '<channel>' . "\n";
+    $xml .= '<title>' . e($siteName) . ' — Blog</title>' . "\n";
+    $xml .= '<link>' . e(url('/blog')) . '</link>' . "\n";
+    $xml .= '<description>Casos de estudio, artículos técnicos e insights de ' . e($siteName) . '</description>' . "\n";
+    $xml .= '<language>' . e(str_replace('_', '-', app()->getLocale())) . '</language>' . "\n";
+    $xml .= '<atom:link href="' . e(url('/rss/blog.xml')) . '" rel="self" type="application/rss+xml"/>' . "\n";
+    $xml .= '<lastBuildDate>' . now()->toRssString() . '</lastBuildDate>' . "\n";
+
+    foreach ($posts as $post) {
+        $postUrl = url('/blog/' . $post->slug);
+
+        $xml .= '<item>' . "\n";
+        $xml .= '<title>' . e($post->title) . '</title>' . "\n";
+        $xml .= '<link>' . e($postUrl) . '</link>' . "\n";
+        $xml .= '<guid isPermaLink="true">' . e($postUrl) . '</guid>' . "\n";
+
+        // Excerpt as plain description
+        $xml .= '<description>' . e($post->excerpt ?? mb_substr(strip_tags($post->content), 0, 300)) . '</description>' . "\n";
+
+        // Full HTML content via content:encoded
+        $xml .= '<content:encoded><![CDATA[' . $post->content . ']]></content:encoded>' . "\n";
+
+        // Author
+        if ($post->author_name) {
+            $xml .= '<dc:creator>' . e($post->author_name) . '</dc:creator>' . "\n";
+        }
+
+        // Published date
+        $xml .= '<pubDate>' . e($post->published_at?->toRssString() ?? now()->toRssString()) . '</pubDate>' . "\n";
+
+        // Category
+        if ($post->category) {
+            $xml .= '<category>' . e($post->category) . '</category>' . "\n";
+        }
+
+        // Tags as individual categories
+        if ($post->tags && is_array($post->tags)) {
+            foreach ($post->tags as $tag) {
+                $xml .= '<category>' . e($tag) . '</category>' . "\n";
+            }
+        }
+
+        // Cover image as enclosure (if available)
+        if ($post->cover_image) {
+            $xml .= '<enclosure url="' . e($post->cover_image) . '" type="image/jpeg" />' . "\n";
+        }
+
+        $xml .= '</item>' . "\n";
+    }
+
+    $xml .= '</channel>' . "\n";
+    $xml .= '</rss>' . "\n";
+
+    return response($xml, 200, ['Content-Type' => 'application/rss+xml']);
+})->middleware('throttle:feeds');
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth'])
@@ -160,6 +234,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/messages/{message}/unread', [App\Http\Controllers\ContactMessageController::class, 'markAsUnread'])->name('messages.unread');
     Route::post('/dashboard/messages/read-all', [App\Http\Controllers\ContactMessageController::class, 'markAllAsRead'])->name('messages.read-all');
     Route::delete('/dashboard/messages/{message}', [App\Http\Controllers\ContactMessageController::class, 'destroy'])->name('messages.destroy');
+    Route::delete('/dashboard/messages', [App\Http\Controllers\ContactMessageController::class, 'bulkDestroy'])->name('messages.bulk-destroy');
     Route::get('/dashboard/messages/export/csv', App\Http\Controllers\MessageExportController::class)->name('messages.export.csv');
 
     // Technologies CRUD
@@ -179,6 +254,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
         Route::match(['post', 'patch'], '/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
     });
+
+    // Two-Factor Authentication
+    Route::get('/dashboard/2fa/setup', [App\Http\Controllers\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+    Route::post('/dashboard/2fa/confirm', [App\Http\Controllers\TwoFactorController::class, 'confirm'])->name('2fa.confirm');
+    Route::delete('/dashboard/2fa/disable', [App\Http\Controllers\TwoFactorController::class, 'disable'])->name('2fa.disable');
+});
+
+// 2FA Challenge (requires auth but not 2FA verification)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/2fa/challenge', [App\Http\Controllers\TwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [App\Http\Controllers\TwoFactorController::class, 'verify'])->name('2fa.verify');
 });
 
 // Health Check
@@ -190,4 +276,4 @@ Route::get('/dashboard/logs', [App\Http\Controllers\LogController::class, 'index
     ->middleware(['auth'])
     ->name('logs.index');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

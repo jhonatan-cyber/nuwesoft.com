@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -19,8 +22,8 @@ class ProjectController extends Controller
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('desc', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                    ->orWhere('desc', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%");
             });
         }
 
@@ -47,26 +50,17 @@ class ProjectController extends Controller
         return Inertia::render('Dashboard/Projects/Form');
     }
 
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'category'     => 'required|string|in:web,mobile,cloud,automation',
-            'technologies' => 'nullable|array',
-            'desc'         => 'nullable|string|max:5000',
-            'icon'         => 'nullable|string|max:100',
-            'images.*'     => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120',
-            'project_url'  => 'nullable|url|max:500',
-            'is_active'    => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
         $project = Project::create([
-            'name'        => $validated['name'],
-            'category'    => $validated['category'],
-            'desc'        => $validated['desc'] ?? '',
-            'icon'        => $validated['icon'] ?? 'Briefcase',
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'desc' => $validated['desc'] ?? '',
+            'icon' => $validated['icon'] ?? 'Briefcase',
             'project_url' => $validated['project_url'] ?? '',
-            'is_active'   => $validated['is_active'] ?? true,
+            'is_active' => $validated['is_active'] ?? true,
         ]);
 
         if ($request->has('technologies')) {
@@ -79,6 +73,7 @@ class ProjectController extends Controller
                     $project->uploadImage($image);
                 } catch (\Throwable $e) {
                     report($e);
+
                     return back()->withErrors(['images' => 'Error al subir una o más imágenes. Intenta de nuevo.']);
                 }
             }
@@ -96,27 +91,17 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'category'     => 'required|string|in:web,mobile,cloud,automation',
-            'technologies' => 'nullable|array',
-            'desc'         => 'nullable|string|max:5000',
-            'icon'         => 'nullable|string|max:100',
-            'images.*'     => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120',
-            'remove_images'=> 'nullable|array',
-            'project_url'  => 'nullable|url|max:500',
-            'is_active'    => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
         $project->update([
-            'name'        => $validated['name'],
-            'category'    => $validated['category'],
-            'desc'        => $validated['desc'] ?? '',
-            'icon'        => $validated['icon'] ?? 'Briefcase',
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'desc' => $validated['desc'] ?? '',
+            'icon' => $validated['icon'] ?? 'Briefcase',
             'project_url' => $validated['project_url'] ?? '',
-            'is_active'   => $validated['is_active'] ?? $project->is_active,
+            'is_active' => $validated['is_active'] ?? $project->is_active,
         ]);
 
         if ($request->has('technologies')) {
@@ -139,6 +124,7 @@ class ProjectController extends Controller
                     $project->uploadImage($image);
                 } catch (\Throwable $e) {
                     report($e);
+
                     return back()->withErrors(['images' => 'Error al subir una o más imágenes. Intenta de nuevo.']);
                 }
             }
@@ -157,10 +143,12 @@ class ProjectController extends Controller
 
     public function publicIndex()
     {
-        return Project::with(['images', 'technologies'])
+        $projects = Project::with(['images', 'technologies'])
             ->where('is_active', true)
             ->latest('created_at')
             ->get();
+
+        return ProjectResource::collection($projects);
     }
 
     public function publicShow(Project $project)

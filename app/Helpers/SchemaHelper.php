@@ -2,8 +2,8 @@
 
 namespace App\Helpers;
 
-use App\Models\Project;
 use App\Models\Post;
+use App\Models\Project;
 
 class SchemaHelper
 {
@@ -44,7 +44,7 @@ class SchemaHelper
             ];
         }
 
-        if (!empty($socialLinks)) {
+        if (! empty($socialLinks)) {
             $schema['sameAs'] = array_values($socialLinks);
         }
 
@@ -106,10 +106,10 @@ class SchemaHelper
             'name' => $project->name,
             'description' => $project->desc,
             'genre' => $project->category,
-            'url' => route('portafolio.show', $project->id),
+            'url' => route('portafolio.show', $project->slug),
         ];
 
-        if (!empty($images)) {
+        if (! empty($images)) {
             $schema['image'] = $images;
         }
 

@@ -1,0 +1,9 @@
+{
+    "*.php": [
+        "php -l",
+        "vendor/bin/pint --test"
+    ],
+    "*.{json,md,yml,yaml}": [
+        "prettier --write"
+    ]
+}

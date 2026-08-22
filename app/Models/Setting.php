@@ -29,6 +29,7 @@ class Setting extends Model
     public static function getValue(string $key, mixed $default = null): mixed
     {
         $settings = static::getAll();
+
         return $settings[$key] ?? $default;
     }
 

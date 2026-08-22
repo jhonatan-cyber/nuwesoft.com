@@ -22,9 +22,9 @@ class ContactMessageController extends Controller
         $unreadCount = ContactMessage::whereNull('read_at')->count();
 
         return Inertia::render('Dashboard/Messages/Index', [
-            'messages'    => $messages,
+            'messages' => $messages,
             'unreadCount' => $unreadCount,
-            'filters'     => $request->only(['filter']),
+            'filters' => $request->only(['filter']),
         ]);
     }
 
@@ -43,24 +43,40 @@ class ContactMessageController extends Controller
     public function markAsRead(ContactMessage $message)
     {
         $message->update(['read_at' => now()]);
+
         return back();
     }
 
     public function markAsUnread(ContactMessage $message)
     {
         $message->update(['read_at' => null]);
+
         return back();
     }
 
     public function markAllAsRead()
     {
         ContactMessage::whereNull('read_at')->update(['read_at' => now()]);
+
         return back()->with('success', 'Todos los mensajes marcados como leídos.');
     }
 
     public function destroy(ContactMessage $message)
     {
         $message->delete();
+
         return redirect()->route('messages.index')->with('success', 'Mensaje eliminado.');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:contact_messages,id',
+        ]);
+
+        $count = ContactMessage::whereIn('id', $request->ids)->delete();
+
+        return back()->with('success', "{$count} mensajes eliminados.");
     }
 }

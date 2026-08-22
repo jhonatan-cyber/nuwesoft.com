@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('logs:clear')->weekly();
+Schedule::command('backup:database --compress')->daily()->at('03:00');

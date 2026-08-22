@@ -1,9 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 import { Plus, FileText, Edit, Trash2, Eye, EyeOff } from 'lucide-vue-next'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
 
 const { t } = useI18n()
 
@@ -12,6 +14,28 @@ const { skeletonReady } = useSkeletonLoader()
 defineProps({
     posts: { type: Object, default: () => ({}) },
 })
+
+// ── Delete confirmation ──
+const isDeleteOpen = ref(false)
+const deleteTarget = ref(null)
+const isDeleting = ref(false)
+
+const openDelete = (post) => {
+    deleteTarget.value = post
+    isDeleteOpen.value = true
+}
+
+const confirmDelete = () => {
+    if (!deleteTarget.value) return
+    isDeleting.value = true
+    router.delete(route('posts.destroy', deleteTarget.value.id), {
+        onFinish: () => {
+            isDeleting.value = false
+            isDeleteOpen.value = false
+            deleteTarget.value = null
+        },
+    })
+}
 </script>
 
 <template>
@@ -97,7 +121,7 @@ defineProps({
                                 class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
                                 <Edit class="w-4 h-4" />
                             </Link>
-                            <button @click="deletePost(post.id)"
+                            <button @click="openDelete(post)"
                                 class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
                                 <Trash2 class="w-4 h-4" />
                             </button>
@@ -122,6 +146,14 @@ defineProps({
                 </div>
             </Transition>
         </div>
+
+        <!-- Delete Confirmation -->
+        <ConfirmDialog
+            v-model:open="isDeleteOpen"
+            :description="t('messages.actions.delete_confirm', { name: deleteTarget?.title })"
+            :loading="isDeleting"
+            @confirm="confirmDelete"
+        />
     </AuthenticatedLayout>
 </template>
 

@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Observers\ContactMessageObserver;
+use App\Observers\PostObserver;
+use App\Observers\ProjectImageObserver;
+use App\Observers\ProjectObserver;
+use App\Observers\TechnologyObserver;
+use App\Observers\TestimonialObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,18 +21,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register Eloquent Observers
+        \App\Models\Project::observe(ProjectObserver::class);
+        \App\Models\Post::observe(PostObserver::class);
+        \App\Models\Technology::observe(TechnologyObserver::class);
+        \App\Models\ContactMessage::observe(ContactMessageObserver::class);
+        \App\Models\Testimonial::observe(TestimonialObserver::class);
+        \App\Models\ProjectImage::observe(ProjectImageObserver::class);
+
         $this->app->singleton(
             \App\Contracts\StorageServiceInterface::class,
             \App\Services\CloudinaryStorageService::class
         );
 
         $this->app->singleton(\Illuminate\Foundation\Vite::class, function ($app) {
-            return new class extends \Illuminate\Foundation\Vite {
+            return new class extends \Illuminate\Foundation\Vite
+            {
                 protected function hotAsset($asset)
                 {
                     $url = parent::hotAsset($asset);
-                    
-                    if (app()->environment('local') && !app()->runningInConsole()) {
+
+                    if (app()->environment('local') && ! app()->runningInConsole()) {
                         $requestHost = request()->getHost();
                         if ($requestHost) {
                             $url = str_replace(
@@ -36,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
                             );
                         }
                     }
-                    
+
                     return $url;
                 }
             };
@@ -52,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-         Vite::prefetch(concurrency: 3);
+        Vite::prefetch(concurrency: 3);
 
         RateLimiter::for('contact', function (Request $request) {
             return Limit::perMinute(3)->by($request->ip());
@@ -60,6 +75,21 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip() ?: $request->user()?->id ?: $request->fingerprint());
+        });
+
+        // Public read pages (blog, portafolio, servicios, welcome) — generous for SEO crawlers
+        RateLimiter::for('public', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
+        // XML feeds (RSS, sitemap) — heavier to generate, stricter limit
+        RateLimiter::for('feeds', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
+        });
+
+        // Contact form page (GET) — light throttle to prevent scraping
+        RateLimiter::for('public.contact', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
         });
     }
 }

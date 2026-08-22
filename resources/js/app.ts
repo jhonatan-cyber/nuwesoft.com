@@ -22,8 +22,18 @@ declare global {
 }
 
 // ── Navigation Timestamp (for skeleton loading timing) ──
-router.on('navigate', () => {
+router.on('navigate', (event) => {
     window.__nuwesoft_navStart = Date.now();
+
+    // Scroll to top on page navigation (unless preserveScroll is set)
+    if (!event.detail.visit.preserveScroll) {
+        const scrollable = document.querySelector('.scrollbar-imperceptible');
+        if (scrollable) {
+            scrollable.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
 });
 
 // ── PostHog Analytics ──

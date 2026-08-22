@@ -45,6 +45,13 @@ const articleJsonLd = computed(() => JSON.stringify({
     },
     wordCount: props.post.content ? props.post.content.split(/\s+/).length : 0,
 }))
+
+const readingTime = computed(() => {
+    if (!props.post.content) return null
+    const words = props.post.content.split(/\s+/).length
+    const minutes = Math.max(1, Math.ceil(words / 230))
+    return minutes
+})
 </script>
 
 <template>
@@ -152,6 +159,10 @@ const articleJsonLd = computed(() => JSON.stringify({
                                 <span class="flex items-center gap-2">
                                     <User class="w-4 h-4" />
                                     {{ post.author_name }}
+                                </span>
+                                <span v-if="readingTime" class="flex items-center gap-2">
+                                    <Clock class="w-4 h-4" />
+                                    {{ readingTime }} MIN READ
                                 </span>
                                 <span v-if="post.tags?.length" class="flex items-center gap-2">
                                     <span v-for="tag in post.tags" :key="tag"

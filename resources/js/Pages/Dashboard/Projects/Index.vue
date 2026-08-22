@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { ref, computed, watch, nextTick } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import { useRekaCleanup } from '@/composables/useRekaCleanup';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { 
     Plus, 
     Pencil, 
@@ -141,10 +142,28 @@ const closeGallery = () => {
     selectedProjectForGallery.value = null;
 };
 
-const deleteProject = (id) => {
-    if (confirm(t('actions.confirm_delete'))) {
-        router.delete(route('projects.destroy', id));
-    }
+// ── Delete confirmation ──
+const isDeleteOpen = ref(false);
+const deleteTarget = ref(null);
+const isDeleting = ref(false);
+
+useRekaCleanup(isDeleteOpen);
+
+const openDelete = (project) => {
+    deleteTarget.value = project;
+    isDeleteOpen.value = true;
+};
+
+const confirmDelete = () => {
+    if (!deleteTarget.value) return;
+    isDeleting.value = true;
+    router.delete(route('projects.destroy', deleteTarget.value.id), {
+        onFinish: () => {
+            isDeleting.value = false;
+            isDeleteOpen.value = false;
+            deleteTarget.value = null;
+        },
+    });
 };
 </script>
 
@@ -295,7 +314,7 @@ const deleteProject = (id) => {
                                 {{ t('actions.edit') }}
                             </Button>
 
-                            <Button @click="deleteProject(project.id)" variant="ghost"
+                            <Button @click="openDelete(project)" variant="ghost"
                                 class="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-transparent hover:border-rose-200 dark:hover:border-rose-500/20 transition-all">
                                 <Trash2 class="w-3.5 h-3.5" />
                             </Button>
@@ -409,7 +428,16 @@ const deleteProject = (id) => {
                     />
                 </div>
             </DialogContent>
-        </Dialog>    </AuthenticatedLayout>
+        </Dialog>
+
+        <!-- Delete Confirmation -->
+        <ConfirmDialog
+            v-model:open="isDeleteOpen"
+            :description="t('actions.confirm_delete') + ' ' + (deleteTarget?.name || '')"
+            :loading="isDeleting"
+            @confirm="confirmDelete"
+        />
+    </AuthenticatedLayout>
 </template>
 
 <style scoped>

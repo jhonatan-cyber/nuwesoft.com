@@ -23,17 +23,7 @@ class ProjectImage extends Model
         return $this->belongsTo(Project::class);
     }
 
-    protected static function booted()
-    {
-        static::saved(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('project'));
-        });
-        static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('project'));
-        });
-    }
+    // boot() logic moved to ProjectImageObserver
 
     protected function optimizedImageUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -44,11 +34,11 @@ class ProjectImage extends Model
 
     private function optimizeCloudinaryUrl(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
 
-        if (!str_contains($url, 'res.cloudinary.com')) {
+        if (! str_contains($url, 'res.cloudinary.com')) {
             return $url;
         }
 

@@ -127,5 +127,4 @@ return [
 
     'admin_address' => env('MAIL_ADMIN_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
 
-
 ];

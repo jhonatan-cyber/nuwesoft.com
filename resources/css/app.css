@@ -138,6 +138,48 @@
     opacity: 0;
 }
 
+/* ══════════════════════════════════════════════════
+   Inertia Page Transitions
+   Used by <Transition name="page" mode="out-in"> in layouts
+   ══════════════════════════════════════════════════ */
+
+.page-enter-active,
+.page-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-enter-from {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.page-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+/* Reduced motion: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .page-enter-active,
+    .page-leave-active {
+        transition: none;
+    }
+    .page-enter-from,
+    .page-leave-to {
+        transform: none;
+    }
+}
+
 /* Selection */
 ::selection {
   @apply bg-brutalist-yellow text-black;

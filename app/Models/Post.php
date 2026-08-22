@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\PostCategory;
+use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, LogActivity;
 
     protected $fillable = [
         'title',
@@ -23,6 +25,7 @@ class Post extends Model
     ];
 
     protected $casts = [
+        'category' => PostCategory::class,
         'tags' => 'array',
         'is_published' => 'boolean',
         'published_at' => 'datetime',
@@ -35,9 +38,5 @@ class Post extends Model
             ->where('published_at', '<=', now());
     }
 
-    protected static function booted()
-    {
-        static::saved(fn () => event(new \App\Events\EntityUpdated('post')));
-        static::deleted(fn () => event(new \App\Events\EntityUpdated('post')));
-    }
+    // boot() logic moved to PostObserver
 }

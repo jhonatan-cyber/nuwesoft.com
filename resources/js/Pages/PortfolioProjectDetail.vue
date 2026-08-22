@@ -478,6 +478,7 @@ const categoryColors = {
                             type="button"
                             class="absolute left-4 top-1/2 -translate-y-1/2 border-2 border-white bg-black/80 p-3 text-white transition-all hover:bg-brutalist-yellow hover:text-black hover:scale-110"
                             @click.stop="showPrev"
+                            :aria-label="'Previous image ' + (lightboxIndex) + ' of ' + allImages.length"
                         >
                             <ChevronLeft class="h-6 w-6" />
                         </button>
@@ -486,6 +487,7 @@ const categoryColors = {
                             type="button"
                             class="absolute right-4 top-1/2 -translate-y-1/2 border-2 border-white bg-black/80 p-3 text-white transition-all hover:bg-brutalist-yellow hover:text-black hover:scale-110"
                             @click.stop="showNext"
+                            :aria-label="'Next image ' + (lightboxIndex + 2) + ' of ' + allImages.length"
                         >
                             <ChevronRight class="h-6 w-6" />
                         </button>

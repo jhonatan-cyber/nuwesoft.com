@@ -10,16 +10,15 @@ defineProps({
 });
 
 const page = usePage();
-const settingsLogo = computed(() => page.props.settings?.logo_url || null);
+const logoUrl = computed(() => page.props.settings?.logo_url || '/images/nuwesoft-logo.png');
 </script>
 
 <template>
-    <div class="relative flex items-center justify-center overflow-visible py-1">
+    <div class="relative flex items-center justify-center overflow-hidden py-1">
         <img
-            v-if="settingsLogo"
-            :src="settingsLogo"
+            :src="logoUrl"
             alt="NUWESOFT"
-            class="h-auto w-auto max-w-full object-contain"
+            class="h-10 w-auto object-contain"
         />
     </div>
 </template>

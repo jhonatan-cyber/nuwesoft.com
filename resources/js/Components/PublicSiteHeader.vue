@@ -65,7 +65,7 @@ onUnmounted(() => {
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-black focus:text-white focus:px-6 focus:py-3 focus:text-sm focus:font-black focus:uppercase focus:tracking-widest focus:border-4 focus:border-white focus:outline-none">
         Saltar al contenido principal
     </a>
-    <nav class="fixed top-0 z-40 w-full border-b-4 border-black bg-white/95 backdrop-blur-md dark:border-white dark:bg-black/95 animate-in fade-in slide-in-from-top-3 duration-500">
+    <nav class="fixed top-0 z-40 w-full border-b-4 border-black bg-white/95 backdrop-blur-md dark:border-white dark:bg-black/95 animate-in fade-in slide-in-from-top-3 duration-500" role="navigation" aria-label="Main navigation">
         <div class="mx-auto max-w-[1400px] px-6">
             <div class="flex h-20 items-center justify-between">
                 <Link href="/" class="group flex items-center space-x-3">
@@ -94,6 +94,8 @@ onUnmounted(() => {
                         type="button"
                         @click="toggleMenu"
                         class="border-4 border-black bg-brutalist-yellow p-2 text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none dark:border-white dark:bg-zinc-800 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+                        :aria-label="isMenuOpen ? 'Close menu' : 'Open menu'"
+                        :aria-expanded="isMenuOpen"
                     >
                         <Menu v-if="!isMenuOpen" class="h-8 w-8" />
                         <X v-else class="h-8 w-8" />
@@ -104,7 +106,7 @@ onUnmounted(() => {
 
         <teleport to="body">
             <transition name="menu-fade">
-                <div v-if="isMenuOpen" class="mobile-menu-container fixed inset-0 z-50 flex flex-col border-t-8 border-black p-8 dark:border-white md:hidden">
+                <div v-if="isMenuOpen" class="mobile-menu-container fixed inset-0 z-50 flex flex-col border-t-8 border-black p-8 dark:border-white md:hidden" role="dialog" aria-label="Mobile navigation menu">
                     <div class="mb-16 flex items-center justify-between">
                         <Link href="/" class="group flex items-center space-x-3" @click="closeMenu">
                             <div class="border-4 border-black bg-white px-2 pb-1 pt-2 shadow-brutalist dark:border-white dark:bg-zinc-950 dark:shadow-brutalist-white">
@@ -116,6 +118,7 @@ onUnmounted(() => {
                             type="button"
                             @click="closeMenu"
                             class="border-4 border-black bg-white p-2 text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-800 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+                            aria-label="Close menu"
                         >
                             <X class="h-8 w-8" />
                         </button>

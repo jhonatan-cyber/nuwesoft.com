@@ -3,19 +3,16 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
-import { useRekaCleanup } from '@/composables/useRekaCleanup';
+
 import { useI18n } from 'vue-i18n';
 import {
     Mail, MailOpen, Trash2, CheckCheck, RefreshCw,
-    Search, X, ChevronRight, AlertTriangle, Inbox
+    Search, X, ChevronRight, AlertTriangle, Inbox, FileText
 } from 'lucide-vue-next';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Download } from 'lucide-vue-next';
-import {
-    Dialog, DialogContent, DialogHeader,
-    DialogTitle, DialogDescription, DialogFooter,
-} from '@/Components/ui/dialog';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Input } from '@/Components/ui/input';
 import {
     Pagination, PaginationList, PaginationListItem,
@@ -39,6 +36,44 @@ const deleteTarget = ref(null);
 const isDeleteOpen  = ref(false);
 const deleteForm    = useForm({});
 const expanded      = ref(null);
+
+// ── Bulk delete ──
+const selected     = ref([]);
+const isBulkDeleteOpen = ref(false);
+const bulkDeleteForm   = useForm({ ids: [] });
+
+const allSelected = ref(false);
+
+const toggleSelectAll = () => {
+    if (allSelected.value) {
+        selected.value = [];
+        allSelected.value = false;
+    } else {
+        selected.value = props.messages.data.map(m => m.id);
+        allSelected.value = true;
+    }
+};
+
+const toggleSelect = (id) => {
+    const idx = selected.value.indexOf(id);
+    if (idx === -1) {
+        selected.value.push(id);
+    } else {
+        selected.value.splice(idx, 1);
+    }
+    allSelected.value = selected.value.length === props.messages.data.length;
+};
+
+const confirmBulkDelete = () => {
+    bulkDeleteForm.ids = [...selected.value];
+    bulkDeleteForm.delete(route('messages.bulk-destroy'), {
+        onFinish: () => {
+            selected.value = [];
+            allSelected.value = false;
+            isBulkDeleteOpen.value = false;
+        },
+    });
+};
 
 useRekaCleanup(isDeleteOpen);
 
@@ -121,6 +156,16 @@ function formatDate(date) {
                         <CheckCheck class="w-4 h-4 mr-1.5" />
                         {{ t('messages.actions.mark_all_read') }}
                     </Button>
+                    <Button
+                        v-if="selected.length > 0"
+                        variant="outline"
+                        size="sm"
+                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest border-rose-300 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                        @click="isBulkDeleteOpen = true"
+                    >
+                        <Trash2 class="w-4 h-4 mr-1.5" />
+                        {{ t('messages.actions.delete') }} ({{ selected.length }})
+                    </Button>
                 </div>
             </div>
         </template>
@@ -181,6 +226,19 @@ function formatDate(date) {
                         class="flex items-center gap-4 p-5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
                         @click="toggleExpand(msg.id)"
                     >
+                        <!-- Checkbox -->
+                        <label
+                            class="shrink-0 flex items-center justify-center"
+                            @click.stop
+                        >
+                            <input
+                                type="checkbox"
+                                :checked="selected.includes(msg.id)"
+                                @change="toggleSelect(msg.id)"
+                                class="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-brutalist-pink focus:ring-brutalist-pink cursor-pointer"
+                            />
+                        </label>
+
                         <!-- Read indicator -->
                         <div :class="[
                             'w-2 h-2 rounded-full shrink-0',
@@ -205,7 +263,11 @@ function formatDate(date) {
                                 <span class="text-[10px] text-neutral-400 font-mono break-all">{{ msg.email }}</span>
                             </div>
                             <p class="text-[11px] text-neutral-500 truncate mt-0.5">
-                                {{ msg.mensaje }}
+                                {{ msg.mensaje || t('messages.no_message') }}
+                                <span v-if="msg.attachment_name" class="inline-flex items-center gap-1 ml-1 text-brutalist-pink">
+                                    <FileText class="w-3 h-3" />
+                                    {{ msg.attachment_name }}
+                                </span>
                             </p>
                         </div>
 
@@ -241,6 +303,18 @@ function formatDate(date) {
                             <p class="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
                                 {{ msg.mensaje }}
                             </p>
+                            <div v-if="msg.attachment_name && msg.attachment_url"
+                                class="mt-3 flex items-center gap-2 p-3 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+                                <FileText class="w-5 h-5 text-brutalist-pink shrink-0" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-neutral-700 dark:text-neutral-300 truncate">{{ msg.attachment_name }}</p>
+                                </div>
+                                <a :href="msg.attachment_url" target="_blank" rel="noopener"
+                                    class="shrink-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg bg-brutalist-pink text-white hover:bg-brutalist-pink/90 transition-colors">
+                                    <Download class="w-3.5 h-3.5 inline-block mr-1" />
+                                    {{ t('messages.actions.download') }}
+                                </a>
+                            </div>
                             <div class="mt-4 flex items-center justify-between">
                                 <a :href="`mailto:${msg.email}`"
                                     class="text-[10px] font-black uppercase tracking-widest text-brutalist-pink hover:underline">
@@ -295,30 +369,23 @@ function formatDate(date) {
             </div>
         </div>
 
-        <!-- Delete confirmation -->
-        <Dialog v-model:open="isDeleteOpen">
-            <DialogContent class="sm:max-w-[400px] !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl p-8 dashboard-dialog-enter">
-                <DialogHeader>
-                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-                        <AlertTriangle class="h-7 w-7 text-rose-500" />
-                    </div>
-                    <DialogTitle class="text-center text-xl font-black uppercase">{{ t('messages.actions.delete') }}</DialogTitle>
-                    <DialogDescription class="text-center text-xs font-bold text-neutral-400 uppercase tracking-widest">
-                        {{ t('messages.actions.delete_confirm', { name: deleteTarget?.nombre }) }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-center pt-2">
-                    <Button variant="outline" @click="isDeleteOpen = false"
-                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest">
-                        {{ t('messages.actions.cancel') }}
-                    </Button>
-                    <Button @click="confirmDelete" :disabled="deleteForm.processing"
-                        class="rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-rose-500/20">
-                        <span v-if="deleteForm.processing" class="animate-pulse">{{ t('messages.actions.deleting') }}</span>
-                        <span v-else>{{ t('actions.delete') }}</span>
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <!-- Single delete -->
+        <ConfirmDialog
+            v-model:open="isDeleteOpen"
+            :icon="AlertTriangle"
+            variant="danger"
+            :description="t('messages.actions.delete_confirm', { name: deleteTarget?.nombre })"
+            :loading="deleteForm.processing"
+            @confirm="confirmDelete"
+        />
+
+        <!-- Bulk delete -->
+        <ConfirmDialog
+            v-model:open="isBulkDeleteOpen"
+            :description="t('messages.actions.delete_confirm_bulk', { count: selected.length })"
+            :loading="bulkDeleteForm.processing"
+            :confirm-label="t('actions.delete') + ' (' + selected.length + ')'"
+            @confirm="confirmBulkDelete"
+        />
     </AuthenticatedLayout>
 </template>

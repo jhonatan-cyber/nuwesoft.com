@@ -182,8 +182,10 @@
             "delete": "ELIMINAR MENSAJE",
             "delete_confirm": "De {name}. Esta accion no se puede deshacer.",
             "cancel": "CANCELAR",
-            "deleting": "ELIMINANDO..."
+            "deleting": "ELIMINANDO...",
+            "download": "DESCARGAR"
         },
+        "no_message": "Sin mensaje (adjunto)",
         "empty": {
             "title": "SIN MENSAJES",
             "unread": "NINGUN MENSAJE SIN LEER",
@@ -202,6 +204,7 @@
         "subtitle": "CENTRO DE CONTROL TECNICO",
         "stats": {
             "projects": "PROYECTOS ACTIVOS",
+            "posts": "ARTICULOS",
             "uptime": "UPTIME DEL SISTEMA",
             "technologies": "TECNOLOGIAS",
             "pending_messages": "MENSAJES PEND.",
@@ -459,6 +462,9 @@
         "label_name": "NOMBRE COMPLETO",
         "label_email": "EMAIL CORPORATIVO",
         "label_message": "DETALLES DEL PROYECTO",
+        "label_attachment": "ARCHIVO ADJUNTO",
+        "attachment_prompt": "SUBIR ARCHIVO (PDF/WORD)",
+        "attachment_max_size": "MAXIMO 10MB",
         "placeholder_name": "JOHN DOE",
         "placeholder_email": "JOHN{'@'}COMPANY.COM",
         "placeholder_message": "DESCRIBE AQUI TU VISION...",
@@ -509,10 +515,22 @@
         "cta_title2": "NIVEL?",
         "cta_button": "INICIAR PROYECTO",
         "steps": {
-            "discovery": { "name": "DESCUBRIMIENTO", "desc": "INMERSION PROFUNDA EN TU MODELO DE NEGOCIO Y TU VISION." },
-            "architect": { "name": "ARQUITECTURA", "desc": "DISENO DE SISTEMAS ESCALABLES Y BLUEPRINTS TECNICOS." },
-            "develop": { "name": "DESARROLLO", "desc": "SPRINTS ITERATIVOS DE CODIGO LIMPIO Y ALTO IMPACTO." },
-            "deploy": { "name": "DESPLIEGUE", "desc": "LANZAMIENTO CONTROLADO CON MONITOREO 24/7." }
+            "discovery": {
+                "name": "DESCUBRIMIENTO",
+                "desc": "INMERSION PROFUNDA EN TU MODELO DE NEGOCIO Y TU VISION."
+            },
+            "architect": {
+                "name": "ARQUITECTURA",
+                "desc": "DISENO DE SISTEMAS ESCALABLES Y BLUEPRINTS TECNICOS."
+            },
+            "develop": {
+                "name": "DESARROLLO",
+                "desc": "SPRINTS ITERATIVOS DE CODIGO LIMPIO Y ALTO IMPACTO."
+            },
+            "deploy": {
+                "name": "DESPLIEGUE",
+                "desc": "LANZAMIENTO CONTROLADO CON MONITOREO 24/7."
+            }
         },
         "items": {
             "software": {

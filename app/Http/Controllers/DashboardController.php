@@ -3,41 +3,57 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
+use App\Models\Post;
 use App\Models\Project;
 use App\Models\Technology;
-use Illuminate\Http\Request;
+use App\Models\Testimonial;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $activeProjects = Project::where('is_active', true)->count();
-        $totalProjects = Project::count();
-        $activeTechnologies = Technology::where('is_active', true)->count();
-        $totalTechnologies = Technology::count();
-        $pendingMessages = ContactMessage::count();
+        $cacheTtl = 60; // seconds
+
+        $activeProjects = Cache::remember('dashboard.active_projects', $cacheTtl, fn () => Project::where('is_active', true)->count());
+        $totalProjects = Cache::remember('dashboard.total_projects', $cacheTtl, fn () => Project::count());
+        $activeTechnologies = Cache::remember('dashboard.active_technologies', $cacheTtl, fn () => Technology::where('is_active', true)->count());
+        $totalTechnologies = Cache::remember('dashboard.total_technologies', $cacheTtl, fn () => Technology::count());
+        $pendingMessages = Cache::remember('dashboard.pending_messages', $cacheTtl, fn () => ContactMessage::count());
+        $unreadMessages = Cache::remember('dashboard.unread_messages', $cacheTtl, fn () => ContactMessage::whereNull('read_at')->count());
+        $totalPosts = Cache::remember('dashboard.total_posts', $cacheTtl, fn () => Post::count());
+        $publishedPosts = Cache::remember('dashboard.published_posts', $cacheTtl, fn () => Post::where('is_published', true)->count());
+        $totalTestimonials = Cache::remember('dashboard.total_testimonials', $cacheTtl, fn () => Testimonial::count());
+
+        // Latest messages are always fresh (user expects real-time)
         $latestMessages = ContactMessage::latest()->take(5)->get();
 
-        // Projects by category
-        $projectsByCategory = Project::selectRaw('category, count(*) as total')
+        // Aggregate queries — cached
+        $projectsByCategory = Cache::remember('dashboard.projects_by_category', $cacheTtl, fn () => Project::selectRaw('category, count(*) as total')
             ->groupBy('category')
-            ->pluck('total', 'category');
+            ->pluck('total', 'category')
+        );
 
-        // Technologies by category
-        $techByCategory = Technology::selectRaw('category, count(*) as total')
+        $techByCategory = Cache::remember('dashboard.tech_by_category', $cacheTtl, fn () => Technology::selectRaw('category, count(*) as total')
             ->where('is_active', true)
             ->groupBy('category')
-            ->pluck('total', 'category');
+            ->pluck('total', 'category')
+        );
 
-        // Recent projects (last 5)
-        $recentProjects = Project::with('technologies')
+        // Recent projects — cached with eager loading
+        $recentProjects = Cache::remember('dashboard.recent_projects', $cacheTtl, fn () => Project::with('technologies')
             ->latest()
             ->take(5)
-            ->get(['id', 'name', 'category', 'created_at']);
+            ->get(['id', 'name', 'slug', 'category', 'created_at'])
+        );
 
         // PostHog analytics integration (with fallback to elegant mock data)
         $posthogStats = $this->getPosthogStats();
+
+        // Activity log — latest admin actions
+        $activityLog = Cache::remember('dashboard.activity_log', 30, fn () => \App\Models\ActivityLog::latest()->take(10)->get()
+        );
 
         return Inertia::render('Dashboard', [
             'stats' => [
@@ -46,11 +62,16 @@ class DashboardController extends Controller
                 'active_technologies' => $activeTechnologies,
                 'total_technologies' => $totalTechnologies,
                 'pending_messages' => $pendingMessages,
+                'unread_messages' => $unreadMessages,
+                'total_posts' => $totalPosts,
+                'published_posts' => $publishedPosts,
+                'total_testimonials' => $totalTestimonials,
                 'projects_by_category' => $projectsByCategory,
                 'tech_by_category' => $techByCategory,
             ],
             'recent_projects' => $recentProjects,
             'latest_messages' => $latestMessages,
+            'activity_log' => $activityLog,
             'posthog_stats' => $posthogStats,
         ]);
     }
@@ -75,11 +96,12 @@ class DashboardController extends Controller
 
                 if ($response->successful()) {
                     $data = $response->json();
+
                     // Aquí procesaríamos el formato específico de PostHog.
                     // Por simplicidad del wrapper de visualización, retornamos una estructura adaptada.
                     return [
                         'source' => 'real',
-                        'page_views' => collect($data['results'] ?? [])->map(fn($r) => [
+                        'page_views' => collect($data['results'] ?? [])->map(fn ($r) => [
                             'path' => $r['label'] ?? 'Unknown',
                             'views' => array_sum($r['data'] ?? []),
                         ])->sortByDesc('views')->take(5)->values()->toArray(),
@@ -105,7 +127,7 @@ class DashboardController extends Controller
                 ['country' => 'España', 'code' => 'ES', 'count' => 450],
                 ['country' => 'Estados Unidos', 'code' => 'US', 'count' => 180],
                 ['country' => 'Chile', 'code' => 'CL', 'count' => 90],
-            ]
+            ],
         ];
     }
 }

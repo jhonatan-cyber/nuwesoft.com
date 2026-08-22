@@ -5,15 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 import { Star, Plus, Edit, Trash2, Quote, X } from 'lucide-vue-next'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogClose,
-} from '@/Components/ui/dialog'
-import { useRekaCleanup } from '@/composables/useRekaCleanup'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
 
 const { t } = useI18n()
 
@@ -75,10 +67,26 @@ const submit = () => {
     }
 }
 
-const deleteItem = (id) => {
-    if (confirm('¿Eliminar este testimonio?')) {
-        form.delete(route('testimonials.destroy', id))
-    }
+// ── Delete confirmation ──
+const isDeleteOpen = ref(false)
+const deleteTarget = ref(null)
+const isDeleting = ref(false)
+
+const openDelete = (testimonial) => {
+    deleteTarget.value = testimonial
+    isDeleteOpen.value = true
+}
+
+const confirmDelete = () => {
+    if (!deleteTarget.value) return
+    isDeleting.value = true
+    form.delete(route('testimonials.destroy', deleteTarget.value.id), {
+        onFinish: () => {
+            isDeleting.value = false
+            isDeleteOpen.value = false
+            deleteTarget.value = null
+        },
+    })
 }
 </script>
 
@@ -157,7 +165,7 @@ const deleteItem = (id) => {
                                 class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2">
                                 <Edit class="w-4 h-4" />
                             </button>
-                            <button @click="deleteItem(item.id)"
+                            <button @click="openDelete(item)"
                                 class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
                                 <Trash2 class="w-4 h-4" />
                             </button>
@@ -245,6 +253,14 @@ const deleteItem = (id) => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <!-- Delete Confirmation -->
+            <ConfirmDialog
+                v-model:open="isDeleteOpen"
+                :description="t('messages.actions.delete_confirm', { name: deleteTarget?.client_name })"
+                :loading="isDeleting"
+                @confirm="confirmDelete"
+            />
                 </div>
             </Transition>
         </div>

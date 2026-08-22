@@ -30,7 +30,14 @@ import {
     TrendingUp,
     Users,
     MousePointerClick,
-    Flag
+    Flag,
+    FileText,
+    Star,
+    Mail,
+    Plus,
+    Pencil,
+    Trash2,
+    LogIn
 } from 'lucide-vue-next';
 
 const { t } = useI18n();
@@ -48,13 +55,14 @@ const props = defineProps({
     stats: { type: Object, default: () => ({}) },
     recent_projects: { type: Array, default: () => [] },
     latest_messages: { type: Array, default: () => [] },
+    activity_log: { type: Array, default: () => [] },
 })
 
 const dynamicStats = computed(() => [
     { label: t('dashboard_panel.stats.projects'),         value: String(props.stats.active_projects     || '0'), icon: Briefcase,    color: 'text-black dark:text-white',  bg: 'bg-black/10 dark:bg-white/10' },
-    { label: t('dashboard_panel.stats.uptime'),           value: '99.9%',                                        icon: Activity,     color: 'text-emerald-500',             bg: 'bg-emerald-500/10' },
+    { label: t('dashboard_panel.stats.posts'),            value: String(props.stats.published_posts     || '0') + '/' + String(props.stats.total_posts || '0'), icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: t('dashboard_panel.stats.technologies'),     value: String(props.stats.active_technologies || '0'), icon: Code,         color: 'text-rose-500',                bg: 'bg-rose-500/10' },
-    { label: t('dashboard_panel.stats.pending_messages'), value: String(props.stats.pending_messages    || '0'), icon: MessageSquare, color: 'text-neutral-500',            bg: 'bg-neutral-500/10' },
+    { label: t('dashboard_panel.stats.pending_messages'), value: String(props.stats.unread_messages      || '0'), icon: Mail, color: props.stats.unread_messages > 0 ? 'text-brutalist-pink' : 'text-neutral-500', bg: props.stats.unread_messages > 0 ? 'bg-brutalist-pink/10' : 'bg-neutral-500/10' },
 ]);
 
 const shortcuts = [
@@ -262,6 +270,43 @@ const shortcuts = [
                     <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
                         Configurá <code class="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded">POSTHOG_KEY</code> en tu <code class="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded">.env</code> para activar analytics.
                     </p>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div v-if="activity_log.length > 0">
+                <div class="flex items-center gap-4 mb-6">
+                    <Clock class="w-5 h-5 text-neutral-500" />
+                    <h3 class="text-xl font-display font-bold uppercase tracking-tight text-neutral-900 dark:text-white">
+                        ACTIVITY LOG
+                    </h3>
+                    <div class="flex-1 h-px bg-neutral-100 dark:bg-neutral-800"></div>
+                </div>
+                <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
+                    <div v-for="log in activity_log" :key="log.id"
+                        class="flex items-start gap-4 px-5 py-4 border-b border-neutral-50 dark:border-neutral-800 last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors">
+                        <div :class="[
+                            'w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5',
+                            log.type === 'created' ? 'bg-emerald-500/10' :
+                            log.type === 'updated' ? 'bg-blue-500/10' :
+                            log.type === 'deleted' ? 'bg-red-500/10' : 'bg-neutral-100 dark:bg-neutral-800'
+                        ]">
+                            <component :is="
+                                log.type === 'created' ? Plus :
+                                log.type === 'updated' ? Pencil :
+                                log.type === 'deleted' ? Trash2 : LogIn
+                            " :class="[
+                                'w-4 h-4',
+                                log.type === 'created' ? 'text-emerald-500' :
+                                log.type === 'updated' ? 'text-blue-500' :
+                                log.type === 'deleted' ? 'text-red-500' : 'text-neutral-400'
+                            ]" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed">{{ log.description }}</p>
+                            <p class="text-[10px] text-neutral-400 mt-1 font-mono">{{ new Date(log.created_at).toLocaleString('es-AR') }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

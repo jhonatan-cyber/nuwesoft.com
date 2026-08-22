@@ -19,6 +19,11 @@ php artisan event:cache
 echo "Ejecutando migraciones de base de datos..."
 php artisan migrate --force
 
+# Configure queue workers count
+QUEUE_WORKERS=${QUEUE_WORKERS:-1}
+echo "Configurando $QUEUE_WORKERS queue worker(s)..."
+sed -i "s/numprocs=1/numprocs=$QUEUE_WORKERS/" /opt/docker/etc/supervisor.d/laravel-workers.conf 2>/dev/null || true
+
 echo "=== Bootstrap completado. Levantando Nginx y PHP-FPM ==="
 
 # Ejecutar el entrypoint original de la imagen base webdevops

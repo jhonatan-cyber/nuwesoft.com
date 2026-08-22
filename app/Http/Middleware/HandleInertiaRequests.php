@@ -53,7 +53,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'settings'      => fn () => Setting::getAll(),
+            'settings' => fn () => Setting::getAll(),
             'unread_messages' => fn () => $request->user()
                 ? ContactMessage::whereNull('read_at')->count()
                 : 0,

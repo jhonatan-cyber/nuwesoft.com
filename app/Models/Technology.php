@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -19,7 +20,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class Technology extends Model
 {
-    use HasFactory;
+    use HasFactory, LogActivity;
 
     protected $fillable = [
         'name',
@@ -44,21 +45,7 @@ class Technology extends Model
         return $this->belongsToMany(Project::class);
     }
 
-    protected static function booted()
-    {
-        static::saved(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_technologies');
-            \Illuminate\Support\Facades\Cache::forget('active_technologies_servicios');
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('technology'));
-        });
-        static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_technologies');
-            \Illuminate\Support\Facades\Cache::forget('active_technologies_servicios');
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('technology'));
-        });
-    }
+    // boot() logic moved to TechnologyObserver
 
     protected function optimizedLogoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -69,11 +56,11 @@ class Technology extends Model
 
     private function optimizeCloudinaryUrl(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
 
-        if (!str_contains($url, 'res.cloudinary.com')) {
+        if (! str_contains($url, 'res.cloudinary.com')) {
             return $url;
         }
 

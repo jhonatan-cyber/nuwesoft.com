@@ -5,13 +5,117 @@ on:
     branches:
       - main
 
+env:
+  APP_IMAGE: nuwesoft-app:latest
+
+colors:
+  success: "#00C853"
+  failure: "#FF1744"
+
 jobs:
-  deploy:
-    name: Deploy Application
+  # ──────────────────────────────────────────────
+  # Stage 1: Run tests before deploying
+  # ──────────────────────────────────────────────
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -d testing -U testing'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Copy .env
+        run: cp .env.example .env.testing
+
+      - name: Generate app key
+        run: php artisan key:generate --env=testing
+
+      - name: Run database migrations
+        run: php artisan migrate --env=testing --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run PHPUnit tests
+        run: php artisan test --env=testing --parallel
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run PHPStan static analysis
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
+
+      - name: Run Laravel Pint (code style)
+        run: vendor/bin/pint --test
+
+      - name: Run ESLint (Vue/TypeScript)
+        run: npx eslint resources/js/ --max-warnings=0
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────
+  # Stage 2: Deploy to VPS (only if tests pass)
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Deploy to VPS via SSH
+        id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -20,21 +124,53 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: |
-            echo "=== Iniciando Despliegue en el VPS ==="
-            
-            # Entrar a la carpeta del proyecto
+            set -e
+            echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
-            
-            # Descargar los últimos cambios desde GitHub
-            echo "Descargando últimos cambios desde GitHub..."
+
+            # Save current commit for rollback
+            PREV_COMMIT=$(git rev-parse HEAD)
+            echo "Previous commit: $PREV_COMMIT"
+
+            # Pull latest changes
+            echo "Pulling latest changes..."
             git pull origin main
-            
-            # Recompilar y levantar los contenedores de producción en segundo plano
-            echo "Reconstruyendo y levantando contenedores Docker..."
-            docker compose -f compose.prod.yaml up -d --build
-            
-            # Opcional: Limpiar imágenes huérfanas/antiguas para ahorrar espacio en el VPS
-            echo "Limpiando imágenes antiguas en desuso..."
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "New commit: $NEW_COMMIT"
+
+            # Build and restart containers
+            echo "Building containers..."
+            docker compose -f compose.prod.yaml up -d --build --remove-orphans
+
+            # Wait for healthcheck (max 60s)
+            echo "Waiting for app to be healthy..."
+            RETRIES=12
+            until [ $RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
+              RETRIES=$((RETRIES - 1))
+              echo "Waiting... ($RETRIES attempts left)"
+              sleep 5
+            done
+
+            if [ $RETRIES -eq 0 ]; then
+              echo "ERROR: App failed healthcheck. Rolling back..."
+              git checkout $PREV_COMMIT
+              docker compose -f compose.prod.yaml up -d --build --remove-orphans
+              echo "Rolled back to $PREV_COMMIT"
+              exit 1
+            fi
+
+            # Cleanup old images
             docker image prune -f
-            
-            echo "=== Despliegue completado con éxito ==="
+
+            echo "=== Deploy successful ==="
+            echo "Deployed commit: $NEW_COMMIT"
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Deploy succeeded"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "❌ Deploy failed — rollback executed"

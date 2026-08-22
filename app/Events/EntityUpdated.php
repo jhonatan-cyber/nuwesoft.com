@@ -15,8 +15,8 @@ class EntityUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      *
-     * @param string $type The entity type (e.g. 'settings', 'project', 'technology', 'testimonial', 'post', 'message')
-     * @param array|null $data Optional payload data
+     * @param  string  $type  The entity type (e.g. 'settings', 'project', 'technology', 'testimonial', 'post', 'message')
+     * @param  array|null  $data  Optional payload data
      */
     public function __construct(
         public string $type,
@@ -26,7 +26,7 @@ class EntityUpdated implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {

@@ -163,7 +163,7 @@ const resetTilt = (e) => {
             </div>
 
             <!-- Card Body -->
-            <Link :href="route('portafolio.show', project.id)" @click="trackProjectClick" class="flex flex-col flex-1">
+            <Link :href="route('portafolio.show', project.slug)" @click="trackProjectClick" class="flex flex-col flex-1">
                 <CardHeader class="p-6 pb-2">
                     <!-- Tech Badges -->
                     <div

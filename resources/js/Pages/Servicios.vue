@@ -36,6 +36,66 @@ const props = defineProps({
 const { el: ctaRef, isVisible: ctaVisible } = useInView(0.1)
 const isVisible = ref(false);
 
+// ── JSON-LD Structured Data ──
+const serviciosJsonLd = computed(() => [
+    {
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        'name': 'Software a Medida',
+        'description': 'Desarrollo de software fullstack a medida: backend, frontend, arquitectura y experiencia de usuario.',
+        'serviceType': 'Custom Software Development',
+        'provider': {
+            '@type': 'Organization',
+            'name': siteName.value,
+            'url': window.location.origin,
+        },
+        'areaServed': 'Global',
+        'url': window.location.href,
+    },
+    {
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        'name': 'Cloud y DevOps',
+        'description': 'Infraestructura cloud, automatización de despliegues, CI/CD y observabilidad.',
+        'serviceType': 'Cloud Infrastructure & DevOps',
+        'provider': {
+            '@type': 'Organization',
+            'name': siteName.value,
+            'url': window.location.origin,
+        },
+        'areaServed': 'Global',
+        'url': window.location.href,
+    },
+    {
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        'name': 'Automatización',
+        'description': 'Integraciones, flujos automáticos y eliminación de trabajo repetitivo.',
+        'serviceType': 'Business Process Automation',
+        'provider': {
+            '@type': 'Organization',
+            'name': siteName.value,
+            'url': window.location.origin,
+        },
+        'areaServed': 'Global',
+        'url': window.location.href,
+    },
+    {
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        'name': 'Frontend Premium',
+        'description': 'Interfaces de alta calidad, accesibles y optimizadas para conversión.',
+        'serviceType': 'Frontend Development',
+        'provider': {
+            '@type': 'Organization',
+            'name': siteName.value,
+            'url': window.location.origin,
+        },
+        'areaServed': 'Global',
+        'url': window.location.href,
+    },
+]);
+
 const serviceStats = [
     { value: 'END-TO-END', labelKey: 'servicios.stats.s1' },
     { value: 'MULTISTACK', labelKey: 'servicios.stats.s2' },
@@ -110,10 +170,21 @@ const services = [
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" :content="pageTitle" />
         <meta name="twitter:description" :content="pageDesc" />
-        <link rel="canonical" :href="pageUrl" />
-    </Head>
+        <link rel="canonical" :href="pageUrl" />    </Head>
 
-    <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
+    <Teleport to="head">
+        <component
+            v-for="(schema, idx) in serviciosJsonLd"
+            :key="idx"
+            :is="'script'"
+            type="application/ld+json"
+            v-html="JSON.stringify(schema)"
+        />
+    </Teleport>
+
+    <div
+        class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white"
+    >
         <PublicGridBackground />
         <PublicSiteHeader />
 

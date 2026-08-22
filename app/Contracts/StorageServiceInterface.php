@@ -9,8 +9,6 @@ interface StorageServiceInterface
     /**
      * Upload a file to the storage system.
      *
-     * @param string|UploadedFile $file
-     * @param string $folder
      * @return array{public_id: string, url: string, secure_url: string}
      */
     public function upload(string|UploadedFile $file, string $folder = 'projects'): array;

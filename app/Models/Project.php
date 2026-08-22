@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use App\Jobs\UploadToCloudinary;
 use App\Contracts\StorageServiceInterface;
+use App\Enums\ProjectCategory;
+use App\Jobs\UploadToCloudinary;
+use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +15,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 /**
  * @property int $id
  * @property string $name
+ * @property string $slug
  * @property string $category
  * @property string $desc
  * @property string|null $icon
@@ -22,20 +25,25 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, LogActivity;
 
     protected $fillable = [
-        'name',
-        'category',
-        'desc',
-        'icon',
-        'project_url',
-        'is_active',
+        'name', 'slug', 'category', 'desc',
+        'icon', 'project_url', 'is_active',
     ];
 
     protected $casts = [
+        'category' => ProjectCategory::class,
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Use slug for route model binding.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     public function images(): HasMany
     {
@@ -84,20 +92,11 @@ class Project extends Model
         }
         $this->images()->delete();
     }
+
     public function technologies()
     {
         return $this->belongsToMany(Technology::class);
     }
 
-    protected static function booted()
-    {
-        static::saved(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('project'));
-        });
-        static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::forget('active_projects_with_relations');
-            event(new \App\Events\EntityUpdated('project'));
-        });
-    }
+    // boot() logic moved to ProjectObserver
 }

@@ -33,6 +33,10 @@
         <!-- Canonical URL -->
         <link rel="canonical" href="{{ url()->current() }}">
 
+        <!-- RSS Feeds -->
+        <link rel="alternate" type="application/rss+xml" title="{{ $siteName }} — Portafolio" href="{{ url('/rss.xml') }}" />
+        <link rel="alternate" type="application/rss+xml" title="{{ $siteName }} — Blog" href="{{ url('/rss/blog.xml') }}" />
+
 <script type="application/ld+json">
 {!! json_encode(\App\Helpers\SchemaHelper::organization($siteSettings), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
@@ -53,13 +57,23 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
+        <!-- Prevent flash of wrong theme: apply class before first paint -->
+        <script>
+            (function() {
+                var theme = localStorage.getItem('theme');
+                var isDark = theme === 'dark' ||
+                    (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) document.documentElement.classList.add('dark');
+            })();
+        </script>
+
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.ts', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased">
-        <!-- Skip to content link -->
+    <body class="font-sans antialiased" role="document">
+        <!-- Skip to content link (PublicSiteHeader.vue renders the primary one) -->
         <a href="#main-content" 
            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-white focus:text-black focus:border-4 focus:border-black focus:font-black focus:text-sm focus:uppercase focus:tracking-wider focus:shadow-brutalist focus:outline-none">
             Saltar al contenido

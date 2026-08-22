@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTechnologyRequest;
+use App\Http\Requests\UpdateTechnologyRequest;
 use App\Jobs\UploadToCloudinary;
 use App\Models\Technology;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ class TechnologyController extends Controller
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                    ->orWhere('category', 'like', "%{$search}%");
             });
         }
 
@@ -37,15 +39,9 @@ class TechnologyController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreTechnologyRequest $request)
     {
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255|unique:technologies,name',
-            'category'    => 'required|string|max:255|in:languages,frontend,backend,mobile,database,infrastructure,automation,tools,ui',
-            'is_active'   => 'required|boolean',
-            'invert_dark' => 'required|boolean',
-            'logo'        => 'nullable|image|mimes:jpeg,jpg,png,gif,webp,svg|max:2048',
-        ]);
+        $validated = $request->validated();
 
         unset($validated['logo']);
         $technology = Technology::create($validated);
@@ -64,15 +60,9 @@ class TechnologyController extends Controller
         return redirect()->back();
     }
 
-    public function update(Request $request, Technology $technology)
+    public function update(UpdateTechnologyRequest $request, Technology $technology)
     {
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255|unique:technologies,name,' . $technology->id,
-            'category'    => 'required|string|max:255|in:languages,frontend,backend,mobile,database,infrastructure,automation,tools,ui',
-            'is_active'   => 'required|boolean',
-            'invert_dark' => 'required|boolean',
-            'logo'        => 'nullable|image|mimes:jpeg,jpg,png,gif,webp,svg|max:2048',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
             $path = $request->file('logo')->store('temp/uploads');
@@ -103,6 +93,7 @@ class TechnologyController extends Controller
         }
 
         $technology->delete();
+
         return redirect()->back();
     }
 }

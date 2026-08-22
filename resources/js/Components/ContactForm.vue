@@ -13,17 +13,46 @@ import {
     CardDescription,
     CardContent,
 } from '@/Components/ui/card'
-import { Send, ArrowRight, CheckCircle } from 'lucide-vue-next'
+import { Send, ArrowRight, CheckCircle, Paperclip, FileText, X } from 'lucide-vue-next'
 import { useInView } from '@/composables/useInView'
 
 const { t } = useI18n()
 const { el: sectionRef, isVisible } = useInView(0.15)
 
+const props = defineProps({
+    antiSpamToken: { type: String, default: '' },
+})
+
 const form = useForm({
     nombre: '',
     email: '',
     mensaje: '',
+    attachment: null,
+    // Anti-spam: honeypot (must stay empty) + timing token
+    website_url: '',
+    form_token: props.antiSpamToken,
 })
+
+const attachmentFile = ref(null)
+const attachmentPreview = ref(null)
+
+const handleAttachment = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    attachmentFile.value = file
+    attachmentPreview.value = {
+        name: file.name,
+        size: (file.size / 1024).toFixed(1) + ' KB',
+        type: file.type,
+    }
+    form.attachment = file
+}
+
+const removeAttachment = () => {
+    attachmentFile.value = null
+    attachmentPreview.value = null
+    form.attachment = null
+}
 
 import { usePostHog } from '@/composables/usePostHog'
 
@@ -34,6 +63,7 @@ const showSuccess = ref(false)
 const submit = () => {
     form.post(route('contacto.send'), {
         preserveScroll: true,
+        forceFormData: true,
         onSuccess: () => {
             capture('contact_form_success')
             form.reset()
@@ -88,6 +118,20 @@ const submit = () => {
                 </Transition>
 
                 <form @submit.prevent="submit" class="space-y-8">
+                    <!-- Honeypot: invisible to humans, bots auto-fill this -->
+                    <div class="absolute" :style="{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, overflow: 'hidden' }" aria-hidden="true">
+                        <label for="website_url">Do not fill this</label>
+                        <input
+                            id="website_url"
+                            v-model="form.website_url"
+                            type="text"
+                            name="website_url"
+                            tabindex="-1"
+                            autocomplete="off"
+                        />
+                    </div>
+                    <!-- Anti-spam timing token -->
+                    <input type="hidden" name="form_token" :value="form.form_token" />
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
                         <!-- Name -->
                         <div class="space-y-4">
@@ -164,6 +208,70 @@ const submit = () => {
                         />
                         <p v-if="form.errors.mensaje" class="text-sm font-black uppercase italic text-brutalist-pink">
                             {{ form.errors.mensaje }}
+                        </p>
+                    </div>
+
+                    <!-- File Attachment -->
+                    <div class="space-y-4">
+                        <Label
+                            class="flex items-center gap-2 text-sm md:text-lg font-black uppercase italic tracking-widest text-black dark:text-white"
+                        >
+                            <span class="break-words">04. {{ t('contacto.label_attachment') }}</span>
+                            <span class="text-[10px] font-bold normal-case tracking-normal text-neutral-400">(Opcional)</span>
+                        </Label>
+
+                        <!-- No file selected -->
+                        <div v-if="!attachmentPreview" class="relative">
+                            <label
+                                class="flex cursor-pointer items-center gap-4 rounded-none border-4 border-dashed border-black bg-white px-6 py-5 transition-colors hover:bg-brutalist-yellow/10 dark:border-white dark:bg-black dark:hover:bg-white/5"
+                            >
+                                <div class="flex h-12 w-12 items-center justify-center rounded-none border-2 border-black bg-neutral-100 dark:border-white dark:bg-neutral-900">
+                                    <Paperclip class="h-6 w-6 text-neutral-500" />
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-black uppercase italic text-black dark:text-white">
+                                        {{ t('contacto.attachment_prompt') }}
+                                    </p>
+                                    <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                                        PDF, DOC, DOCX — {{ t('contacto.attachment_max_size') }}
+                                    </p>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx"
+                                    class="hidden"
+                                    @change="handleAttachment"
+                                />
+                            </label>
+                        </div>
+
+                        <!-- File selected -->
+                        <div
+                            v-else
+                            class="flex items-center gap-4 rounded-none border-4 border-black bg-white px-6 py-4 dark:border-white dark:bg-black"
+                        >
+                            <div class="flex h-12 w-12 items-center justify-center rounded-none border-2 border-brutalist-pink bg-brutalist-pink/10">
+                                <FileText class="h-6 w-6 text-brutalist-pink" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-black uppercase italic text-black dark:text-white truncate">
+                                    {{ attachmentPreview.name }}
+                                </p>
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                                    {{ attachmentPreview.size }}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                @click="removeAttachment"
+                                class="flex h-8 w-8 items-center justify-center rounded-none border-2 border-black text-black transition-colors hover:bg-brutalist-pink hover:text-white dark:border-white dark:text-white"
+                            >
+                                <X class="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <p v-if="form.errors.attachment" class="text-sm font-black uppercase italic text-brutalist-pink">
+                            {{ form.errors.attachment }}
                         </p>
                     </div>
 

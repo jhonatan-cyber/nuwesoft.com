@@ -1,0 +1,173 @@
+# ──────────────────────────────────────────────
+# CodeRabbit AI Code Review Configuration
+# https://docs.coderabbit.ai
+# ──────────────────────────────────────────────
+
+# Language for code reviews
+language: es
+
+# Review settings
+reviews:
+  # Automatically review all PRs
+  auto_review:
+    enabled: true
+    # Only review PRs that touch these file types
+    base_branches:
+      - main
+    # Ignore drafts
+    ignore_drafts: true
+    # Ignore bot PRs
+    ignore_commits:
+      - "^[Bb]ump "
+      - "^Chore\\("
+      - "^Merge "
+    # Path-based ignore patterns
+    path_ignore:
+      - "package-lock.json"
+      - "bun.lockb"
+      - "composer.lock"
+      - "*.min.js"
+      - "*.min.css"
+      - "public/build/**"
+      - "node_modules/**"
+      - "vendor/**"
+      - ".freebuff/**"
+      - "*.log"
+      - "storage/**"
+      - "bootstrap/cache/**"
+
+  # Review profile: assertive catches more issues
+  profile: assertive
+
+  # What to focus on
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_suggestions:
+    enabled: true
+
+# ──────────────────────────────────────────────
+# Path-specific instructions
+# ──────────────────────────────────────────────
+path_instructions:
+  # Laravel Controllers — enforce Form Request usage
+  - path: "app/Http/Controllers/**"
+    instructions: |
+      Controllers must use Form Request classes for validation.
+      Never use inline $request->validate() — extract to a dedicated Request class.
+      Return Inertia responses, not Blade views.
+      Use API Resources for JSON responses.
+      Handle errors with try/catch and report().
+
+  # Form Requests — enforce consistent patterns
+  - path: "app/Http/Requests/**"
+    instructions: |
+      Form Request classes must implement authorize() and rules().
+      Use Laravel validation rules, not manual checks.
+      Add custom messages via messages() when user-facing errors matter.
+
+  # Models — enforce proper patterns
+  - path: "app/Models/**"
+    instructions: |
+      Models must use $fillable (never $guarded).
+      Define $casts for dates, enums, and JSON columns.
+      Keep boot() logic minimal — side effects belong in Observers.
+      Use relationships with proper return types.
+      Add TypeScript attributes for frontend type generation.
+
+  # Observers — enforce cache invalidation
+  - path: "app/Observers/**"
+    instructions: |
+      Observers handle model side effects: cache invalidation and events.
+      Always flush relevant cache keys in saved/deleted.
+      Dispatch EntityUpdated events for real-time updates.
+      Handle errors with try/catch — observer failures must not break CRUD.
+
+  # Vue Components — enforce Composition API
+  - path: "resources/js/Components/**"
+    instructions: |
+      Use Vue 3 Composition API with <script setup>.
+      Use TypeScript when possible.
+      Import UI components from @/Components/ui/.
+      Use vue-i18n for all user-facing text.
+      Props must have type definitions.
+      Use useRekaCleanup() for any Reka UI Dialog/Popover.
+
+  # Vue Pages — enforce Inertia patterns
+  - path: "resources/js/Pages/**"
+    instructions: |
+      Pages receive props from controllers via Inertia.
+      Use Head component for <title> and meta tags.
+      Use AuthenticatedLayout for dashboard pages.
+      Use skeleton loaders via useSkeletonLoader().
+      Use ConfirmDialog component for delete confirmations (not browser confirm()).
+      Form submissions use useForm() from @inertiajs/vue3.
+
+  # Tests — enforce test quality
+  - path: "tests/**"
+    instructions: |
+      Tests must be in Spanish (method names, assertions).
+      Use RefreshDatabase trait for feature tests.
+      Test both happy path and validation errors.
+      Use actingAs() for authenticated tests.
+      Test API Resources return correct structure.
+      Mock external services (Cloudinary, Mail) in tests.
+
+  # Docker — enforce production best practices
+  - path: "docker/**"
+    instructions: |
+      Docker configs must be production-ready.
+      Use multi-stage builds for smaller images.
+      Always add healthchecks for services.
+      Use non-root users where possible.
+      Log to stdout/stderr for container log aggregation.
+
+  # CI/CD — enforce pipeline quality
+  - path: ".github/**"
+    instructions: |
+      CI pipelines must run tests before deploy.
+      Include rollback strategies for deployments.
+      Use GitHub Secrets for all credentials.
+      Add health checks after deployment.
+      Cache dependencies for faster CI runs.
+
+  # Enum definitions
+  - path: "app/Enums/**"
+    instructions: |
+      Enums must be backed (string or int).
+      Include label() method for display names.
+      Include options() for dropdown/select lists.
+      Use consistent casing for values (kebab-case for slugs).
+
+# ──────────────────────────────────────────────
+# Tools integration
+# ──────────────────────────────────────────────
+tools:
+  # GitHub PR review
+  github:
+    enabled: true
+    # Auto-fix suggestions
+    auto_fix:
+      enabled: true
+
+# ──────────────────────────────────────────────
+# Summary generation
+# ──────────────────────────────────────────────
+summarize:
+  # Enable AI-generated PR summaries
+  enabled: true
+  # Focus on changed files
+  file_summary: true
+  # Show commit walkthrough
+  commit_summaries: true
+
+# ──────────────────────────────────────────────
+# Learning — CodeRabbit learns from feedback
+# ──────────────────────────────────────────────
+learning:
+  # Learn from review comments
+  enabled: true
+  # Store learnings for future reviews
+  path.instructions_from_reviews: true

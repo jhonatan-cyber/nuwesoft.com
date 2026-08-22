@@ -33,11 +33,11 @@ const showNext = () => emit('next')
     <Dialog v-model:open="isOpen">
         <DialogContent
             class="!max-w-6xl !w-[calc(100%-2rem)] !rounded-none !border-4 border-white !bg-black !text-white !p-0 shadow-[10px_10px_0px_rgba(255,255,255,0.3)] lightbox-dialog-enter"
-        >
-            <button
+        >                <button
                 type="button"
                 class="absolute right-2 top-2 z-20 border-2 border-white bg-black p-3 text-white transition-all hover:bg-white hover:text-black hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black md:-right-4 md:-top-4 md:p-2.5"
                 @click="emit('close')"
+                aria-label="Close lightbox"
             >
                 <X class="h-5 w-5" />
             </button>
@@ -62,6 +62,7 @@ const showNext = () => emit('next')
                         type="button"
                         class="absolute left-1 top-1/2 -translate-y-1/2 border-2 border-white bg-black/80 p-4 text-white transition-all hover:bg-brutalist-yellow hover:text-black hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brutalist-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black md:left-4 md:p-3"
                         @click.stop="showPrev"
+                        :aria-label="'Previous image ' + (currentIndex) + ' of ' + project.images.length"
                     >
                         <ChevronLeft class="h-6 w-6" />
                     </button>
@@ -70,6 +71,7 @@ const showNext = () => emit('next')
                         type="button"
                         class="absolute right-1 top-1/2 -translate-y-1/2 border-2 border-white bg-black/80 p-4 text-white transition-all hover:bg-brutalist-yellow hover:text-black hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brutalist-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black md:right-4 md:p-3"
                         @click.stop="showNext"
+                        :aria-label="'Next image ' + (currentIndex + 2) + ' of ' + project.images.length"
                     >
                         <ChevronRight class="h-6 w-6" />
                     </button>
@@ -130,6 +132,8 @@ const showNext = () => emit('next')
                                 class="overflow-hidden border-2 transition-all duration-200 hover:scale-105"
                                 :class="[imageIndex === currentIndex ? 'border-brutalist-yellow' : 'border-white/20 hover:border-white/50', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brutalist-yellow focus-visible:ring-inset']"
                                 @click="emit('update:currentIndex', imageIndex)"
+                                :aria-label="'View image ' + (imageIndex + 1) + ' of ' + project.images.length"
+                                :aria-current="imageIndex === currentIndex ? 'true' : undefined"
                             >
                                 <BlurImage :src="image.image_url" :alt="project.name" :width="150" :height="100" class="h-16 w-full" />
                             </button>

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -25,17 +28,9 @@ class PostController extends Controller
         return Inertia::render('Dashboard/Posts/PostForm');
     }
 
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string|max:500',
-            'content' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
-            'is_published' => 'boolean',
-            'author_name' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['title']);
         $validated['published_at'] = $validated['is_published'] ? now() : null;
@@ -52,21 +47,13 @@ class PostController extends Controller
         ]);
     }
 
-    public function update(Request $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string|max:500',
-            'content' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
-            'is_published' => 'boolean',
-            'author_name' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['title']);
 
-        if ($validated['is_published'] && !$post->published_at) {
+        if ($validated['is_published'] && ! $post->published_at) {
             $validated['published_at'] = now();
         }
 
@@ -82,20 +69,25 @@ class PostController extends Controller
         return Redirect::route('posts.index')->with('success', 'Post deleted successfully.');
     }
 
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
-        $posts = Post::published()
-            ->latest('published_at')
-            ->get();
+        $query = Post::published()->latest('published_at');
+
+        if ($category = $request->get('category')) {
+            $query->where('category', $category);
+        }
+
+        $posts = $query->paginate($request->input('per_page', 9))->withQueryString();
 
         return Inertia::render('Blog', [
             'posts' => $posts,
+            'filters' => $request->only(['category']),
         ]);
     }
 
     public function publicShow(Post $post)
     {
-        if (!$post->is_published) {
+        if (! $post->is_published) {
             abort(404);
         }
 
@@ -106,8 +98,8 @@ class PostController extends Controller
             ->get();
 
         return Inertia::render('BlogPost', [
-            'post' => $post,
-            'related' => $related,
+            'post' => new PostResource($post),
+            'related' => PostResource::collection($related),
         ]);
     }
 }

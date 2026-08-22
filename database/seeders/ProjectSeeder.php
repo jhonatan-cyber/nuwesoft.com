@@ -26,7 +26,7 @@ class ProjectSeeder extends Seeder
 
         // Sync technologies that match stack names — so logos show up
         $matchingTechIds = Technology::whereIn('name', $stack)->pluck('id')->toArray();
-        if (!empty($matchingTechIds)) {
+        if (! empty($matchingTechIds)) {
             $project->technologies()->sync($matchingTechIds);
         }
     }

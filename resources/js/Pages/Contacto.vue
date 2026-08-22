@@ -22,6 +22,7 @@ const siteName = computed(() => settings.value.site_name || 'NUWESOFT');
 const pageTitle = computed(() => t('contacto.head_title').replace('NUWESOFT', siteName.value));
 const pageUrl = computed(() => window.location.href);
 const pageDesc = computed(() => t('contacto.subtitle'));
+const antiSpamToken = computed(() => page.props.anti_spam_token || '');
 
 onMounted(() => {
     // Track contact page visit as conversion step in A/B funnel
@@ -128,7 +129,7 @@ onMounted(() => {
                             <ContactInfo />
                         </div>
                         <div class="lg:col-span-7">
-                            <ContactForm />
+                            <ContactForm :anti-spam-token="antiSpamToken" />
                         </div>
                     </section>
                 </div>
