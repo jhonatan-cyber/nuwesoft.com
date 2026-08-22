@@ -8,9 +8,6 @@ on:
 env:
   APP_IMAGE: nuwesoft-app:latest
 
-colors:
-  success: "#00C853"
-  failure: "#FF1744"
 
 jobs:
   deploy:
