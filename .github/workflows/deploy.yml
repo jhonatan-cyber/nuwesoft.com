@@ -9,8 +9,8 @@ env:
   APP_IMAGE: nuwesoft-app:latest
 
 colors:
-  success: "#00C853"
-  failure: "#FF1744"
+  success: '#00C853'
+  failure: '#FF1744'
 
 jobs:
   # ──────────────────────────────────────────────
@@ -45,7 +45,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
           coverage: none
 
@@ -55,8 +55,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install npm dependencies
         run: npm ci --legacy-peer-deps

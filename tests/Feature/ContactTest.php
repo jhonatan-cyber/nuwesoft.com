@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use Tests\TestCase;
 use App\Models\ContactMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
-use Tests\TestCase;
 
 class ContactTest extends TestCase
 {

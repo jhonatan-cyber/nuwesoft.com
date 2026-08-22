@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\Project;
 use App\Models\Technology;
 use App\Models\Testimonial;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
@@ -30,29 +31,33 @@ class DashboardController extends Controller
         $latestMessages = ContactMessage::latest()->take(5)->get();
 
         // Aggregate queries — cached
-        $projectsByCategory = Cache::remember('dashboard.projects_by_category', $cacheTtl, fn () => Project::selectRaw('category, count(*) as total')
-            ->groupBy('category')
-            ->pluck('total', 'category')
+        $projectsByCategory = Cache::remember('dashboard.projects_by_category', $cacheTtl, fn () =>
+            Project::selectRaw('category, count(*) as total')
+                ->groupBy('category')
+                ->pluck('total', 'category')
         );
 
-        $techByCategory = Cache::remember('dashboard.tech_by_category', $cacheTtl, fn () => Technology::selectRaw('category, count(*) as total')
-            ->where('is_active', true)
-            ->groupBy('category')
-            ->pluck('total', 'category')
+        $techByCategory = Cache::remember('dashboard.tech_by_category', $cacheTtl, fn () =>
+            Technology::selectRaw('category, count(*) as total')
+                ->where('is_active', true)
+                ->groupBy('category')
+                ->pluck('total', 'category')
         );
 
         // Recent projects — cached with eager loading
-        $recentProjects = Cache::remember('dashboard.recent_projects', $cacheTtl, fn () => Project::with('technologies')
-            ->latest()
-            ->take(5)
-            ->get(['id', 'name', 'slug', 'category', 'created_at'])
+        $recentProjects = Cache::remember('dashboard.recent_projects', $cacheTtl, fn () =>
+            Project::with('technologies')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'name', 'slug', 'category', 'created_at'])
         );
 
         // PostHog analytics integration (with fallback to elegant mock data)
         $posthogStats = $this->getPosthogStats();
 
         // Activity log — latest admin actions
-        $activityLog = Cache::remember('dashboard.activity_log', 30, fn () => \App\Models\ActivityLog::latest()->take(10)->get()
+        $activityLog = Cache::remember('dashboard.activity_log', 30, fn () =>
+            \App\Models\ActivityLog::latest()->take(10)->get()
         );
 
         return Inertia::render('Dashboard', [
@@ -96,12 +101,11 @@ class DashboardController extends Controller
 
                 if ($response->successful()) {
                     $data = $response->json();
-
                     // Aquí procesaríamos el formato específico de PostHog.
                     // Por simplicidad del wrapper de visualización, retornamos una estructura adaptada.
                     return [
                         'source' => 'real',
-                        'page_views' => collect($data['results'] ?? [])->map(fn ($r) => [
+                        'page_views' => collect($data['results'] ?? [])->map(fn($r) => [
                             'path' => $r['label'] ?? 'Unknown',
                             'views' => array_sum($r['data'] ?? []),
                         ])->sortByDesc('views')->take(5)->values()->toArray(),
@@ -127,7 +131,7 @@ class DashboardController extends Controller
                 ['country' => 'España', 'code' => 'ES', 'count' => 450],
                 ['country' => 'Estados Unidos', 'code' => 'US', 'count' => 180],
                 ['country' => 'Chile', 'code' => 'CL', 'count' => 90],
-            ],
+            ]
         ];
     }
 }

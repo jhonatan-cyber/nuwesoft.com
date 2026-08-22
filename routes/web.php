@@ -17,7 +17,7 @@ Route::middleware('throttle:public')->group(function () {
 
     Route::get('/servicios', function () {
         return Inertia::render('Servicios', [
-            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
+            'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
                 return Technology::where('is_active', true)
                     ->orderBy('name')
                     ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
@@ -27,13 +27,13 @@ Route::middleware('throttle:public')->group(function () {
 
     Route::get('/portafolio', function () {
         return Inertia::render('Portafolio', [
-            'projects' => Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
+            'projects' => \Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
                 return Project::with(['images', 'technologies'])
                     ->where('is_active', true)
                     ->latest('created_at')
                     ->get();
             }),
-            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
+            'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
                 return Technology::where('is_active', true)->get();
             }),
         ]);
@@ -62,11 +62,12 @@ Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middle
 Route::post('/contacto', [ContactController::class, 'send'])->middleware('throttle:contact')->name('contacto.send');
 
 Route::get('/sitemap.xml', function () {
-    $settings = App\Models\Setting::getAll();
+    $settings = \App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
 
-    $projects = Project::where('is_active', true)->get(['id', 'updated_at']);
-    $posts = App\Models\Post::published()->get(['slug', 'updated_at']);
+    $projects = \App\Models\Project::where('is_active', true)->get(['id', 'updated_at']);
+    $posts = \App\Models\Post::published()->get(['slug', 'updated_at']);
+
 
     $pages = [
         ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $projects->isNotEmpty() ? $projects->first()->updated_at?->toW3cString() : null],
@@ -80,7 +81,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach ($projects as $project) {
         $pages[] = ['loc' => url('/portafolio/' . $project->slug),
-            'priority' => '0.7',
+                'priority' => '0.7',
             'changefreq' => 'monthly',
             'lastmod' => $project->updated_at?->toW3cString(),
         ];
@@ -115,12 +116,12 @@ Route::get('/sitemap.xml', function () {
 })->middleware('throttle:feeds');
 
 Route::get('/rss.xml', function () {
-    $projects = Project::with(['technologies'])
+    $projects = \App\Models\Project::with(['technologies'])
         ->where('is_active', true)
         ->latest('created_at')
         ->get();
 
-    $settings = App\Models\Setting::getAll();
+    $settings = \App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
     $tagline = $settings['tagline'] ?? '';
 
@@ -152,11 +153,11 @@ Route::get('/rss.xml', function () {
 })->middleware('throttle:feeds');
 
 Route::get('/rss/blog.xml', function () {
-    $posts = App\Models\Post::published()
+    $posts = \App\Models\Post::published()
         ->latest('published_at')
         ->get();
 
-    $settings = App\Models\Setting::getAll();
+    $settings = \App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
     $tagline = $settings['tagline'] ?? '';
 
@@ -276,4 +277,4 @@ Route::get('/dashboard/logs', [App\Http\Controllers\LogController::class, 'index
     ->middleware(['auth'])
     ->name('logs.index');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

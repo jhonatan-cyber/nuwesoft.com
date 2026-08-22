@@ -16,9 +16,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class ContactMessage extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
+    use HasFactory;    protected $fillable = [
         'nombre', 'email', 'mensaje',
         'attachment_url', 'attachment_name', 'attachment_public_id',
         'read_at',

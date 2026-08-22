@@ -7,14 +7,14 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -23,12 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
-            App\Http\Middleware\HandleInertiaRequests::class,
-            Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
+            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->alias([
-            '2fa' => App\Http\Middleware\EnsureTwoFactorVerified::class,
+            '2fa' => \App\Http\Middleware\EnsureTwoFactorVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -46,29 +46,29 @@ return Application::configure(basePath: dirname(__DIR__))
             Log::warning('404 Not Found', $logData);
 
             // Dispatch async job to send 404 event to PostHog (non-blocking)
-            App\Jobs\Send404ToPostHog::dispatch($logData);
+            \App\Jobs\Send404ToPostHog::dispatch($logData);
 
             // Persist 404 log to database
             try {
-                App\Models\FourOhFourLog::create([
+                \App\Models\FourOhFourLog::create([
                     'url' => $logData['url'],
                     'referer' => $logData['referer'],
                     'ip' => $logData['ip'],
                     'user_agent' => $logData['user_agent'],
                     'logged_at' => now(),
                 ]);
-            } catch (Throwable $th) {
+            } catch (\Throwable $th) {
                 Log::error('Failed to persist 404 log: ' . $th->getMessage());
             }
 
             // Send notification for critical 404s (from external referrers)
-            if ($request->header('referer') && ! str_contains($request->header('referer') ?? '', $request->getHost())) {
+            if ($request->header('referer') && !str_contains($request->header('referer') ?? '', $request->getHost())) {
                 try {
-                    $user = App\Models\User::first();
+                    $user = \App\Models\User::first();
                     if ($user) {
-                        $user->notify(new App\Notifications\Critical404($logData));
+                        $user->notify(new \App\Notifications\Critical404($logData));
                     }
-                } catch (Throwable $th) {
+                } catch (\Throwable $th) {
                     // Don't break the page if notification fails
                     Log::error('Failed to send 404 notification: ' . $th->getMessage());
                 }
@@ -82,11 +82,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // 403 Forbidden
-        $exceptions->render(function (Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, Request $request) {
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, Request $request) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Forbidden'], 403);
             }
-
             return Inertia::render('Errors/Forbidden', ['status' => 403])->toResponse($request)->setStatusCode(403);
         });
 
