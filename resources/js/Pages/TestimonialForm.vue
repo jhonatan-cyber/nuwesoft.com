@@ -22,7 +22,7 @@ const hoveredStar = ref(0)
 const submitted = ref(false)
 
 const submit = () => {
-    form.post(route('testimonials.store'), {
+    form.post(route('review.store'), {
         onSuccess: () => {
             submitted.value = true
         },

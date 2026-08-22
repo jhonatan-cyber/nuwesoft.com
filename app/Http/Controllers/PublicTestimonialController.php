@@ -55,7 +55,7 @@ class PublicTestimonialController extends Controller
             'is_active' => false,
         ]);
 
-        return redirect()->route('testimonials.thanks');
+        return redirect()->route('review.thanks');
     }
 
     public function thanks()

@@ -68,11 +68,11 @@ Route::middleware('throttle:public')->group(function () {
     })->name('terminos');
 
     // Public testimonial submission
-    Route::get('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'show'])->name('testimonials.show');
-    Route::get('/gracias', [App\Http\Controllers\PublicTestimonialController::class, 'thanks'])->name('testimonials.thanks');
+    Route::get('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'show'])->name('review.show');
+    Route::get('/gracias', [App\Http\Controllers\PublicTestimonialController::class, 'thanks'])->name('review.thanks');
 });
 
-Route::post('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'store'])->middleware('throttle:contact')->name('testimonials.store');
+Route::post('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'store'])->middleware('throttle:contact')->name('review.store');
 
 // ── API endpoints (throttled 60/min per IP) ──
 Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middleware('throttle:api')->name('portafolio.data');
