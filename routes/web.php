@@ -12,12 +12,25 @@ use Inertia\Inertia;
 // ── Public read-only routes (throttled 120/min per IP) ──
 Route::middleware('throttle:public')->group(function () {
     Route::get('/', function () {
-        return Inertia::render('Welcome');
+        return Inertia::render('Welcome', [
+            'testimonials' => App\Models\Testimonial::approved()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->limit(10)
+                ->get()
+                ->map(fn ($t) => [
+                    'client_name' => $t->client_name,
+                    'client_role' => $t->client_role,
+                    'client_company' => $t->client_company,
+                    'content' => $t->content,
+                    'rating' => $t->rating,
+                ]),
+        ]);
     })->name('home');
 
     Route::get('/servicios', function () {
         return Inertia::render('Servicios', [
-            'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
+            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
                 return Technology::where('is_active', true)
                     ->orderBy('name')
                     ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
@@ -27,13 +40,13 @@ Route::middleware('throttle:public')->group(function () {
 
     Route::get('/portafolio', function () {
         return Inertia::render('Portafolio', [
-            'projects' => \Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
+            'projects' => Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
                 return Project::with(['images', 'technologies'])
                     ->where('is_active', true)
                     ->latest('created_at')
                     ->get();
             }),
-            'technologies' => \Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
+            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
                 return Technology::where('is_active', true)->get();
             }),
         ]);
@@ -53,7 +66,13 @@ Route::middleware('throttle:public')->group(function () {
     Route::get('/terminos', function () {
         return Inertia::render('Terminos');
     })->name('terminos');
+
+    // Public testimonial submission
+    Route::get('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'show'])->name('testimonials.show');
+    Route::get('/gracias', [App\Http\Controllers\PublicTestimonialController::class, 'thanks'])->name('testimonials.thanks');
 });
+
+Route::post('/reseñas', [App\Http\Controllers\PublicTestimonialController::class, 'store'])->middleware('throttle:contact')->name('testimonials.store');
 
 // ── API endpoints (throttled 60/min per IP) ──
 Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middleware('throttle:api')->name('portafolio.data');
@@ -62,12 +81,11 @@ Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middle
 Route::post('/contacto', [ContactController::class, 'send'])->middleware('throttle:contact')->name('contacto.send');
 
 Route::get('/sitemap.xml', function () {
-    $settings = \App\Models\Setting::getAll();
+    $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
 
-    $projects = \App\Models\Project::where('is_active', true)->get(['id', 'updated_at']);
-    $posts = \App\Models\Post::published()->get(['slug', 'updated_at']);
-
+    $projects = Project::where('is_active', true)->get(['id', 'updated_at']);
+    $posts = App\Models\Post::published()->get(['slug', 'updated_at']);
 
     $pages = [
         ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $projects->isNotEmpty() ? $projects->first()->updated_at?->toW3cString() : null],
@@ -81,7 +99,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach ($projects as $project) {
         $pages[] = ['loc' => url('/portafolio/' . $project->slug),
-                'priority' => '0.7',
+            'priority' => '0.7',
             'changefreq' => 'monthly',
             'lastmod' => $project->updated_at?->toW3cString(),
         ];
@@ -116,12 +134,12 @@ Route::get('/sitemap.xml', function () {
 })->middleware('throttle:feeds');
 
 Route::get('/rss.xml', function () {
-    $projects = \App\Models\Project::with(['technologies'])
+    $projects = Project::with(['technologies'])
         ->where('is_active', true)
         ->latest('created_at')
         ->get();
 
-    $settings = \App\Models\Setting::getAll();
+    $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
     $tagline = $settings['tagline'] ?? '';
 
@@ -153,11 +171,11 @@ Route::get('/rss.xml', function () {
 })->middleware('throttle:feeds');
 
 Route::get('/rss/blog.xml', function () {
-    $posts = \App\Models\Post::published()
+    $posts = App\Models\Post::published()
         ->latest('published_at')
         ->get();
 
-    $settings = \App\Models\Setting::getAll();
+    $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';
     $tagline = $settings['tagline'] ?? '';
 
@@ -249,6 +267,8 @@ Route::middleware('auth')->group(function () {
 
     // Testimonials
     Route::resource('dashboard/testimonials', App\Http\Controllers\TestimonialController::class)->names('testimonials')->except(['create', 'edit', 'show']);
+    Route::post('dashboard/testimonials/{testimonial}/approve', [App\Http\Controllers\TestimonialController::class, 'approve'])->name('testimonials.approve');
+    Route::post('dashboard/testimonials/{testimonial}/reject', [App\Http\Controllers\TestimonialController::class, 'reject'])->name('testimonials.reject');
 
     // Settings
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
@@ -277,4 +297,4 @@ Route::get('/dashboard/logs', [App\Http\Controllers\LogController::class, 'index
     ->middleware(['auth'])
     ->name('logs.index');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

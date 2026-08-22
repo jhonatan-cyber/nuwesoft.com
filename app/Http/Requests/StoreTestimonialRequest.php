@@ -19,6 +19,7 @@ class StoreTestimonialRequest extends FormRequest
             'client_company' => 'nullable|string|max:255',
             'content' => 'required|string|max:2000',
             'rating' => 'nullable|integer|min:1|max:5',
+            'status' => 'nullable|string|in:pending,approved,rejected',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
         ];

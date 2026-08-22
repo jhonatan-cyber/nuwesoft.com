@@ -83,8 +83,16 @@ onMounted(() => {
                     </transition>
                 </div>
 
+                <!-- CTA -->
+                <div class="mt-10 text-center">
+                    <a href="/reseñas"
+                        class="inline-flex items-center gap-2 border-2 border-brutalist-yellow/30 text-brutalist-yellow px-6 py-3 text-[10px] font-black uppercase tracking-[0.28em] hover:bg-brutalist-yellow hover:text-black transition-all">
+                        {{ t('testimonials.cta', 'Dejanos tu reseña') }}
+                    </a>
+                </div>
+
                 <!-- Dots -->
-                <div v-if="testimonials.length > 1" class="flex items-center justify-center gap-3 mt-10">
+                <div v-if="testimonials.length > 1" class="flex items-center justify-center gap-3 mt-6">
                     <button v-for="(_, idx) in testimonials" :key="idx"
                         @click="activeIndex = idx"
                         :class="[

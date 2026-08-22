@@ -14,16 +14,28 @@ class TestimonialController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $testimonials = Testimonial::orderBy('sort_order')->paginate($perPage)->withQueryString();
+        $status = $request->input('status', 'all');
+
+        $query = Testimonial::orderBy('sort_order');
+
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $testimonials = $query->paginate($perPage)->withQueryString();
+        $pendingCount = Testimonial::where('status', 'pending')->count();
 
         return Inertia::render('Dashboard/Testimonials/Index', [
             'testimonials' => $testimonials,
+            'pendingCount' => $pendingCount,
+            'currentStatus' => $status,
         ]);
     }
 
     public function store(StoreTestimonialRequest $request)
     {
         $validated = $request->validated();
+        $validated['status'] = $validated['status'] ?? 'approved';
 
         Testimonial::create($validated);
 
@@ -44,5 +56,25 @@ class TestimonialController extends Controller
         $testimonial->delete();
 
         return Redirect::route('testimonials.index')->with('success', 'Testimonial deleted.');
+    }
+
+    public function approve(Testimonial $testimonial)
+    {
+        $testimonial->update([
+            'status' => 'approved',
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Testimonial approved.');
+    }
+
+    public function reject(Testimonial $testimonial)
+    {
+        $testimonial->update([
+            'status' => 'rejected',
+            'is_active' => false,
+        ]);
+
+        return back()->with('success', 'Testimonial rejected.');
     }
 }
