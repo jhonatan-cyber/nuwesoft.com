@@ -2,6 +2,44 @@ import '../css/app.css';
 import '../css/lightbox-animations.css';
 import './bootstrap';
 
+// ── Vite Chunk Error Recovery ──
+// If a lazy-loaded JS chunk returns 404/503 (common after deploys when
+// Vite hashes change), show a friendly overlay prompting a reload.
+window.addEventListener('error', (e: Event) => {
+    const target = e.target as HTMLScriptElement | HTMLLinkElement | null;
+    if (!target) return;
+    const src = target.src || target.href || '';
+    if (src.includes('/build/assets/') && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+        showChunkErrorOverlay();
+    }
+}, true);
+
+function showChunkErrorOverlay(): void {
+    if (document.getElementById('chunk-error-overlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'chunk-error-overlay';
+    overlay.innerHTML = `
+        <div style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;">
+            <div style="text-align:center;max-width:420px;padding:40px;">
+                <div style="font-size:48px;margin-bottom:16px;">🔄</div>
+                <h2 style="color:#fff;font-size:20px;font-weight:700;margin:0 0 12px;">New version available</h2>
+                <p style="color:#999;font-size:14px;margin:0 0 24px;">The page needs to reload to load the latest version.</p>
+                <button onclick="window.location.reload()" style="background:#FF2E63;color:#fff;border:none;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;border-radius:8px;">
+                    Reload Now
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+// Also handle Inertia navigation chunk failures
+router.on('error', (event) => {
+    if (event.detail?.errors?.chunk || event.detail?.status === 404 || event.detail?.status === 503) {
+        showChunkErrorOverlay();
+    }
+});
+
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h, DefineComponent } from 'vue';

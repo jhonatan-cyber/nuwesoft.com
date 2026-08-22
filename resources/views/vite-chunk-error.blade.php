@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizando — NUWESOFT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            color: #fff;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container { text-align: center; max-width: 420px; padding: 40px; }
+        .icon { font-size: 64px; margin-bottom: 20px; }
+        h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+        p { color: #888; font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+        .btn {
+            display: inline-block;
+            background: #FF2E63;
+            color: #fff;
+            border: none;
+            padding: 14px 36px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn:hover { background: #e61e57; }
+        .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner" id="spinner"></div>
+        <div class="icon">🔄</div>
+        <h1>Actualizando...</h1>
+        <p>El sitio se ha actualizado recientemente. Esta página se recargará automáticamente en <span id="countdown">5</span> segundos.</p>
+        <a href="/" class="btn" id="reloadBtn">Ir al Inicio</a>
+    </div>
+    <script>
+        // Auto-reload after 5 seconds
+        let seconds = 5;
+        const el = document.getElementById('countdown');
+        const spinner = document.getElementById('spinner');
+        const btn = document.getElementById('reloadBtn');
+
+        const timer = setInterval(() => {
+            seconds--;
+            if (el) el.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                if (spinner) spinner.style.display = 'block';
+                btn.textContent = 'Recargando...';
+                window.location.reload();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
