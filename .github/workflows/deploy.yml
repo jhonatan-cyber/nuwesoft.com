@@ -8,7 +8,6 @@ on:
 env:
   APP_IMAGE: nuwesoft-app:latest
 
-
 jobs:
   deploy:
     name: Deploy to Production
@@ -25,9 +24,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script_stop: true
           script: |
-            set -e
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
@@ -37,13 +34,13 @@ jobs:
 
             # Pull latest changes
             echo "Pulling latest changes..."
-            git pull origin main
+            git pull origin main || { echo "ERROR: git pull failed"; exit 1; }
             NEW_COMMIT=$(git rev-parse HEAD)
             echo "New commit: $NEW_COMMIT"
 
             # Build and restart containers
             echo "Building containers..."
-            docker compose -f compose.prod.yaml up -d --build --remove-orphans
+            docker compose -f compose.prod.yaml up -d --build --remove-orphans || { echo "ERROR: docker compose failed"; exit 1; }
 
             # Wait for healthcheck (max 60s)
             echo "Waiting for app to be healthy..."
@@ -62,18 +59,16 @@ jobs:
               exit 1
             fi
 
-            # Cleanup old images
-            docker image prune -f
+            # Cleanup old images (ignore errors)
+            docker image prune -f 2>/dev/null || true
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
 
       - name: Notify success
         if: success()
-        run: |
-          echo "✅ Deploy succeeded"
+        run: echo "✅ Deploy succeeded"
 
       - name: Notify failure
         if: failure()
-        run: |
-          echo "❌ Deploy failed — rollback executed"
+        run: echo "❌ Deploy failed — rollback executed"
