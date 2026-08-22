@@ -91,5 +91,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('public.contact', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());
         });
+
+        // Login — strict: 5 attempts per minute, per email+IP
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5)->by(
+                $request->string('email') . '|' . $request->ip()
+            );
+        });
     }
 }

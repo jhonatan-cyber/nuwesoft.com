@@ -31,6 +31,16 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterRequest $request): RedirectResponse
     {
+        $throttleKey = 'register|' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Demasiados registros desde esta IP. Intentá de nuevo en ' . ceil($seconds / 60) . ' minutos.',
+            ]);
+        }
+
         $validated = $request->validated();
 
         $user = User::create([
@@ -42,6 +52,8 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         return redirect(route('dashboard', absolute: false));
     }
