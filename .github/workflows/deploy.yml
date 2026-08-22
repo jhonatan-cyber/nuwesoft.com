@@ -108,9 +108,7 @@ jobs:
   # ──────────────────────────────────────────────
   deploy:
     name: Deploy to Production
-    needs: test
     runs-on: ubuntu-latest
-    if: always() && !failure() && !cancelled()
 
     steps:
       - uses: actions/checkout@v4
