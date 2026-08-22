@@ -33,7 +33,8 @@ Route::middleware('throttle:public')->group(function () {
             'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
                 return Technology::where('is_active', true)
                     ->orderBy('name')
-                    ->get(['id', 'name', 'logo_url', 'category', 'invert_dark']);
+                    ->get(['id', 'name', 'logo_url', 'category', 'invert_dark'])
+                    ->toArray();
             }),
         ]);
     })->name('servicios');
@@ -44,10 +45,11 @@ Route::middleware('throttle:public')->group(function () {
                 return Project::with(['images', 'technologies'])
                     ->where('is_active', true)
                     ->latest('created_at')
-                    ->get();
+                    ->get()
+                    ->toArray();
             }),
             'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
-                return Technology::where('is_active', true)->get();
+                return Technology::where('is_active', true)->get()->toArray();
             }),
         ]);
     })->name('portafolio');
