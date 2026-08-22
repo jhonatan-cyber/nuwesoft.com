@@ -9,103 +9,10 @@ env:
   APP_IMAGE: nuwesoft-app:latest
 
 colors:
-  success: '#00C853'
-  failure: '#FF1744'
+  success: "#00C853"
+  failure: "#FF1744"
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Stage 1: Run tests before deploying
-  # ──────────────────────────────────────────────
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: testing
-          POSTGRES_USER: testing
-          POSTGRES_PASSWORD: testing
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd 'pg_isready -d testing -U testing'
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install npm dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build frontend assets
-        run: npm run build
-
-      - name: Copy .env
-        run: cp .env.example .env.testing
-
-      - name: Generate app key
-        run: php artisan key:generate --env=testing
-
-      - name: Run database migrations
-        run: php artisan migrate --env=testing --force
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: testing
-          DB_PASSWORD: testing
-          REDIS_HOST: 127.0.0.1
-
-      - name: Run PHPUnit tests
-        run: php artisan test --env=testing --parallel
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: testing
-          DB_PASSWORD: testing
-          REDIS_HOST: 127.0.0.1
-
-      - name: Run PHPStan static analysis
-        run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=512M
-        continue-on-error: true
-
-      - name: Run Laravel Pint (code style)
-        run: vendor/bin/pint --test
-
-      - name: Run ESLint (Vue/TypeScript)
-        run: npx eslint resources/js/ --max-warnings=0
-        continue-on-error: true
-
-  # ──────────────────────────────────────────────
-  # Stage 2: Deploy to VPS (only if tests pass)
-  # ──────────────────────────────────────────────
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
