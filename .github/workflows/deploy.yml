@@ -47,7 +47,7 @@ jobs:
             cd /var/www/nuwesoft.com
 
             PHP_PACKAGES_READY=true
-            for package in php8.3-cli php8.3-fpm php8.3-pgsql; do
+            for package in php8.3-cli php8.3-fpm php8.3-pgsql postgresql-client; do
               dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || PHP_PACKAGES_READY=false
             done
             if [ "$PHP_PACKAGES_READY" != true ]; then
@@ -55,7 +55,7 @@ jobs:
               sudo apt-get update -qq
               sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
                 php8.3-cli php8.3-fpm php8.3-bcmath php8.3-curl php8.3-gd php8.3-mbstring \
-                php8.3-pgsql php8.3-xml php8.3-zip unzip
+                php8.3-pgsql php8.3-xml php8.3-zip postgresql-client unzip
             fi
             PHP_BIN=$(command -v php8.3 || command -v php || true)
             if [ -z "$PHP_BIN" ]; then
@@ -136,8 +136,8 @@ jobs:
             # Backup database BEFORE pulling new code
             echo "Backing up database..."
             "$PHP_BIN" artisan config:clear
-            "$PHP_BIN" artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
-            BACKUP_SIZE=$(ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            "$PHP_BIN" artisan backup:database --compress || { echo "ERROR: Database backup failed"; exit 1; }
+            BACKUP_SIZE=$(find storage/app/backups -maxdepth 1 -name '*.sql.gz' -printf '%T@ %s\n' | sort -nr | head -1 | awk '{print $2}')
             echo "Backup size: $BACKUP_SIZE"
 
             # Pull latest changes
