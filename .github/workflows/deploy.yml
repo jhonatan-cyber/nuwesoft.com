@@ -29,6 +29,14 @@ jobs:
 
             PHP_BIN=$(command -v php || command -v php8.3 || command -v php8.4 || true)
             if [ -z "$PHP_BIN" ]; then
+              echo "PHP CLI not found; installing the production CLI runtime..."
+              sudo apt-get update -qq
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+                php8.3-cli php8.3-bcmath php8.3-curl php8.3-gd php8.3-mbstring \
+                php8.3-pgsql php8.3-xml php8.3-zip unzip
+              PHP_BIN=$(command -v php8.3 || command -v php || true)
+            fi
+            if [ -z "$PHP_BIN" ]; then
               echo "ERROR: PHP CLI was not found on the VPS"
               exit 1
             fi
