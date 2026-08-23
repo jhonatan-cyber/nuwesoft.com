@@ -13,6 +13,9 @@ jobs:
   php:
     name: PHP (${{ matrix.check }})
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:VomLetnQTn+rxwsBtBp7hjoPRTVmL/kZ1oofh2408eI=
 
     strategy:
       fail-fast: false
@@ -55,14 +58,6 @@ jobs:
         run: npm install --legacy-peer-deps && npm run build
 
       # ── PHPUnit ──
-      - name: Copy .env
-        if: matrix.check == 'test'
-        run: cp .env.example .env.testing
-
-      - name: Generate app key
-        if: matrix.check == 'test'
-        run: php artisan key:generate --env=testing
-
       - name: Create SQLite database
         if: matrix.check == 'test'
         run: touch database/database.sqlite
