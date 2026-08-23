@@ -27,6 +27,13 @@ jobs:
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
+            PHP_BIN=$(command -v php || command -v php8.3 || command -v php8.4 || true)
+            if [ -z "$PHP_BIN" ]; then
+              echo "ERROR: PHP CLI was not found on the VPS"
+              exit 1
+            fi
+            echo "Using PHP: $PHP_BIN"
+
             # Use the system Composer when available; otherwise install a
             # verified project-local copy for non-interactive deployments.
             COMPOSER_BIN=$(command -v composer || true)
@@ -34,14 +41,14 @@ jobs:
               echo "Composer not found; installing a local verified copy..."
               mkdir -p .deploy-tools
               EXPECTED_SIGNATURE=$(curl -fsSL https://composer.github.io/installer.sig)
-              php -r "copy('https://getcomposer.org/installer', '.composer-setup.php');"
-              ACTUAL_SIGNATURE=$(php -r "echo hash_file('sha384', '.composer-setup.php');")
+              "$PHP_BIN" -r "copy('https://getcomposer.org/installer', '.composer-setup.php');"
+              ACTUAL_SIGNATURE=$("$PHP_BIN" -r "echo hash_file('sha384', '.composer-setup.php');")
               if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
                 echo "ERROR: Invalid Composer installer signature"
                 rm -f .composer-setup.php
                 exit 1
               fi
-              php .composer-setup.php --quiet --install-dir=.deploy-tools --filename=composer
+              "$PHP_BIN" .composer-setup.php --quiet --install-dir=.deploy-tools --filename=composer
               rm -f .composer-setup.php
               COMPOSER_BIN="$PWD/.deploy-tools/composer"
             fi
@@ -52,7 +59,7 @@ jobs:
 
             # Backup database BEFORE pulling new code
             echo "Backing up database..."
-            php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
+            "$PHP_BIN" artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
             BACKUP_SIZE=$(ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
             echo "Backup size: $BACKUP_SIZE"
 
@@ -67,8 +74,8 @@ jobs:
             "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
             npm ci || { echo "ERROR: npm install failed"; exit 1; }
             npm run build || { echo "ERROR: frontend build failed"; exit 1; }
-            php artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
-            php artisan optimize || { echo "ERROR: application optimization failed"; exit 1; }
+            "$PHP_BIN" artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
+            "$PHP_BIN" artisan optimize || { echo "ERROR: application optimization failed"; exit 1; }
             sudo systemctl reload nginx || { echo "ERROR: nginx reload failed"; exit 1; }
             sudo systemctl restart php8.3-fpm || { echo "ERROR: PHP-FPM restart failed"; exit 1; }
 
@@ -87,7 +94,7 @@ jobs:
               "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
               npm ci
               npm run build
-              php artisan optimize
+              "$PHP_BIN" artisan optimize
               sudo systemctl reload nginx
               sudo systemctl restart php8.3-fpm
               echo "Rolled back to $PREV_COMMIT"
