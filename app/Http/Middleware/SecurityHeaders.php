@@ -45,18 +45,6 @@ class SecurityHeaders
             'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
         );
 
-        // ── Cross-Origin Isolation Headers (production only) ──
-        if ($isProduction) {
-            // Prevent other pages from embedding this page in frames/iframes
-            $response->headers->set('X-Content-Type-Options', 'nosniff');
-
-            // COOP: Prevents loading cross-origin resources as same-origin
-            $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
-
-            // CORP: Prevents other origins from reading this resource
-            $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
-        }
-
         return $response;
     }
 
@@ -101,7 +89,7 @@ class SecurityHeaders
             "img-src {$imgSrc}",
             "font-src {$fontSrc}",
             "connect-src {$connectSrc}",
-            "frame-src 'none'",
+            "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",

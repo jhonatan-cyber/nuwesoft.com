@@ -4,13 +4,23 @@ import './bootstrap';
 
 // ── Vite Chunk Error Recovery ──
 // If a lazy-loaded JS chunk returns 404/503 (common after deploys when
-// Vite hashes change), show a friendly overlay prompting a reload.
+// Vite hashes change), auto-reload once to get the fresh assets.
+let chunkErrorRetryCount = 0;
+const MAX_CHUNK_RETRIES = 2;
+
 window.addEventListener('error', (e: Event) => {
     const target = e.target as HTMLScriptElement | HTMLLinkElement | null;
     if (!target) return;
     const src = target.src || target.href || '';
     if (src.includes('/build/assets/') && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
-        showChunkErrorOverlay();
+        console.warn('[ChunkError] Asset failed to load:', src);
+        if (chunkErrorRetryCount < MAX_CHUNK_RETRIES) {
+            chunkErrorRetryCount++;
+            console.log(`[ChunkError] Auto-reloading (attempt ${chunkErrorRetryCount}/${MAX_CHUNK_RETRIES})...`);
+            window.location.reload();
+        } else {
+            showChunkErrorOverlay();
+        }
     }
 }, true);
 
@@ -36,7 +46,12 @@ function showChunkErrorOverlay(): void {
 // Also handle Inertia navigation chunk failures
 router.on('error', (event) => {
     if (event.detail?.errors?.chunk || event.detail?.status === 404 || event.detail?.status === 503) {
-        showChunkErrorOverlay();
+        if (chunkErrorRetryCount < MAX_CHUNK_RETRIES) {
+            chunkErrorRetryCount++;
+            window.location.reload();
+        } else {
+            showChunkErrorOverlay();
+        }
     }
 });
 
