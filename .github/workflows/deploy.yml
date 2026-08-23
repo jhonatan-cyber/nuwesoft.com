@@ -25,7 +25,15 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 10 -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+              exit 0
+            fi
+            echo "SSH host-key scan attempt $attempt failed; retrying..."
+            sleep 5
+          done
+          echo "ERROR: Could not obtain the VPS SSH host key"
+          exit 1
 
       - name: Deploy to VPS via SSH
         id: deploy
