@@ -64,7 +64,7 @@ jobs:
 
       - name: Run PHPUnit
         if: matrix.check == 'test'
-        run: php artisan test --env=testing --parallel
+        run: php artisan test --env=testing
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
