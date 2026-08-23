@@ -29,8 +29,10 @@ Route::middleware('throttle:public')->group(function () {
     })->name('home');
 
     Route::get('/servicios', function () {
+        $cache = app(App\Services\CacheService::class);
+
         return Inertia::render('Servicios', [
-            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies_servicios', 3600, function () {
+            'technologies' => $cache->remember('active_technologies_servicios', 3600, function () {
                 return Technology::where('is_active', true)
                     ->orderBy('name')
                     ->get(['id', 'name', 'logo_url', 'category', 'invert_dark'])
@@ -40,15 +42,17 @@ Route::middleware('throttle:public')->group(function () {
     })->name('servicios');
 
     Route::get('/portafolio', function () {
+        $cache = app(App\Services\CacheService::class);
+
         return Inertia::render('Portafolio', [
-            'projects' => Illuminate\Support\Facades\Cache::remember('active_projects_with_relations', 3600, function () {
+            'projects' => $cache->remember('active_projects_with_relations', 3600, function () {
                 return Project::with(['images', 'technologies'])
                     ->where('is_active', true)
                     ->latest('created_at')
                     ->get()
                     ->toArray();
             }),
-            'technologies' => Illuminate\Support\Facades\Cache::remember('active_technologies', 3600, function () {
+            'technologies' => $cache->remember('active_technologies', 3600, function () {
                 return Technology::where('is_active', true)->get()->toArray();
             }),
         ]);
@@ -310,6 +314,9 @@ Route::middleware(['auth'])->group(function () {
 // Health Check
 Route::get('/health', [App\Http\Controllers\HealthController::class, 'index']);
 Route::get('/ping', [App\Http\Controllers\HealthController::class, 'ping']);
+
+// CSP Violation Reports (receives POST from browsers)
+Route::post('/csp-report', [App\Http\Controllers\CspReportController::class, 'store'])->middleware('throttle:api');
 
 // 404 Logs (authenticated)
 Route::get('/dashboard/logs', [App\Http\Controllers\LogController::class, 'index'])

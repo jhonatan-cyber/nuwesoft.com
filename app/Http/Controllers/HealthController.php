@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use App\Models\Project;
 use App\Models\Technology;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -22,9 +23,9 @@ class HealthController extends Controller
             'debug' => config('app.debug'),
             'locale' => app()->getLocale(),
             'metrics' => [
-                'projects_count' => Cache::remember('health.projects', 60, fn () => Project::where('is_active', true)->count()),
-                'technologies_count' => Cache::remember('health.technologies', 60, fn () => Technology::where('is_active', true)->count()),
-                'contact_messages' => Cache::remember('health.contacts', 60, fn () => ContactMessage::count()),
+                'projects_count' => app(CacheService::class)->remember('health.projects', 60, fn () => Project::where('is_active', true)->count()),
+                'technologies_count' => app(CacheService::class)->remember('health.technologies', 60, fn () => Technology::where('is_active', true)->count()),
+                'contact_messages' => app(CacheService::class)->remember('health.contacts', 60, fn () => ContactMessage::count()),
                 'php_version' => PHP_VERSION,
                 'laravel_version' => app()->version(),
             ],

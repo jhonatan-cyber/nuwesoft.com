@@ -4,7 +4,7 @@ namespace App\Observers;
 
 use App\Events\EntityUpdated;
 use App\Models\ContactMessage;
-use Illuminate\Support\Facades\Cache;
+use App\Services\EntityCacheManager;
 
 class ContactMessageObserver
 {
@@ -13,7 +13,7 @@ class ContactMessageObserver
      */
     public function saved(ContactMessage $message): void
     {
-        Cache::forget('dashboard.pending_messages');
+        EntityCacheManager::flushEntity('message');
         event(new EntityUpdated('message'));
     }
 
@@ -22,7 +22,7 @@ class ContactMessageObserver
      */
     public function deleted(ContactMessage $message): void
     {
-        Cache::forget('dashboard.pending_messages');
+        EntityCacheManager::flushEntity('message');
         event(new EntityUpdated('message'));
     }
 }

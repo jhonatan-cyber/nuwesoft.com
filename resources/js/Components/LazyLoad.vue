@@ -12,19 +12,35 @@ const props = defineProps({
      * Intersection threshold (0-1). 0 = triggers as soon as any part is visible.
      */
     threshold: { type: Number, default: 0 },
+    /**
+     * Fallback timeout (ms). If the observer doesn't fire within this time,
+     * the content is shown anyway. Useful for headless/iframe contexts.
+     */
+    fallbackMs: { type: Number, default: 1500 },
 })
 
 const target = ref(null)
 const isVisible = ref(false)
 let observer = null
+let fallbackTimer = null
 
 onMounted(() => {
     if (!target.value) return
+
+    // Fallback: show content if IntersectionObserver doesn't fire
+    // This handles headless browsers, iframes, and print contexts
+    fallbackTimer = setTimeout(() => {
+        if (!isVisible.value) {
+            isVisible.value = true
+            observer?.disconnect()
+        }
+    }, props.fallbackMs)
 
     observer = new IntersectionObserver(
         ([entry]) => {
             if (entry.isIntersecting) {
                 isVisible.value = true
+                clearTimeout(fallbackTimer)
                 observer.disconnect()
             }
         },
@@ -34,6 +50,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    clearTimeout(fallbackTimer)
     observer?.disconnect()
 })
 </script>

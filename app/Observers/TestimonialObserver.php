@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Events\EntityUpdated;
 use App\Models\Testimonial;
+use App\Services\EntityCacheManager;
 
 class TestimonialObserver
 {
@@ -12,6 +13,7 @@ class TestimonialObserver
      */
     public function saved(Testimonial $testimonial): void
     {
+        EntityCacheManager::flushEntity('testimonial');
         event(new EntityUpdated('testimonial'));
     }
 
@@ -20,6 +22,7 @@ class TestimonialObserver
      */
     public function deleted(Testimonial $testimonial): void
     {
+        EntityCacheManager::flushEntity('testimonial');
         event(new EntityUpdated('testimonial'));
     }
 }

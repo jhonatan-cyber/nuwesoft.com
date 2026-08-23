@@ -4,7 +4,7 @@ namespace App\Observers;
 
 use App\Events\EntityUpdated;
 use App\Models\Technology;
-use Illuminate\Support\Facades\Cache;
+use App\Services\EntityCacheManager;
 
 class TechnologyObserver
 {
@@ -31,17 +31,6 @@ class TechnologyObserver
      */
     public static function flushCache(): void
     {
-        $keys = [
-            'active_technologies',
-            'active_technologies_servicios',
-            'active_projects_with_relations',
-            'dashboard.active_technologies',
-            'dashboard.total_technologies',
-            'dashboard.tech_by_category',
-        ];
-
-        foreach ($keys as $key) {
-            Cache::forget($key);
-        }
+        EntityCacheManager::flushEntity('technology');
     }
 }
