@@ -52,12 +52,16 @@ jobs:
         if: matrix.check == 'test'
         run: php artisan key:generate --env=testing
 
+      - name: Create SQLite database
+        if: matrix.check == 'test'
+        run: touch database/database.sqlite
+
       - name: Run migrations
         if: matrix.check == 'test'
         run: php artisan migrate --env=testing --force
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
           CACHE_STORE: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
@@ -67,7 +71,7 @@ jobs:
         run: php artisan test --env=testing
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
           CACHE_STORE: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
