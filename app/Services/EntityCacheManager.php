@@ -32,9 +32,9 @@ class EntityCacheManager
      */
     public static function register(string $entity, array $keys): void
     {
-        static::$registry[$entity] = array_unique(
+        static::$registry[$entity] = array_values(array_unique(
             array_merge(static::$registry[$entity] ?? [], $keys)
-        );
+        ));
     }
 
     /**
