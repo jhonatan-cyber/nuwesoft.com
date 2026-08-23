@@ -11,31 +11,45 @@ jobs:
     name: Deploy to Production
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - name: Configure SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS via SSH
         id: deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -se' <<'REMOTE_SCRIPT'
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
-            PHP_BIN=$(command -v php || command -v php8.3 || command -v php8.4 || true)
-            if [ -z "$PHP_BIN" ]; then
-              echo "PHP CLI not found; installing the production CLI runtime..."
+            PHP_PACKAGES_READY=true
+            for package in php8.3-cli php8.3-fpm php8.3-pgsql; do
+              dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || PHP_PACKAGES_READY=false
+            done
+            if [ "$PHP_PACKAGES_READY" != true ]; then
+              echo "Installing the production PHP runtime..."
               sudo apt-get update -qq
               sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                php8.3-cli php8.3-bcmath php8.3-curl php8.3-gd php8.3-mbstring \
+                php8.3-cli php8.3-fpm php8.3-bcmath php8.3-curl php8.3-gd php8.3-mbstring \
                 php8.3-pgsql php8.3-xml php8.3-zip unzip
-              PHP_BIN=$(command -v php8.3 || command -v php || true)
             fi
+            PHP_BIN=$(command -v php8.3 || command -v php || true)
             if [ -z "$PHP_BIN" ]; then
               echo "ERROR: PHP CLI was not found on the VPS"
               exit 1
@@ -161,6 +175,7 @@ jobs:
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
+          REMOTE_SCRIPT
 
       # ──────────────────────────────────────────────
       # Discord notifications
