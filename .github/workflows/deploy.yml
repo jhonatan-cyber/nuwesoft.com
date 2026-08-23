@@ -80,7 +80,7 @@ jobs:
             # Install dependencies, build assets, and update the application
             echo "Installing production dependencies..."
             "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
-            npm ci || { echo "ERROR: npm install failed"; exit 1; }
+            npm ci --legacy-peer-deps || { echo "ERROR: npm install failed"; exit 1; }
             npm run build || { echo "ERROR: frontend build failed"; exit 1; }
             "$PHP_BIN" artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
             "$PHP_BIN" artisan optimize || { echo "ERROR: application optimization failed"; exit 1; }
@@ -100,7 +100,7 @@ jobs:
               echo "ERROR: App failed healthcheck. Rolling back..."
               git checkout $PREV_COMMIT
               "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-              npm ci
+              npm ci --legacy-peer-deps
               npm run build
               "$PHP_BIN" artisan optimize
               sudo systemctl reload nginx
