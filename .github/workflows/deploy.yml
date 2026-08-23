@@ -133,13 +133,6 @@ jobs:
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
 
-            # Backup database BEFORE pulling new code
-            echo "Backing up database..."
-            "$PHP_BIN" artisan config:clear
-            "$PHP_BIN" artisan backup:database --compress || { echo "ERROR: Database backup failed"; exit 1; }
-            BACKUP_SIZE=$(find storage/app/backups -maxdepth 1 -name '*.sql.gz' -printf '%T@ %s\n' | sort -nr | head -1 | awk '{print $2}')
-            echo "Backup size: $BACKUP_SIZE"
-
             # Pull latest changes
             echo "Pulling latest changes..."
             git pull origin main || { echo "ERROR: git pull failed"; exit 1; }
@@ -149,6 +142,14 @@ jobs:
             # Install dependencies, build assets, and update the application
             echo "Installing production dependencies..."
             "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
+
+            # Back up with the current application code before migrations.
+            echo "Backing up database..."
+            "$PHP_BIN" artisan config:clear
+            "$PHP_BIN" artisan backup:database --compress || { echo "ERROR: Database backup failed"; exit 1; }
+            BACKUP_SIZE=$(find storage/app/backups -maxdepth 1 -name '*.sql.gz' -printf '%T@ %s\n' | sort -nr | head -1 | awk '{print $2}')
+            echo "Backup size: $BACKUP_SIZE"
+
             npm ci --legacy-peer-deps || { echo "ERROR: npm install failed"; exit 1; }
             npm run build || { echo "ERROR: frontend build failed"; exit 1; }
             "$PHP_BIN" artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
