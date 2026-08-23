@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -13,9 +11,25 @@ jobs:
   php:
     name: PHP (${{ matrix.check }})
     runs-on: ubuntu-latest
-    env:
-      APP_ENV: testing
-      APP_KEY: base64:VomLetnQTn+rxwsBtBp7hjoPRTVmL/kZ1oofh2408eI=
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -d testing -U testing'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
 
     strategy:
       fail-fast: false
@@ -29,7 +43,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, sqlite
+          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
           coverage: none
 
       - name: Get Composer cache dir
@@ -46,41 +60,38 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Setup Node.js for feature tests
-        if: matrix.check == 'test'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "npm"
-
-      - name: Build frontend assets for feature tests
-        if: matrix.check == 'test'
-        run: npm install --legacy-peer-deps && npm run build
-
       # ── PHPUnit ──
-      - name: Create SQLite database
+      - name: Copy .env
         if: matrix.check == 'test'
-        run: touch database/database.sqlite
+        run: cp .env.example .env.testing
+
+      - name: Generate app key
+        if: matrix.check == 'test'
+        run: php artisan key:generate --env=testing
 
       - name: Run migrations
         if: matrix.check == 'test'
         run: php artisan migrate --env=testing --force
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
-          CACHE_STORE: array
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
 
       - name: Run PHPUnit
         if: matrix.check == 'test'
-        run: php artisan test --env=testing
+        run: php artisan test --env=testing --parallel
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
-          CACHE_STORE: array
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
 
       # ── Laravel Pint ──
       - name: Run Laravel Pint
@@ -103,20 +114,11 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --no-interaction --prefer-dist --no-progress
-
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
       - name: Run ESLint
-        run: npm run lint
+        run: npx eslint resources/js/ --max-warnings=0
         continue-on-error: true
 
       - name: Build frontend

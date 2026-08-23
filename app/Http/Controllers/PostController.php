@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class PostController extends Controller
@@ -30,7 +32,7 @@ class PostController extends Controller
     {
         $validated = $request->validated();
 
-        $validated['slug'] = \App\Observers\PostObserver::generateUniqueSlug($validated['title']);
+        $validated['slug'] = Str::slug($validated['title']);
         $validated['published_at'] = $validated['is_published'] ? now() : null;
 
         Post::create($validated);
@@ -49,7 +51,7 @@ class PostController extends Controller
     {
         $validated = $request->validated();
 
-        $validated['slug'] = \App\Observers\PostObserver::generateUniqueSlug($validated['title'], $post->id);
+        $validated['slug'] = Str::slug($validated['title']);
 
         if ($validated['is_published'] && ! $post->published_at) {
             $validated['published_at'] = now();
@@ -92,10 +94,7 @@ class PostController extends Controller
 
         return Inertia::render('Blog', [
             'posts' => $posts,
-            'filters' => [
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-            ],
+            'filters' => $request->only(['category', 'search']),
         ]);
     }
 
@@ -112,8 +111,8 @@ class PostController extends Controller
             ->get();
 
         return Inertia::render('BlogPost', [
-            'post' => $post,
-            'related' => $related,
+            'post' => new PostResource($post),
+            'related' => PostResource::collection($related),
         ]);
     }
 }

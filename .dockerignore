@@ -1,0 +1,51 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (will be installed in Docker)
+node_modules
+vendor
+
+# Environment files (secrets must come from compose.prod.yaml)
+.env
+.env.*
+!.env.example
+
+# Tests
+tests
+phpunit.xml
+vitest.config.ts
+
+# Development tools
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+CHANGELOG.md
+
+# Build artifacts that are regenerated
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# Scripts
+scripts
+start-dev.bat
+
+# Config files not needed in production
+commitlint.config.js
+eslint.config.js
+phpstan.neon
+pint.json
+skills-lock.json
+
+# Staging and dev compose
+compose.yaml
+compose.staging.yaml

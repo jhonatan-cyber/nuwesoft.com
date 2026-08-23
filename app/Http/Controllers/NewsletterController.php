@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscriber;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class NewsletterController extends Controller
@@ -26,7 +28,7 @@ class NewsletterController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('email', 'ilike', "%{$search}%")
-                    ->orWhere('name', 'ilike', "%{$search}%");
+                  ->orWhere('name', 'ilike', "%{$search}%");
             });
         }
 

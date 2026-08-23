@@ -17,7 +17,7 @@ class PublicNewsletterController extends Controller
         ]);
 
         // Honeypot check
-        if (! empty($request->input('form_token'))) {
+        if (!empty($request->input('form_token'))) {
             return back()->with('newsletter_success', '¡Gracias por suscribirte!');
         }
 
@@ -63,7 +63,7 @@ class PublicNewsletterController extends Controller
     {
         $email = $request->query('email');
 
-        if (! $email) {
+        if (!$email) {
             return redirect('/')->with('error', 'Enlace de desuscripción inválido.');
         }
 

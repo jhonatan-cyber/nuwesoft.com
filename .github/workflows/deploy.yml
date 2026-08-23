@@ -1,137 +1,42 @@
 name: Deploy to VPS
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  push:
+    branches:
+      - main
+
+env:
+  APP_IMAGE: nuwesoft-app:latest
 
 jobs:
   deploy:
     name: Deploy to Production
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Configure SSH
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          for attempt in 1 2 3 4 5; do
-            if ssh-keyscan -T 10 -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
-              exit 0
-            fi
-            echo "SSH host-key scan attempt $attempt failed; retrying..."
-            sleep 5
-          done
-          echo "ERROR: Could not obtain the VPS SSH host key"
-          exit 1
+      - uses: actions/checkout@v4
 
       - name: Deploy to VPS via SSH
         id: deploy
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -se' <<'REMOTE_SCRIPT'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
-
-            PHP_PACKAGES_READY=true
-            for package in php8.3-cli php8.3-fpm php8.3-pgsql postgresql-client; do
-              dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || PHP_PACKAGES_READY=false
-            done
-            if [ "$PHP_PACKAGES_READY" != true ]; then
-              echo "Installing the production PHP runtime..."
-              sudo apt-get update -qq
-              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                php8.3-cli php8.3-fpm php8.3-bcmath php8.3-curl php8.3-gd php8.3-mbstring \
-                php8.3-pgsql php8.3-xml php8.3-zip postgresql-client unzip
-            fi
-            PHP_BIN=$(command -v php8.3 || command -v php || true)
-            if [ -z "$PHP_BIN" ]; then
-              echo "ERROR: PHP CLI was not found on the VPS"
-              exit 1
-            fi
-            echo "Using PHP: $PHP_BIN"
-
-            # Migrate legacy container hostnames to host-managed services.
-            if [ -f .env ]; then
-              sed -i 's/^DB_HOST=pgsql$/DB_HOST=127.0.0.1/' .env
-              sed -i 's/^REDIS_HOST=redis$/REDIS_HOST=127.0.0.1/' .env
-            fi
-
-            # Keep the host-managed PostgreSQL credentials aligned with the
-            # application configuration. Secret values are never printed.
-            if sudo -n -u postgres psql --no-psqlrc --quiet -Atc 'SELECT 1' >/dev/null 2>&1; then
-              read_env_value() {
-                sed -n "s/^$1=//p" .env | tail -n 1 | sed "s/^['\"]//; s/['\"]$//"
-              }
-
-              DB_USER=$(read_env_value DB_USERNAME)
-              DB_PASSWORD=$(read_env_value DB_PASSWORD)
-              DB_NAME=$(read_env_value DB_DATABASE)
-
-              case "$DB_USER" in
-                ''|*[!A-Za-z0-9_]*) echo "ERROR: Invalid DB_USERNAME in .env"; exit 1 ;;
-              esac
-              case "$DB_NAME" in
-                ''|*[!A-Za-z0-9_.-]*) echo "ERROR: Invalid DB_DATABASE in .env"; exit 1 ;;
-              esac
-
-              if [ -z "$DB_PASSWORD" ]; then
-                DB_PASSWORD=$(openssl rand -hex 32)
-                sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
-              fi
-
-              sudo -n -u postgres psql --no-psqlrc --quiet \
-                --set=app_user="$DB_USER" \
-                --set=app_password="$DB_PASSWORD" \
-                --set=app_db="$DB_NAME" <<'SQL'
-          SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'app_user', :'app_password')
-          WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_user') \gexec
-          SELECT format('ALTER ROLE %I WITH LOGIN PASSWORD %L', :'app_user', :'app_password') \gexec
-          SELECT format('CREATE DATABASE %I OWNER %I', :'app_db', :'app_user')
-          WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'app_db') \gexec
-          SQL
-              unset DB_PASSWORD
-              echo "PostgreSQL application credentials synchronized."
-            else
-              echo "ERROR: Cannot administer the host-managed PostgreSQL service"
-              exit 1
-            fi
-
-            # Use the system Composer when available; otherwise install a
-            # verified project-local copy for non-interactive deployments.
-            COMPOSER_BIN=$(command -v composer || true)
-            if [ -z "$COMPOSER_BIN" ]; then
-              echo "Composer not found; installing a local verified copy..."
-              mkdir -p .deploy-tools
-              EXPECTED_SIGNATURE=$(curl -fsSL https://composer.github.io/installer.sig)
-              "$PHP_BIN" -r "copy('https://getcomposer.org/installer', '.composer-setup.php');"
-              ACTUAL_SIGNATURE=$("$PHP_BIN" -r "echo hash_file('sha384', '.composer-setup.php');")
-              if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
-                echo "ERROR: Invalid Composer installer signature"
-                rm -f .composer-setup.php
-                exit 1
-              fi
-              "$PHP_BIN" .composer-setup.php --quiet --install-dir=.deploy-tools --filename=composer
-              rm -f .composer-setup.php
-              COMPOSER_BIN="$PWD/.deploy-tools/composer"
-            fi
 
             # Save current commit for rollback
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
+
+            # Backup database BEFORE pulling new code
+            echo "Backing up database..."
+            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
+            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            echo "Backup size: $BACKUP_SIZE"
 
             # Pull latest changes
             echo "Pulling latest changes..."
@@ -139,28 +44,14 @@ jobs:
             NEW_COMMIT=$(git rev-parse HEAD)
             echo "New commit: $NEW_COMMIT"
 
-            # Install dependencies, build assets, and update the application
-            echo "Installing production dependencies..."
-            "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
-
-            # Back up with the current application code before migrations.
-            echo "Backing up database..."
-            "$PHP_BIN" artisan config:clear
-            "$PHP_BIN" artisan backup:database --compress || { echo "ERROR: Database backup failed"; exit 1; }
-            BACKUP_SIZE=$(find storage/app/backups -maxdepth 1 -name '*.sql.gz' -printf '%T@ %s\n' | sort -nr | head -1 | awk '{print $2}')
-            echo "Backup size: $BACKUP_SIZE"
-
-            npm ci --legacy-peer-deps || { echo "ERROR: npm install failed"; exit 1; }
-            npm run build || { echo "ERROR: frontend build failed"; exit 1; }
-            "$PHP_BIN" artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
-            "$PHP_BIN" artisan optimize || { echo "ERROR: application optimization failed"; exit 1; }
-            sudo systemctl reload nginx || { echo "ERROR: nginx reload failed"; exit 1; }
-            sudo systemctl restart php8.3-fpm || { echo "ERROR: PHP-FPM restart failed"; exit 1; }
+            # Build and restart containers
+            echo "Building containers..."
+            docker compose -f compose.prod.yaml up -d --build --remove-orphans || { echo "ERROR: docker compose failed"; exit 1; }
 
             # Wait for healthcheck (max 60s)
             echo "Waiting for app to be healthy..."
             RETRIES=12
-            until [ $RETRIES -eq 0 ] || curl -sf https://nuwesoft.nuwesomme.cloud/ > /dev/null 2>&1; do
+            until [ $RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
               RETRIES=$((RETRIES - 1))
               echo "Waiting... ($RETRIES attempts left)"
               sleep 5
@@ -169,22 +60,19 @@ jobs:
             if [ $RETRIES -eq 0 ]; then
               echo "ERROR: App failed healthcheck. Rolling back..."
               git checkout $PREV_COMMIT
-              "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-              npm ci --legacy-peer-deps
-              npm run build
-              "$PHP_BIN" artisan optimize
-              sudo systemctl reload nginx
-              sudo systemctl restart php8.3-fpm
+              docker compose -f compose.prod.yaml up -d --build --remove-orphans
               echo "Rolled back to $PREV_COMMIT"
               exit 1
             fi
 
+            # Cleanup old images (ignore errors)
+            docker image prune -f 2>/dev/null || true
+
             # Cleanup backups older than 30 days
-            find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
+            docker compose -f compose.prod.yaml exec -T web find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
-          REMOTE_SCRIPT
 
       # ──────────────────────────────────────────────
       # Discord notifications

@@ -36,7 +36,6 @@ class NewTestimonialMail extends Mailable
         $name = e($this->testimonial->client_name);
         $role = e($this->testimonial->client_role ?? '');
         $company = e($this->testimonial->client_company ?? '');
-        $companyLabel = $company ? ", {$company}" : '';
         $content = e($this->testimonial->content);
         $rating = $this->testimonial->rating;
         $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
@@ -90,7 +89,7 @@ class NewTestimonialMail extends Mailable
                                 {$name}
                             </p>
                             <p style="margin:2px 0 0;font-size:12px;color:#a1a1aa;">
-                                {$role}{$companyLabel}
+                                {$role}{$company ? ", {$company}" : ''}
                             </p>
                         </td>
                     </tr>

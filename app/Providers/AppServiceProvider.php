@@ -8,8 +8,6 @@ use App\Observers\ProjectImageObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\TechnologyObserver;
 use App\Observers\TestimonialObserver;
-use App\Services\CacheService;
-use App\Services\EntityCacheManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -35,14 +33,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\StorageServiceInterface::class,
             \App\Services\CloudinaryStorageService::class
         );
-
-        $this->app->singleton(CacheService::class);
-
-        // Load cache key registry from config and register with EntityCacheManager
-        $cacheKeys = config('cache_keys.entities', []);
-        foreach ($cacheKeys as $entity => $keys) {
-            EntityCacheManager::register($entity, $keys);
-        }
 
         $this->app->singleton(\Illuminate\Foundation\Vite::class, function ($app) {
             return new class extends \Illuminate\Foundation\Vite
