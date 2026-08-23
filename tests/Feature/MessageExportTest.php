@@ -42,7 +42,7 @@ class MessageExportTest extends TestCase
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
         $response->assertStatus(200);
 
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         // Strip BOM
         $content = ltrim($content, "\xEF\xBB\xBF");
 
@@ -67,7 +67,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Alice', $content);
@@ -94,7 +94,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Sí', $content);  // Read message
@@ -106,7 +106,7 @@ class MessageExportTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $lines = explode("\n", trim($content));
@@ -133,7 +133,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv', ['filter' => 'unread']));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Unread', $content);
@@ -158,7 +158,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv', ['filter' => 'read']));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Read', $content);
@@ -183,7 +183,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Read', $content);
@@ -198,7 +198,7 @@ class MessageExportTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/csv');
+        $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type'));
     }
 
     public function test_export_contains_utf8_bom_for_excel(): void
@@ -206,7 +206,7 @@ class MessageExportTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
 
         // UTF-8 BOM: 0xEF 0xBB 0xBF
         $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
@@ -235,7 +235,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('María José', $content);
@@ -255,7 +255,7 @@ class MessageExportTest extends TestCase
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
         $response->assertStatus(200);
 
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $this->assertStringContainsString('Empty', $content);
@@ -270,6 +270,7 @@ class MessageExportTest extends TestCase
             'email' => 'first@test.com',
             'mensaje' => 'First',
         ]);
+        \Illuminate\Support\Facades\DB::table('contact_messages')->where('id', $old->id)->update(['created_at' => now()->subMinutes(5), 'updated_at' => now()->subMinutes(5)]);
 
         $new = ContactMessage::create([
             'nombre' => 'Last',
@@ -278,7 +279,7 @@ class MessageExportTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.export.csv'));
-        $content = $response->getContent();
+        $content = $response->streamedContent();
         $content = ltrim($content, "\xEF\xBB\xBF");
 
         $lines = explode("\n", trim($content));

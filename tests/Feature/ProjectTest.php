@@ -43,10 +43,10 @@ class ProjectTest extends TestCase
             'is_active' => false,
         ]);
 
-        $responseActive = $this->get('/portafolio/' . $activeProject->id);
+        $responseActive = $this->get('/portafolio/' . $activeProject->slug);
         $responseActive->assertStatus(200);
 
-        $responseInactive = $this->get('/portafolio/' . $inactiveProject->id);
+        $responseInactive = $this->get('/portafolio/' . $inactiveProject->slug);
         $responseInactive->assertStatus(404);
     }
 

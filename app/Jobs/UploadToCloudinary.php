@@ -2,10 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Contracts\StorageServiceInterface;
 use App\Models\Project;
 use App\Models\ProjectImage;
 use App\Models\Technology;
-use App\Contracts\StorageServiceInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
@@ -18,9 +18,9 @@ class UploadToCloudinary implements ShouldQueue
      * Create a new job instance.
      *
      * @param  string  $filePath  Storage path of the file to upload (e.g. 'temp/abc123.jpg')
-     * @param  string  $folder    Cloudinary folder: 'projects', 'technologies', 'settings'
+     * @param  string  $folder  Cloudinary folder: 'projects', 'technologies', 'settings'
      * @param  string|null  $modelType  DB model type: 'project_image', 'technology', 'settings'
-     * @param  int|null  $modelId   Model ID (Technology ID, or parent model ID)
+     * @param  int|null  $modelId  Model ID (Technology ID, or parent model ID)
      * @param  int|null  $projectId  For project_image: the parent Project ID
      * @param  int|null  $orderIndex  For project_image: the display order
      */
@@ -42,6 +42,7 @@ class UploadToCloudinary implements ShouldQueue
 
         if (! file_exists($fullPath)) {
             report(new \Exception("UploadToCloudinary: File not found at {$fullPath}"));
+
             return;
         }
 
@@ -49,11 +50,11 @@ class UploadToCloudinary implements ShouldQueue
             $result = $storage->upload($fullPath, $this->folder);
 
             match ($this->modelType) {
-                'project_image'       => $this->handleProjectImage($result),
-                'technology'          => $this->handleTechnology($result),
-                'settings'            => $this->handleSettings($result),
-                'contact_attachment'  => $this->handleContactAttachment($result),
-                default               => null,
+                'project_image' => $this->handleProjectImage($result),
+                'technology' => $this->handleTechnology($result),
+                'settings' => $this->handleSettings($result),
+                'contact_attachment' => $this->handleContactAttachment($result),
+                default => null,
             };
         } catch (\Throwable $e) {
             report($e);
@@ -82,10 +83,10 @@ class UploadToCloudinary implements ShouldQueue
         $maxOrder = $project->images()->max('order_index') ?? -1;
 
         ProjectImage::create([
-            'project_id'   => $this->projectId,
-            'image_url'    => $result['secure_url'],
-            'public_id'    => $result['public_id'],
-            'order_index'  => $this->orderIndex ?? ($maxOrder + 1),
+            'project_id' => $this->projectId,
+            'image_url' => $result['secure_url'],
+            'public_id' => $result['public_id'],
+            'order_index' => $this->orderIndex ?? ($maxOrder + 1),
         ]);
     }
 
@@ -106,14 +107,14 @@ class UploadToCloudinary implements ShouldQueue
         // Delete old logo from Cloudinary if exists
         if ($technology->logo_public_id) {
             try {
-                app(\App\Contracts\StorageServiceInterface::class)->delete($technology->logo_public_id);
+                app(StorageServiceInterface::class)->delete($technology->logo_public_id);
             } catch (\Throwable $e) {
                 report($e);
             }
         }
 
         $technology->update([
-            'logo_url'       => $result['secure_url'],
+            'logo_url' => $result['secure_url'],
             'logo_public_id' => $result['public_id'],
         ]);
     }
@@ -135,7 +136,7 @@ class UploadToCloudinary implements ShouldQueue
         // Delete old attachment from Cloudinary if exists
         if ($message->attachment_public_id) {
             try {
-                app(\App\Contracts\StorageServiceInterface::class)->delete($message->attachment_public_id);
+                app(StorageServiceInterface::class)->delete($message->attachment_public_id);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -156,7 +157,7 @@ class UploadToCloudinary implements ShouldQueue
         $oldPublicId = \App\Models\Setting::getValue('logo_public_id');
         if ($oldPublicId) {
             try {
-                app(\App\Contracts\StorageServiceInterface::class)->delete($oldPublicId);
+                app(StorageServiceInterface::class)->delete($oldPublicId);
             } catch (\Throwable $e) {
                 report($e);
             }

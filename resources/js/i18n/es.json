@@ -90,7 +90,7 @@
             "ui": "UI / COMPONENTES"
         },
         "placeholders": {
-            "name": "EJ. LARAVEL, VUE.JS, DOCKER...",
+            "name": "EJ. LARAVEL, VUE.JS, REDIS...",
             "category": "SELECCIONA UNA CATEGORIA"
         },
         "descriptions": {

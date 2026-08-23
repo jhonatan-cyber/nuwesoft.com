@@ -64,7 +64,6 @@ class TechnologySeeder extends Seeder
             ['name' => 'Sequelize', 'logo_url' => 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sequelize/sequelize-original.svg', 'category' => 'database', 'invert_dark' => false],
 
             // Infrastructure & Cloud
-            ['name' => 'Docker', 'logo_url' => 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', 'category' => 'infrastructure', 'invert_dark' => false],
             ['name' => 'Kubernetes', 'logo_url' => 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg', 'category' => 'infrastructure', 'invert_dark' => false],
             ['name' => 'Terraform', 'logo_url' => 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/terraform/terraform-original.svg', 'category' => 'infrastructure', 'invert_dark' => false],
             ['name' => 'AWS', 'logo_url' => 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg', 'category' => 'infrastructure', 'invert_dark' => false],

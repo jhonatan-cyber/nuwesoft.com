@@ -79,7 +79,7 @@ describe('ServiceCard.vue', () => {
             eyebrow: 'INFRAESTRUCTURA',
             title: 'Cloud Infrastructure',
             description: 'Scalable cloud solutions.',
-            bullets: ['AWS', 'Docker', 'Kubernetes'],
+            bullets: ['AWS', 'Terraform', 'Kubernetes'],
             color: 'bg-brutalist-blue',
         }
 

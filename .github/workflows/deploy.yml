@@ -1,16 +1,15 @@
 name: Deploy to VPS
 
 on:
-  push:
-    branches:
-      - main
-
-env:
-  APP_IMAGE: nuwesoft-app:latest
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
 
 jobs:
   deploy:
     name: Deploy to Production
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -34,8 +33,8 @@ jobs:
 
             # Backup database BEFORE pulling new code
             echo "Backing up database..."
-            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
-            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
+            BACKUP_SIZE=$(ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
             echo "Backup size: $BACKUP_SIZE"
 
             # Pull latest changes
@@ -44,14 +43,20 @@ jobs:
             NEW_COMMIT=$(git rev-parse HEAD)
             echo "New commit: $NEW_COMMIT"
 
-            # Build and restart containers
-            echo "Building containers..."
-            docker compose -f compose.prod.yaml up -d --build --remove-orphans || { echo "ERROR: docker compose failed"; exit 1; }
+            # Install dependencies, build assets, and update the application
+            echo "Installing production dependencies..."
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
+            npm ci || { echo "ERROR: npm install failed"; exit 1; }
+            npm run build || { echo "ERROR: frontend build failed"; exit 1; }
+            php artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
+            php artisan optimize || { echo "ERROR: application optimization failed"; exit 1; }
+            sudo systemctl reload nginx || { echo "ERROR: nginx reload failed"; exit 1; }
+            sudo systemctl restart php8.3-fpm || { echo "ERROR: PHP-FPM restart failed"; exit 1; }
 
             # Wait for healthcheck (max 60s)
             echo "Waiting for app to be healthy..."
             RETRIES=12
-            until [ $RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
+            until [ $RETRIES -eq 0 ] || curl -sf https://nuwesoft.nuwesomme.cloud/ > /dev/null 2>&1; do
               RETRIES=$((RETRIES - 1))
               echo "Waiting... ($RETRIES attempts left)"
               sleep 5
@@ -60,16 +65,18 @@ jobs:
             if [ $RETRIES -eq 0 ]; then
               echo "ERROR: App failed healthcheck. Rolling back..."
               git checkout $PREV_COMMIT
-              docker compose -f compose.prod.yaml up -d --build --remove-orphans
+              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+              npm ci
+              npm run build
+              php artisan optimize
+              sudo systemctl reload nginx
+              sudo systemctl restart php8.3-fpm
               echo "Rolled back to $PREV_COMMIT"
               exit 1
             fi
 
-            # Cleanup old images (ignore errors)
-            docker image prune -f 2>/dev/null || true
-
             # Cleanup backups older than 30 days
-            docker compose -f compose.prod.yaml exec -T web find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
+            find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"

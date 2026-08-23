@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Models;use App\Enums\PostCategory;
+namespace App\Models;
+
+use App\Enums\PostCategory;
 use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +30,19 @@ class Post extends Model
         'is_published' => 'boolean',
         'published_at' => 'datetime',
     ];
+
+    public function setAttribute($key, $value): static
+    {
+        if ($key === 'category') {
+            if ($value instanceof PostCategory) {
+                $value = $value->value;
+            } elseif (is_string($value)) {
+                $value = strtolower($value);
+            }
+        }
+
+        return parent::setAttribute($key, $value);
+    }
 
     public function scopePublished($query)
     {

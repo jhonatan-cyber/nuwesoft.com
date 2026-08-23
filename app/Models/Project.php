@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Contracts\StorageServiceInterface;
 use App\Enums\ProjectCategory;
 use App\Jobs\UploadToCloudinary;
-use App\Contracts\StorageServiceInterface;
 use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +25,9 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class Project extends Model
 {
-    use HasFactory, LogActivity;    protected $fillable = [
+    use HasFactory, LogActivity;
+
+    protected $fillable = [
         'name', 'slug', 'category', 'desc',
         'icon', 'project_url', 'is_active',
     ];
@@ -34,6 +36,19 @@ class Project extends Model
         'category' => ProjectCategory::class,
         'is_active' => 'boolean',
     ];
+
+    public function setAttribute($key, $value): static
+    {
+        if ($key === 'category') {
+            if ($value instanceof ProjectCategory) {
+                $value = $value->value;
+            } elseif (is_string($value)) {
+                $value = strtolower($value);
+            }
+        }
+
+        return parent::setAttribute($key, $value);
+    }
 
     /**
      * Use slug for route model binding.
@@ -90,6 +105,7 @@ class Project extends Model
         }
         $this->images()->delete();
     }
+
     public function technologies()
     {
         return $this->belongsToMany(Technology::class);

@@ -24,7 +24,7 @@ class LogTest extends TestCase
         $user = User::factory()->create();
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
-        $response->assertInertiaComponent('Dashboard/Logs/Index');
+        $response->assertInertia(fn ($page) => $page->component('Dashboard/Logs/Index'));
     }
 
     // ── Page Rendering ──────────────────────────────────
@@ -33,15 +33,19 @@ class LogTest extends TestCase
     {
         $user = User::factory()->create();
 
-        FourOhFourLog::factory()->count(5)->create();
-        FourOhFourLog::factory()->count(3)->create(['logged_at' => now()]);
+        for ($i = 0; $i < 5; $i++) {
+            FourOhFourLog::create(['url' => "/page-{$i}", 'logged_at' => now()->subDays(rand(1, 5))]);
+        }
+        for ($i = 0; $i < 3; $i++) {
+            FourOhFourLog::create(['url' => "/today-{$i}", 'logged_at' => now()]);
+        }
 
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => isset($props['stats']['total']) &&
-            $props['stats']['total'] === 8 &&
-            $props['stats']['today'] === 3
+        $response->assertInertia(fn ($page) => $page
+            ->where('stats.total', 8)
+            ->where('stats.today', 3)
         );
     }
 
@@ -60,8 +64,8 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => isset($props['logs']) &&
-            $props['logs']->contains('url', '/missing-page')
+        $response->assertInertia(fn ($page) => $page
+            ->where('logs.0.url', '/missing-page')
         );
     }
 
@@ -76,7 +80,7 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => $props['stats']['unique_urls'] === 2
+        $response->assertInertia(fn ($page) => $page->where('stats.unique_urls', 2)
         );
     }
 
@@ -94,7 +98,7 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => $props['stats']['today'] === 1
+        $response->assertInertia(fn ($page) => $page->where('stats.today', 1)
         );
     }
 
@@ -102,12 +106,15 @@ class LogTest extends TestCase
     {
         $user = User::factory()->create();
 
-        FourOhFourLog::factory()->count(120)->create();
+        for ($i = 0; $i < 120; $i++) {
+            FourOhFourLog::create(['url' => "/page-{$i}", 'logged_at' => now()]);
+        }
 
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => $props['logs']->count() <= 100
+        $response->assertInertia(fn ($page) => $page
+            ->where('logs', fn ($logs) => count($logs) <= 100)
         );
     }
 
@@ -121,7 +128,7 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => $props['logs']->first()['url'] === '/new'
+        $response->assertInertia(fn ($page) => $page->where('logs.0.url', '/new')
         );
     }
 
@@ -132,10 +139,11 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => $props['stats']['total'] === 0 &&
-            $props['stats']['today'] === 0 &&
-            $props['stats']['unique_urls'] === 0 &&
-            $props['logs']->isEmpty()
+        $response->assertInertia(fn ($page) => $page
+            ->where('stats.total', 0)
+            ->where('stats.today', 0)
+            ->where('stats.unique_urls', 0)
+            ->where('logs', [])
         );
     }
 
@@ -156,12 +164,12 @@ class LogTest extends TestCase
         $response = $this->actingAs($user)->get(route('logs.index'));
         $response->assertStatus(200);
 
-        $response->assertInertiaProps(fn ($props) => collect($props['logs'])->contains(function ($log) {
-            return $log['url'] === '/test-404' &&
-                   $log['referer'] === 'https://example.com' &&
-                   $log['ip'] === '192.168.1.1' &&
-                   $log['user_agent'] === 'TestBot/1.0' &&
-                   isset($log['created_at']);
-        }));
+        $response->assertInertia(fn ($page) => $page
+            ->where('logs.0.url', '/test-404')
+            ->where('logs.0.referer', 'https://example.com')
+            ->where('logs.0.ip', '192.168.1.1')
+            ->where('logs.0.user_agent', 'TestBot/1.0')
+            ->has('logs.0.created_at')
+        );
     }
 }
