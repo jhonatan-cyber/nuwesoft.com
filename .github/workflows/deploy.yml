@@ -27,6 +27,25 @@ jobs:
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
+            # Use the system Composer when available; otherwise install a
+            # verified project-local copy for non-interactive deployments.
+            COMPOSER_BIN=$(command -v composer || true)
+            if [ -z "$COMPOSER_BIN" ]; then
+              echo "Composer not found; installing a local verified copy..."
+              mkdir -p .deploy-tools
+              EXPECTED_SIGNATURE=$(curl -fsSL https://composer.github.io/installer.sig)
+              php -r "copy('https://getcomposer.org/installer', '.composer-setup.php');"
+              ACTUAL_SIGNATURE=$(php -r "echo hash_file('sha384', '.composer-setup.php');")
+              if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
+                echo "ERROR: Invalid Composer installer signature"
+                rm -f .composer-setup.php
+                exit 1
+              fi
+              php .composer-setup.php --quiet --install-dir=.deploy-tools --filename=composer
+              rm -f .composer-setup.php
+              COMPOSER_BIN="$PWD/.deploy-tools/composer"
+            fi
+
             # Save current commit for rollback
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
@@ -45,7 +64,7 @@ jobs:
 
             # Install dependencies, build assets, and update the application
             echo "Installing production dependencies..."
-            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
+            "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader || { echo "ERROR: composer install failed"; exit 1; }
             npm ci || { echo "ERROR: npm install failed"; exit 1; }
             npm run build || { echo "ERROR: frontend build failed"; exit 1; }
             php artisan migrate --force || { echo "ERROR: migrations failed"; exit 1; }
@@ -65,7 +84,7 @@ jobs:
             if [ $RETRIES -eq 0 ]; then
               echo "ERROR: App failed healthcheck. Rolling back..."
               git checkout $PREV_COMMIT
-              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+              "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
               npm ci
               npm run build
               php artisan optimize
