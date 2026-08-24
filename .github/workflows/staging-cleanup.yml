@@ -35,7 +35,7 @@ jobs:
               cd "$STAGING_DIR"
 
               # Stop and remove containers, networks, volumes
-              docker compose -f compose.staging.yaml --env-file .env.staging down -v --remove-orphans 2>/dev/null || true
+              docker compose -f compose.staging.yaml --env-file .env down -v --remove-orphans 2>/dev/null || true
 
               # Remove staging directory
               cd /

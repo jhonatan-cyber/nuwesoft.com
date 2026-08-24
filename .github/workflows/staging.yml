@@ -48,24 +48,24 @@ jobs:
             fi
 
             # Create .env file
-            cat > .env << EOF
-            APP_NAME="Nuwesoft Staging"
-            APP_ENV=staging
-            APP_KEY=${{ secrets.APP_KEY }}
-            APP_DEBUG=true
-            APP_URL=http://${{ secrets.SSH_HOST }}:8081
-            APP_PORT=8081
-            DB_CONNECTION=pgsql
-            DB_HOST=pgsql-staging
-            DB_PORT=5432
-            DB_DATABASE=nuwesoft_staging
-            DB_USERNAME=staging
-            DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
-            REDIS_HOST=redis-staging
-            REDIS_PORT=6379
-            REVERB_ENABLED=false
-            QUEUE_WORKERS=1
-            EOF
+            cat > .env <<'EOF'
+APP_NAME="Nuwesoft Staging"
+APP_ENV=staging
+APP_KEY=${{ secrets.APP_KEY }}
+APP_DEBUG=true
+APP_URL=http://${{ secrets.SSH_HOST }}:8081
+APP_PORT=8081
+DB_CONNECTION=pgsql
+DB_HOST=pgsql-staging
+DB_PORT=5432
+DB_DATABASE=nuwesoft_staging
+DB_USERNAME=staging
+DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
+REDIS_HOST=redis-staging
+REDIS_PORT=6379
+REVERB_ENABLED=false
+QUEUE_WORKERS=1
+EOF
 
             # Build and start staging containers
             echo "Building staging..."
