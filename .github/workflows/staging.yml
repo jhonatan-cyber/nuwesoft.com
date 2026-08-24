@@ -1,0 +1,155 @@
+name: Staging Deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+env:
+  STAGING_BASE_DIR: /var/www/staging
+
+jobs:
+  staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Staging to VPS
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            PR=${{ github.event.pull_request.number }}
+            STAGING_DIR="${STAGING_BASE_DIR}/pr-${PR}"
+            REPO="https://github.com/${{ github.repository }}.git"
+
+            echo "=== Staging Deploy PR #${PR} ==="
+
+            # Create staging directory
+            mkdir -p "$STAGING_DIR"
+            cd "$STAGING_DIR"
+
+            # Clone or pull
+            if [ -d ".git" ]; then
+              git fetch origin
+              git fetch origin "refs/pull/${PR}/head:pr-${PR}" 2>/dev/null || true
+              git checkout "pr-${PR}" 2>/dev/null || git checkout FETCH_HEAD
+              git reset --hard FETCH_HEAD
+            else
+              git clone --depth 1 "$REPO" .
+              git fetch origin "refs/pull/${PR}/head:pr-${PR}" 2>/dev/null || true
+              git checkout "pr-${PR}" 2>/dev/null || git checkout FETCH_HEAD
+            fi
+
+            # Create .env file
+            cat > .env << EOF
+            APP_NAME="Nuwesoft Staging"
+            APP_ENV=staging
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=true
+            APP_URL=http://${{ secrets.SSH_HOST }}:8081
+            APP_PORT=8081
+            DB_CONNECTION=pgsql
+            DB_HOST=pgsql-staging
+            DB_PORT=5432
+            DB_DATABASE=nuwesoft_staging
+            DB_USERNAME=staging
+            DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
+            REDIS_HOST=redis-staging
+            REDIS_PORT=6379
+            REVERB_ENABLED=false
+            QUEUE_WORKERS=1
+            EOF
+
+            # Build and start staging containers
+            echo "Building staging..."
+            docker compose -f compose.staging.yaml --env-file .env up -d --build --remove-orphans
+
+            # Wait for healthcheck
+            echo "Waiting for staging app..."
+            RETRIES=12
+            until [ $RETRIES -eq 0 ] || docker compose -f compose.staging.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
+              RETRIES=$((RETRIES - 1))
+              echo "Waiting... ($RETRIES left)"
+              sleep 5
+            done
+
+            if [ $RETRIES -eq 0 ]; then
+              echo "ERROR: Staging healthcheck failed"
+              docker compose -f compose.staging.yaml logs web --tail=30
+              exit 1
+            fi
+
+            echo "=== Staging PR #${PR} deployed ==="
+
+      # Post staging URL as PR comment
+      - name: Comment PR with staging URL
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const stagingUrl = `http://${{ secrets.SSH_HOST }}:8081`;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const botComment = comments.data.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Staging')
+            );
+            const body = `🟢 **Staging deploy exitoso**
+
+            | Detalle | Valor |
+            |---------|-------|
+            | 🔗 URL | [${stagingUrl}](${stagingUrl}) |
+            | 📋 PR | #${prNumber} |
+            | 🔀 Branch | \`${context.payload.pull_request.head.ref}\` |
+            | 📦 Commit | \`${context.sha.substring(0, 7)}\` |
+
+            > El staging se actualiza con cada push. Se apaga al cerrar el PR.`;
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: botComment.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, body,
+              });
+            }
+
+      - name: Notify Discord
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=16776960
+            TITLE="🟨 Staging Deployed"
+            DESC="PR #${{ github.event.pull_request.number }} desplegado en staging."
+          else
+            COLOR=15158332
+            TITLE="🔴 Staging Failed"
+            DESC="El deploy de staging del PR #${{ github.event.pull_request.number }} falló."
+          fi
+          curl -s -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"${TITLE}\",
+                \"description\": \"${DESC}\",
+                \"color\": ${COLOR},
+                \"fields\": [
+                  {\"name\": \"📋 PR\", \"value\": \"${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})\", \"inline\": false},
+                  {\"name\": \"👤 Autor\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ],
+                \"footer\": {\"text\": \"GitHub Actions — Staging\"}
+              }]
+            }" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"

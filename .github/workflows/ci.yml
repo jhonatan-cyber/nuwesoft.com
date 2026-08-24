@@ -1,0 +1,190 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same PR
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────
+  # PHP Tests + Code Style
+  # ──────────────────────────────────────────────
+  php:
+    name: PHP (${{ matrix.check }})
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -d testing -U testing'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [test, pint]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
+          coverage: none
+
+      - name: Get Composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: php-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # ── PHPUnit ──
+      - name: Copy .env
+        if: matrix.check == 'test'
+        run: cp .env.example .env.testing
+
+      - name: Generate app key
+        if: matrix.check == 'test'
+        run: php artisan key:generate --env=testing
+
+      - name: Run migrations
+        if: matrix.check == 'test'
+        run: php artisan migrate --env=testing --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run PHPUnit
+        if: matrix.check == 'test'
+        run: php artisan test --env=testing --parallel
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: 127.0.0.1
+
+      # ── Laravel Pint ──
+      - name: Run Laravel Pint
+        if: matrix.check == 'pint'
+        run: vendor/bin/pint --test
+
+  # ──────────────────────────────────────────────
+  # PHPStan (blocks PRs)
+  # ──────────────────────────────────────────────
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
+          coverage: none
+
+      - name: Get Composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: php-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=512M
+
+  # ──────────────────────────────────────────────
+  # Frontend (Lint + Build)
+  # ──────────────────────────────────────────────
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend
+        run: bun run build
+        env:
+          VITE_APP_NAME: Nuwesoft
+
+  # ──────────────────────────────────────────────
+  # Summary — must all pass to merge
+  # ──────────────────────────────────────────────
+  ci-passed:
+    name: CI Passed
+    if: always()
+    needs: [php, phpstan, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.php.result }}" != "success" ] || \
+             [ "${{ needs.phpstan.result }}" != "success" ] || \
+             [ "${{ needs.frontend.result }}" != "success" ]; then
+            echo "❌ One or more CI jobs failed"
+            echo "  php: ${{ needs.php.result }}"
+            echo "  phpstan: ${{ needs.phpstan.result }}"
+            echo "  frontend: ${{ needs.frontend.result }}"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"

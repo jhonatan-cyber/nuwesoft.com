@@ -21,12 +21,22 @@ services:
         volumes:
             - '.:/var/www/html'
             - './docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
+            - 'sail-node-modules:/var/www/html/node_modules'
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost"]
+            interval: 15s
+            timeout: 15s
+            retries: 5
+            start_period: 45s
         networks:
             - sail
         depends_on:
-            - pgsql
-            - redis
-            - mailpit
+            pgsql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            mailpit:
+                condition: service_healthy
     pgsql:
         image: 'postgres:18-alpine'
         ports:
@@ -72,6 +82,11 @@ services:
         ports:
             - '${FORWARD_MAILPIT_PORT:-1025}:1025'
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
         networks:
             - sail
 networks:
@@ -82,3 +97,6 @@ volumes:
         driver: local
     sail-redis:
         driver: local
+    sail-node-modules:
+        driver: local
+

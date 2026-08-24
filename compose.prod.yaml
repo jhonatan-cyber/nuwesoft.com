@@ -33,6 +33,17 @@ services:
 
       # Optional: Enable Reverb WebSocket server
       REVERB_ENABLED: "${REVERB_ENABLED:-true}"
+      # Mail (override .env baked in image)
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: "${MAIL_HOST:-smtp.gmail.com}"
+      MAIL_PORT: "${MAIL_PORT:-587}"
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
+      MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-jhonatanancasi@gmail.com}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME:-NUWESOFT}"
+      MAIL_ADMIN_ADDRESS: "${MAIL_ADMIN_ADDRESS:-jhonatanancasi@gmail.com}"
+
       # Optional: Number of queue workers
       QUEUE_WORKERS: "${QUEUE_WORKERS:-1}"
     volumes:

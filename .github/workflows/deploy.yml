@@ -8,104 +8,7 @@ on:
 env:
   APP_IMAGE: nuwesoft-app:latest
 
-colors:
-  success: "#00C853"
-  failure: "#FF1744"
-
 jobs:
-  # ──────────────────────────────────────────────
-  # Stage 1: Run tests before deploying
-  # ──────────────────────────────────────────────
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: testing
-          POSTGRES_USER: testing
-          POSTGRES_PASSWORD: testing
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd 'pg_isready -d testing -U testing'
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: mbstring, xml, ctype, json, bcmath, gd, pdo, pgsql
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install npm dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build frontend assets
-        run: npm run build
-
-      - name: Copy .env
-        run: cp .env.example .env.testing
-
-      - name: Generate app key
-        run: php artisan key:generate --env=testing
-
-      - name: Run database migrations
-        run: php artisan migrate --env=testing --force
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: testing
-          DB_PASSWORD: testing
-          REDIS_HOST: 127.0.0.1
-
-      - name: Run PHPUnit tests
-        run: php artisan test --env=testing --parallel
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: testing
-          DB_PASSWORD: testing
-          REDIS_HOST: 127.0.0.1
-
-      - name: Run PHPStan static analysis
-        run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=512M
-        continue-on-error: true
-
-      - name: Run Laravel Pint (code style)
-        run: vendor/bin/pint --test
-
-      - name: Run ESLint (Vue/TypeScript)
-        run: npx eslint resources/js/ --max-warnings=0
-        continue-on-error: true
-
-  # ──────────────────────────────────────────────
-  # Stage 2: Deploy to VPS (only if tests pass)
-  # ──────────────────────────────────────────────
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
@@ -121,9 +24,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script_stop: true
           script: |
-            set -e
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
@@ -131,15 +32,21 @@ jobs:
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
 
+            # Backup database BEFORE pulling new code
+            echo "Backing up database..."
+            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
+            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            echo "Backup size: $BACKUP_SIZE"
+
             # Pull latest changes
             echo "Pulling latest changes..."
-            git pull origin main
+            git pull origin main || { echo "ERROR: git pull failed"; exit 1; }
             NEW_COMMIT=$(git rev-parse HEAD)
             echo "New commit: $NEW_COMMIT"
 
             # Build and restart containers
             echo "Building containers..."
-            docker compose -f compose.prod.yaml up -d --build --remove-orphans
+            docker compose -f compose.prod.yaml up -d --build --remove-orphans || { echo "ERROR: docker compose failed"; exit 1; }
 
             # Wait for healthcheck (max 60s)
             echo "Waiting for app to be healthy..."
@@ -158,18 +65,59 @@ jobs:
               exit 1
             fi
 
-            # Cleanup old images
-            docker image prune -f
+            # Cleanup old images (ignore errors)
+            docker image prune -f 2>/dev/null || true
+
+            # Cleanup backups older than 30 days
+            docker compose -f compose.prod.yaml exec -T web find storage/app/backups -name '*.sql.gz' -mtime +30 -delete 2>/dev/null || true
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
 
-      - name: Notify success
+      # ──────────────────────────────────────────────
+      # Discord notifications
+      # ──────────────────────────────────────────────
+      - name: Notify Discord — Deploy Success
         if: success()
+        continue-on-error: true
         run: |
-          echo "✅ Deploy succeeded"
+          curl -s -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "✅ Deploy Exitoso",
+                "description": "Nuwesoft se desplegó correctamente en producción.",
+                "color": 3066993,
+                "fields": [
+                  {"name": "🌐 URL", "value": "https://nuwesoft.nuwesomme.cloud", "inline": false},
+                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "💾 Backup", "value": "DB antes del deploy", "inline": true},
+                  {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true}
+                ],
+                "footer": {"text": "GitHub Actions"},
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
 
-      - name: Notify failure
+      - name: Notify Discord — Deploy Failed
         if: failure()
+        continue-on-error: true
         run: |
-          echo "❌ Deploy failed — rollback executed"
+          curl -s -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "❌ Deploy Falló",
+                "description": "El despliegue de Nuwesoft falló. Puede haberse ejecutado un rollback automático.",
+                "color": 15158332,
+                "fields": [
+                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true},
+                  {"name": "🔗 Logs", "value": "[Ver logs del workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+                ],
+                "footer": {"text": "GitHub Actions"},
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"

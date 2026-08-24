@@ -23,8 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            App\Http\Middleware\PreventHtmlCache::class,
             App\Http\Middleware\HandleInertiaRequests::class,
             Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            App\Http\Middleware\AddRateLimitHeaders::class,
         ]);
 
         $middleware->alias([
