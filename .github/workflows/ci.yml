@@ -1,12 +1,19 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
+# Cancel in-progress runs for the same branch/PR
+concurrency:
+  group: ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   # ──────────────────────────────────────────────
-  # PHP Tests + Static Analysis
+  # PHP Tests + Code Style
   # ──────────────────────────────────────────────
   php:
     name: PHP (${{ matrix.check }})
@@ -99,33 +106,7 @@ jobs:
         run: vendor/bin/pint --test
 
   # ──────────────────────────────────────────────
-  # Frontend (ESLint)
-  # ──────────────────────────────────────────────
-  frontend:
-    name: Frontend (ESLint)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Run ESLint
-        run: npx eslint resources/js/ --max-warnings=0
-        continue-on-error: true
-
-      - name: Build frontend
-        run: npm run build
-
-  # ──────────────────────────────────────────────
-  # PHPStan (non-blocking)
+  # PHPStan (blocks PRs)
   # ──────────────────────────────────────────────
   phpstan:
     name: PHPStan
@@ -157,4 +138,55 @@ jobs:
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --no-progress --error-format=github --memory-limit=512M
-        continue-on-error: true
+
+  # ──────────────────────────────────────────────
+  # Frontend (Lint + Build)
+  # ──────────────────────────────────────────────
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend
+        run: bun run build
+        env:
+          VITE_APP_NAME: Nuwesoft
+
+  # ──────────────────────────────────────────────
+  # Summary — must all pass to merge
+  # ──────────────────────────────────────────────
+  ci-passed:
+    name: CI Passed
+    if: always()
+    needs: [php, phpstan, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.php.result }}" != "success" ] || \
+             [ "${{ needs.phpstan.result }}" != "success" ] || \
+             [ "${{ needs.frontend.result }}" != "success" ]; then
+            echo "❌ One or more CI jobs failed"
+            echo "  php: ${{ needs.php.result }}"
+            echo "  phpstan: ${{ needs.phpstan.result }}"
+            echo "  frontend: ${{ needs.frontend.result }}"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"

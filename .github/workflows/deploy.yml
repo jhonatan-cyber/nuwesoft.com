@@ -48,6 +48,16 @@ jobs:
             echo "Building containers..."
             docker compose -f compose.prod.yaml up -d --build --remove-orphans || { echo "ERROR: docker compose failed"; exit 1; }
 
+            # Run database migrations
+            echo "Running database migrations..."
+            docker compose -f compose.prod.yaml exec -T web php artisan migrate --force || { echo "ERROR: Migration failed. Rolling back..."; git checkout $PREV_COMMIT; docker compose -f compose.prod.yaml up -d --build --remove-orphans; exit 1; }
+
+            # Clear and rebuild caches
+            echo "Optimizing application..."
+            docker compose -f compose.prod.yaml exec -T web php artisan config:cache 2>/dev/null || true
+            docker compose -f compose.prod.yaml exec -T web php artisan route:cache 2>/dev/null || true
+            docker compose -f compose.prod.yaml exec -T web php artisan view:cache 2>/dev/null || true
+
             # Wait for healthcheck (max 60s)
             echo "Waiting for app to be healthy..."
             RETRIES=12
@@ -61,6 +71,15 @@ jobs:
               echo "ERROR: App failed healthcheck. Rolling back..."
               git checkout $PREV_COMMIT
               docker compose -f compose.prod.yaml up -d --build --remove-orphans
+              # Wait for rollback to be healthy
+              ROLLBACK_RETRIES=12
+              until [ $ROLLBACK_RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
+                ROLLBACK_RETRIES=$((ROLLBACK_RETRIES - 1))
+                sleep 5
+              done
+              if [ $ROLLBACK_RETRIES -eq 0 ]; then
+                echo "CRITICAL: Rollback also failed healthcheck! Manual intervention required."
+              fi
               echo "Rolled back to $PREV_COMMIT"
               exit 1
             fi
