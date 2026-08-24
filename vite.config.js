@@ -69,6 +69,9 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': resolve(__dirname, 'resources/js'),
+            // Use vue-i18n runtime-only build — removes the message compiler
+            // that requires unsafe-eval, making our CSP stricter and safer
+            'vue-i18n': 'vue-i18n/dist/vue-i18n.runtime.esm-bundler.js',
         },
     },
     optimizeDeps: {
