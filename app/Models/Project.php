@@ -37,6 +37,19 @@ class Project extends Model
         'is_active' => 'boolean',
     ];
 
+    public function setAttribute($key, $value): static
+    {
+        if ($key === 'category') {
+            if ($value instanceof ProjectCategory) {
+                $value = $value->value;
+            } elseif (is_string($value)) {
+                $value = strtolower($value);
+            }
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
     /**
      * Use slug for route model binding.
      */

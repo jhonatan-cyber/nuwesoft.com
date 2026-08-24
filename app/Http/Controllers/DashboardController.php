@@ -7,42 +7,42 @@ use App\Models\Post;
 use App\Models\Project;
 use App\Models\Technology;
 use App\Models\Testimonial;
-use Illuminate\Support\Facades\Cache;
+use App\Services\CacheService;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(CacheService $cache)
     {
         $cacheTtl = 60; // seconds
 
-        $activeProjects = Cache::remember('dashboard.active_projects', $cacheTtl, fn () => Project::where('is_active', true)->count());
-        $totalProjects = Cache::remember('dashboard.total_projects', $cacheTtl, fn () => Project::count());
-        $activeTechnologies = Cache::remember('dashboard.active_technologies', $cacheTtl, fn () => Technology::where('is_active', true)->count());
-        $totalTechnologies = Cache::remember('dashboard.total_technologies', $cacheTtl, fn () => Technology::count());
-        $pendingMessages = Cache::remember('dashboard.pending_messages', $cacheTtl, fn () => ContactMessage::count());
-        $unreadMessages = Cache::remember('dashboard.unread_messages', $cacheTtl, fn () => ContactMessage::whereNull('read_at')->count());
-        $totalPosts = Cache::remember('dashboard.total_posts', $cacheTtl, fn () => Post::count());
-        $publishedPosts = Cache::remember('dashboard.published_posts', $cacheTtl, fn () => Post::where('is_published', true)->count());
-        $totalTestimonials = Cache::remember('dashboard.total_testimonials', $cacheTtl, fn () => Testimonial::count());
+        $activeProjects = $cache->remember('dashboard.active_projects', $cacheTtl, fn () => Project::where('is_active', true)->count());
+        $totalProjects = $cache->remember('dashboard.total_projects', $cacheTtl, fn () => Project::count());
+        $activeTechnologies = $cache->remember('dashboard.active_technologies', $cacheTtl, fn () => Technology::where('is_active', true)->count());
+        $totalTechnologies = $cache->remember('dashboard.total_technologies', $cacheTtl, fn () => Technology::count());
+        $pendingMessages = $cache->remember('dashboard.pending_messages', $cacheTtl, fn () => ContactMessage::count());
+        $unreadMessages = $cache->remember('dashboard.unread_messages', $cacheTtl, fn () => ContactMessage::whereNull('read_at')->count());
+        $totalPosts = $cache->remember('dashboard.total_posts', $cacheTtl, fn () => Post::count());
+        $publishedPosts = $cache->remember('dashboard.published_posts', $cacheTtl, fn () => Post::where('is_published', true)->count());
+        $totalTestimonials = $cache->remember('dashboard.total_testimonials', $cacheTtl, fn () => Testimonial::count());
 
         // Latest messages are always fresh (user expects real-time)
         $latestMessages = ContactMessage::latest()->take(5)->get();
 
         // Aggregate queries — cached
-        $projectsByCategory = Cache::remember('dashboard.projects_by_category', $cacheTtl, fn () => Project::selectRaw('category, count(*) as total')
+        $projectsByCategory = $cache->remember('dashboard.projects_by_category', $cacheTtl, fn () => Project::selectRaw('category, count(*) as total')
             ->groupBy('category')
             ->pluck('total', 'category')
         );
 
-        $techByCategory = Cache::remember('dashboard.tech_by_category', $cacheTtl, fn () => Technology::selectRaw('category, count(*) as total')
+        $techByCategory = $cache->remember('dashboard.tech_by_category', $cacheTtl, fn () => Technology::selectRaw('category, count(*) as total')
             ->where('is_active', true)
             ->groupBy('category')
             ->pluck('total', 'category')
         );
 
         // Recent projects — cached with eager loading
-        $recentProjects = Cache::remember('dashboard.recent_projects', $cacheTtl, fn () => Project::with('technologies')
+        $recentProjects = $cache->remember('dashboard.recent_projects', $cacheTtl, fn () => Project::with('technologies')
             ->latest()
             ->take(5)
             ->get(['id', 'name', 'slug', 'category', 'created_at'])
@@ -52,7 +52,7 @@ class DashboardController extends Controller
         $posthogStats = $this->getPosthogStats();
 
         // Activity log — latest admin actions
-        $activityLog = Cache::remember('dashboard.activity_log', 30, fn () => \App\Models\ActivityLog::latest()->take(10)->get()
+        $activityLog = $cache->remember('dashboard.activity_log', 30, fn () => \App\Models\ActivityLog::latest()->take(10)->get()
         );
 
         return Inertia::render('Dashboard', [

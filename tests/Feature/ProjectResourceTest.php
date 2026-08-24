@@ -18,7 +18,7 @@ class ProjectResourceTest extends TestCase
         return Project::create(array_merge([
             'name' => 'Test Project',
             'slug' => 'test-project',
-            'category' => 'WEB',
+            'category' => 'web',
             'desc' => 'A test project description.',
             'icon' => 'Briefcase',
             'project_url' => 'https://example.com',
@@ -50,7 +50,7 @@ class ProjectResourceTest extends TestCase
         $project = $this->createProject([
             'name' => 'E-Commerce Platform',
             'slug' => 'e-commerce-platform',
-            'category' => 'WEB',
+            'category' => 'web',
             'desc' => 'Full-stack e-commerce solution.',
             'icon' => 'ShoppingCart',
             'project_url' => 'https://shop.example.com',
@@ -62,7 +62,8 @@ class ProjectResourceTest extends TestCase
         $this->assertEquals($project->id, $array['id']);
         $this->assertEquals('E-Commerce Platform', $array['name']);
         $this->assertEquals('e-commerce-platform', $array['slug']);
-        $this->assertEquals('WEB', $array['category']);
+        $categoryValue = $array['category'] instanceof \BackedEnum ? $array['category']->value : $array['category'];
+        $this->assertEquals('web', strtolower((string) $categoryValue));
         $this->assertEquals('Full-stack e-commerce solution.', $array['desc']);
         $this->assertEquals('ShoppingCart', $array['icon']);
         $this->assertEquals('https://shop.example.com', $array['project_url']);

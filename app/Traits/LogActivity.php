@@ -9,15 +9,15 @@ trait LogActivity
     public static function bootLogActivity(): void
     {
         static::created(function ($model) {
-            ActivityLog::created($model);
+            ActivityLog::logCreated($model);
         });
 
         static::updated(function ($model) {
-            ActivityLog::updated($model);
+            ActivityLog::logUpdated($model);
         });
 
         static::deleted(function ($model) {
-            ActivityLog::deleted($model);
+            ActivityLog::logDeleted($model);
         });
     }
 }

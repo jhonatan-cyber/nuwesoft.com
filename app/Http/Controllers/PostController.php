@@ -77,11 +77,24 @@ class PostController extends Controller
             $query->where('category', $category);
         }
 
+        if ($search = $request->get('search')) {
+            $search = trim($search);
+
+            // PostgreSQL full-text search with ranking
+            $query->whereRaw(
+                "to_tsvector('spanish', coalesce(title, '') || ' ' || coalesce(content, '') || ' ' || coalesce(excerpt, '')) @@ plainto_tsquery('spanish', ?)",
+                [$search]
+            )->orderByRaw(
+                "ts_rank(to_tsvector('spanish', coalesce(title, '') || ' ' || coalesce(content, '') || ' ' || coalesce(excerpt, '')), plainto_tsquery('spanish', ?)) DESC",
+                [$search]
+            );
+        }
+
         $posts = $query->paginate($request->input('per_page', 9))->withQueryString();
 
         return Inertia::render('Blog', [
             'posts' => $posts,
-            'filters' => $request->only(['category']),
+            'filters' => $request->only(['category', 'search']),
         ]);
     }
 

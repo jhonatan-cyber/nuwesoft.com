@@ -70,7 +70,7 @@ const pageUrl = computed(() => window.location.href)
                 <ManifestoSection />
                 <ServicesPreviewSection />
                 <CTASection />
-                <TestimonialsSection />
+                <TestimonialsSection :testimonials="$page.props.testimonials || []" />
 
                 <FeatureFlag flag="show_beta_banner">
                     <div class="relative z-10 mx-auto max-w-[1400px] px-6 py-8">

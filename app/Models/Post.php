@@ -31,6 +31,19 @@ class Post extends Model
         'published_at' => 'datetime',
     ];
 
+    public function setAttribute($key, $value): static
+    {
+        if ($key === 'category') {
+            if ($value instanceof PostCategory) {
+                $value = $value->value;
+            } elseif (is_string($value)) {
+                $value = strtolower($value);
+            }
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('is_published', true)

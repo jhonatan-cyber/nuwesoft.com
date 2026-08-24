@@ -16,6 +16,8 @@ class Testimonial extends Model
         'client_company',
         'client_logo',
         'content',
+        'status',
+        'form_token',
         'rating',
         'is_active',
         'sort_order',
@@ -30,6 +32,16 @@ class Testimonial extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true)->orderBy('sort_order');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending')->latest();
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
     }
 
     // boot() logic moved to TestimonialObserver

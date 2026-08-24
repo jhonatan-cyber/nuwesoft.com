@@ -7,6 +7,7 @@ import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 import PublicGridBackground from '@/Components/PublicGridBackground.vue'
 import PublicSiteHeader from '@/Components/PublicSiteHeader.vue'
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue'
+import NewsletterForm from '@/Components/NewsletterForm.vue'
 import SkeletonPostCard from '@/Components/SkeletonPostCard.vue'
 import LazyLoad from '@/Components/LazyLoad.vue'
 import BlurImage from '@/Components/BlurImage.vue'
@@ -22,7 +23,7 @@ import {
     PaginationNext,
     PaginationPrev,
 } from '@/Components/ui/pagination'
-import { ArrowRight, Calendar, User } from 'lucide-vue-next'
+import { ArrowRight, Calendar, User, Search, X } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const page = usePage()
@@ -48,19 +49,40 @@ const categories = [
 ]
 
 const activeCategory = ref(props.filters?.category || null)
+const searchQuery = ref(props.filters?.search || '')
 
 const filterByCategory = (category) => {
     activeCategory.value = category
-    router.get(route('blog.index'), { category }, {
+    const params = {}
+    if (category) params.category = category
+    if (searchQuery.value) params.search = searchQuery.value
+    router.get(route('blog.index'), params, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
     })
 }
 
+const applySearch = () => {
+    const params = {}
+    if (activeCategory.value) params.category = activeCategory.value
+    if (searchQuery.value) params.search = searchQuery.value
+    router.get(route('blog.index'), params, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
+
+const clearSearch = () => {
+    searchQuery.value = ''
+    applySearch()
+}
+
 const handlePageChange = (newPage) => {
     const params = {}
     if (activeCategory.value) params.category = activeCategory.value
+    if (searchQuery.value) params.search = searchQuery.value
     params.page = newPage
 
     router.get(route('blog.index'), params, {
@@ -151,19 +173,37 @@ const blogJsonLd = computed(() => {
                     </p>
                 </div>
 
-                <!-- Category Filters -->
-                <div class="mb-12 flex flex-wrap gap-3">
-                    <button
-                        v-for="cat in categories"
-                        :key="cat.key ?? 'all'"
-                        @click="filterByCategory(cat.key)"
-                        class="border-4 px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300"
-                        :class="activeCategory === cat.key
-                            ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-brutalist'
-                            : 'border-black/20 dark:border-white/20 bg-transparent hover:border-black dark:hover:border-white hover:bg-black/5 dark:hover:bg-white/5'"
-                    >
-                        {{ cat.label }}
-                    </button>
+                <!-- Category Filters + Search -->
+                <div class="mb-12 space-y-4">
+                    <div class="flex flex-wrap gap-3">
+                        <button
+                            v-for="cat in categories"
+                            :key="cat.key ?? 'all'"
+                            @click="filterByCategory(cat.key)"
+                            class="border-4 px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300"
+                            :class="activeCategory === cat.key
+                                ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-brutalist'
+                                : 'border-black/20 dark:border-white/20 bg-transparent hover:border-black dark:hover:border-white hover:bg-black/5 dark:hover:bg-white/5'"
+                        >
+                            {{ cat.label }}
+                        </button>
+                    </div>
+
+                    <!-- Search bar -->
+                    <div class="relative max-w-xl">
+                        <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                        <input
+                            v-model="searchQuery"
+                            @keyup.enter="applySearch"
+                            type="text"
+                            placeholder="Buscar artículos..."
+                            class="w-full border-4 border-black/20 dark:border-white/20 bg-white dark:bg-black px-12 py-3 text-sm font-bold placeholder:text-neutral-400 focus:border-black dark:focus:border-white focus:outline-none transition-all"
+                        />
+                        <button v-if="searchQuery" @click="clearSearch"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
+                            <X class="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Skeleton Grid -->
@@ -246,21 +286,32 @@ const blogJsonLd = computed(() => {
                         <!-- Empty State -->
                         <div v-else class="border-4 border-black dark:border-white p-16 text-center shadow-brutalist dark:shadow-brutalist-white">
                             <p class="text-2xl font-display font-black uppercase italic">
-                                {{ activeCategory ? 'SIN RESULTADOS' : 'PRÓXIMAMENTE' }}
+                                {{ searchQuery ? 'SIN RESULTADOS' : activeCategory ? 'SIN RESULTADOS' : 'PRÓXIMAMENTE' }}
                             </p>
                             <p class="mt-4 text-sm font-black uppercase tracking-wider text-neutral-500">
-                                {{ activeCategory
-                                    ? 'No hay artículos en esta categoría. Probá con otro filtro.'
-                                    : 'Estamos preparando casos de estudio y artículos técnicos. Volvé pronto.'
+                                {{ searchQuery
+                                    ? 'No encontramos artículos para "' + searchQuery + '". Probá con otras palabras.'
+                                    : activeCategory
+                                        ? 'No hay artículos en esta categoría. Probá con otro filtro.'
+                                        : 'Estamos preparando casos de estudio y artículos técnicos. Volvé pronto.'
                                 }}
                             </p>
-                            <button
-                                v-if="activeCategory"
-                                @click="filterByCategory(null)"
-                                class="mt-6 border-4 border-black dark:border-white px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all"
-                            >
-                                VER TODOS
-                            </button>
+                            <div class="flex items-center justify-center gap-3 mt-6">
+                                <button
+                                    v-if="searchQuery"
+                                    @click="clearSearch"
+                                    class="border-4 border-black dark:border-white px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all"
+                                >
+                                    LIMPIAR BÚSQUEDA
+                                </button>
+                                <button
+                                    v-if="activeCategory && !searchQuery"
+                                    @click="filterByCategory(null)"
+                                    class="border-4 border-black dark:border-white px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all"
+                                >
+                                    VER TODOS
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Pagination -->
@@ -301,6 +352,11 @@ const blogJsonLd = computed(() => {
                 </Transition>
             </div>
         </main>
+
+        <!-- Newsletter -->
+        <section class="relative z-10 mx-auto max-w-2xl px-6 py-16">
+            <NewsletterForm source="blog" />
+        </section>
 
         <PublicSiteFooter />
     </div>

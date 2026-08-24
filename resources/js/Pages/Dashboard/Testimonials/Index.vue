@@ -1,10 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
-import { Star, Plus, Edit, Trash2, Quote, X } from 'lucide-vue-next'
+import { Star, Plus, Edit, Trash2, Quote, X, Check, Ban, Filter } from 'lucide-vue-next'
 import ConfirmDialog from '@/Components/ConfirmDialog.vue'
 
 const { t } = useI18n()
@@ -13,7 +13,46 @@ const { skeletonReady } = useSkeletonLoader()
 
 const props = defineProps({
     testimonials: { type: Object, default: () => ({}) },
+    pendingCount: { type: Number, default: 0 },
+    currentStatus: { type: String, default: 'all' },
+    currentRating: { type: [String, Number, null], default: null },
 })
+
+const ratingFilters = [
+    { value: null, label: 'TODAS' },
+    { value: 5, label: '5★' },
+    { value: 4, label: '4★' },
+    { value: 3, label: '3★' },
+    { value: 2, label: '2★' },
+    { value: 1, label: '1★' },
+]
+
+const filterByRating = (rating) => {
+    const params = { status: props.currentStatus }
+    if (rating !== null) params.rating = rating
+    router.get(route('testimonials.index', params), {}, { preserveState: true })
+}
+
+const filterByStatus = (status) => {
+    const params = { status }
+    if (props.currentRating !== null) params.rating = props.currentRating
+    router.get(route('testimonials.index', params), {}, { preserveState: true })
+}
+
+const statusFilters = [
+    { value: 'all', label: 'TODOS' },
+    { value: 'pending', label: 'PENDIENTES' },
+    { value: 'approved', label: 'APROBADOS' },
+    { value: 'rejected', label: 'RECHAZADOS' },
+]
+
+const approveTestimonial = (id) => {
+    router.post(route('testimonials.approve', id))
+}
+
+const rejectTestimonial = (id) => {
+    router.post(route('testimonials.reject', id))
+}
 
 const showForm = ref(false)
 
@@ -27,6 +66,7 @@ const form = useForm({
     client_company: '',
     content: '',
     rating: 5,
+    status: 'approved',
     is_active: true,
     sort_order: 0,
 })
@@ -45,6 +85,7 @@ const openEdit = (testimonial) => {
     form.client_company = testimonial.client_company || ''
     form.content = testimonial.content
     form.rating = testimonial.rating
+    form.status = testimonial.status || 'approved'
     form.is_active = testimonial.is_active
     form.sort_order = testimonial.sort_order
     showForm.value = true
@@ -102,6 +143,10 @@ const confirmDelete = () => {
                     </h2>
                     <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
                         CLIENTES / FEEDBACK
+                        <span v-if="pendingCount > 0"
+                            class="ml-2 inline-flex items-center justify-center w-5 h-5 text-[9px] font-black bg-brutalist-pink text-white rounded-full">
+                            {{ pendingCount }}
+                        </span>
                     </p>
                 </div>
                 <button @click="openCreate"
@@ -133,6 +178,46 @@ const confirmDelete = () => {
                 </div>
 
                 <div v-else key="content">
+                    <!-- Filters -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                        <!-- Status -->
+                        <div class="flex items-center gap-2">
+                            <Filter class="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                            <button v-for="filter in statusFilters" :key="filter.value"
+                                @click="filterByStatus(filter.value)"
+                                :class="[
+                                    'px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all',
+                                    currentStatus === filter.value
+                                        ? 'bg-black dark:bg-white text-white dark:text-black'
+                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                                ]">
+                                {{ filter.label }}
+                                <span v-if="filter.value === 'pending' && pendingCount > 0"
+                                    class="ml-1 text-brutalist-pink">({{ pendingCount }})</span>
+                            </button>
+                        </div>
+
+                        <span class="hidden sm:block w-px h-4 bg-neutral-200 dark:bg-neutral-700"></span>
+
+                        <!-- Rating -->
+                        <div class="flex items-center gap-1.5">
+                            <Star class="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                            <button v-for="filter in ratingFilters" :key="String(filter.value)"
+                                @click="filterByRating(filter.value)"
+                                :class="[
+                                    'px-2.5 py-1.5 text-[10px] font-bold tracking-wider rounded-lg transition-all flex items-center gap-1',
+                                    (currentRating === null && filter.value === null) || Number(currentRating) === filter.value
+                                        ? 'bg-brutalist-yellow text-black'
+                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                                ]">
+                                <template v-if="filter.value !== null">
+                                    <Star class="w-3 h-3 fill-current" />
+                                </template>
+                                {{ filter.label }}
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- List -->
                     <div v-if="testimonials.data?.length" class="grid gap-4">
                 <div v-for="item in testimonials.data" :key="item.id"
@@ -145,6 +230,18 @@ const confirmDelete = () => {
                                     <Star v-for="i in 5" :key="i"
                                         :class="i <= item.rating ? 'text-brutalist-yellow fill-brutalist-yellow' : 'text-neutral-300'"
                                         class="w-4 h-4" />
+                                </span>
+                                <span v-if="item.status === 'pending'"
+                                    class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    PENDIENTE
+                                </span>
+                                <span v-else-if="item.status === 'approved'"
+                                    class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    APROBADO
+                                </span>
+                                <span v-else-if="item.status === 'rejected'"
+                                    class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    RECHAZADO
                                 </span>
                                 <span v-if="!item.is_active"
                                     class="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-400 text-[9px] font-bold uppercase tracking-wider rounded">
@@ -161,6 +258,16 @@ const confirmDelete = () => {
                             </div>
                         </div>
                         <div class="flex items-center gap-2 ml-4">
+                            <button v-if="item.status === 'pending'" @click="approveTestimonial(item.id)"
+                                class="p-2 border border-green-300 dark:border-green-700 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all text-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+                                title="Aprobar">
+                                <Check class="w-4 h-4" />
+                            </button>
+                            <button v-if="item.status === 'pending'" @click="rejectTestimonial(item.id)"
+                                class="p-2 border border-red-300 dark:border-red-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                                title="Rechazar">
+                                <Ban class="w-4 h-4" />
+                            </button>
                             <button @click="openEdit(item)"
                                 class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2">
                                 <Edit class="w-4 h-4" />
@@ -234,10 +341,19 @@ const confirmDelete = () => {
                                 <option :value="i" v-for="i in 5" :key="i">{{ i }} estrella{{ i > 1 ? 's' : '' }}</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">ESTADO</label>
+                            <select v-model="form.status"
+                                class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs">
+                                <option value="pending">PENDIENTE</option>
+                                <option value="approved">APROBADO</option>
+                                <option value="rejected">RECHAZADO</option>
+                            </select>
+                        </div>
                         <div class="flex items-center gap-3">
                             <input type="checkbox" v-model="form.is_active" id="form_active"
                                 class="w-5 h-5 border-2 border-neutral-300 rounded" />
-                            <label for="form_active" class="text-xs font-bold uppercase tracking-wider text-neutral-500">ACTIVO</label>
+                            <label for="form_active" class="text-xs font-bold uppercase tracking-wider text-neutral-500">VISIBLE EN WEB</label>
                         </div>
 
                         <div class="flex gap-4 pt-4">

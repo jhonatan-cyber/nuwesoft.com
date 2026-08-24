@@ -4,7 +4,7 @@ namespace App\Observers;
 
 use App\Events\EntityUpdated;
 use App\Models\Project;
-use Illuminate\Support\Facades\Cache;
+use App\Services\EntityCacheManager;
 use Illuminate\Support\Str;
 
 class ProjectObserver
@@ -49,20 +49,11 @@ class ProjectObserver
 
     /**
      * Flush all cache keys that depend on project data.
+     * Delegates to EntityCacheManager which owns the central key registry.
      */
     public static function flushCache(): void
     {
-        $keys = [
-            'active_projects_with_relations',
-            'dashboard.active_projects',
-            'dashboard.total_projects',
-            'dashboard.projects_by_category',
-            'dashboard.recent_projects',
-        ];
-
-        foreach ($keys as $key) {
-            Cache::forget($key);
-        }
+        EntityCacheManager::flushEntity('project');
     }
 
     /**

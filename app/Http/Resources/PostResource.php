@@ -12,13 +12,23 @@ class PostResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        // Include content unless we're on the blog index list page
+        $path = trim((string) $request->path(), '/');
+        $includeContent = $path !== 'blog';
+
+        $data = [
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
-            'content' => $this->when($request->routeIs('blog.show') || $request->is('api/*'), $this->content),
-            'category' => $this->category,
+        ];
+
+        if ($includeContent) {
+            $data['content'] = $this->content;
+        }
+
+        $data = array_merge($data, [
+            'category' => $this->category instanceof \BackedEnum ? ($this->category->label() ?? $this->category->value) : $this->category,
             'tags' => $this->tags ?? [],
             'cover_image' => $this->cover_image,
             'author_name' => $this->author_name,
@@ -28,7 +38,9 @@ class PostResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             'url' => route('blog.show', $this->slug),
-        ];
+        ]);
+
+        return $data;
     }
 
     /**
@@ -40,7 +52,15 @@ class PostResource extends JsonResource
             return null;
         }
 
-        $wordCount = str_word_count(strip_tags($this->content));
+        // Reemplaza tags por espacio para no concatenar palabras (ej: </p><div>)
+        $text = preg_replace('/<[^>]+>/', ' ', $this->content);
+        $text = trim(preg_replace('/\s+/', ' ', strip_tags((string) $text)));
+
+        if ($text === '') {
+            return null;
+        }
+
+        $wordCount = str_word_count($text);
 
         return max(1, (int) ceil($wordCount / 230));
     }

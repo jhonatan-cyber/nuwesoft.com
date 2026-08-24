@@ -359,7 +359,7 @@ const shortcuts = [
                             <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-black/5 dark:bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                             
                             <div class="flex flex-wrap gap-2 mb-8 relative z-10">
-                                <span v-for="tech in ['PHP 8.3', 'Go', 'Docker', 'Inertia', 'Vue 3', 'Tailwind', 'Bun', 'Radix']" :key="tech"
+                                <span v-for="tech in ['PHP 8.3', 'Go', 'Inertia', 'Vue 3', 'Tailwind', 'Bun', 'Radix']" :key="tech"
                                     class="px-3 py-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 text-[9px] font-bold uppercase tracking-widest rounded-lg text-neutral-600 dark:text-neutral-400">
                                     {{ tech }}
                                 </span>

@@ -137,7 +137,7 @@ class PostResourceTest extends TestCase
 
     public function test_reading_time_strips_html_tags_before_counting(): void
     {
-        // 230 words wrapped in HTML = 1 minute
+        // 230 words wrapped in HTML = 1 minute ( + 2 words en Bold = 232 => 2 min con 230 WPM)
         $words = implode(' ', array_fill(0, 230, 'word'));
         $content = "<p>{$words}</p><div><strong>Bold text</strong></div>";
         $post = $this->createPost(['content' => $content]);
@@ -145,7 +145,8 @@ class PostResourceTest extends TestCase
         $resource = new PostResource($post);
         $array = $resource->toArray(new Request);
 
-        $this->assertEquals(1, $array['reading_time_minutes']);
+        // 232 palabras => ceil(232/230)=2
+        $this->assertEquals(2, $array['reading_time_minutes']);
     }
 
     public function test_reading_time_rounds_up_fractions(): void

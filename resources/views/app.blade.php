@@ -67,9 +67,10 @@
             })();
         </script>
 
-        <!-- Scripts -->
+        <!-- Scripts (deploy_ts busts Cloudflare cache after deploys) -->
         @routes
         @vite(['resources/js/app.ts', "resources/js/Pages/{$page['component']}.vue"])
+        <script>window.__deploy_ts='{{ cache('deploy_ts', now()->timestamp) }}';</script>
         @inertiaHead
     </head>
     <body class="font-sans antialiased" role="document">

@@ -27,9 +27,23 @@ function parseCloudinaryUrl(url) {
 
 /**
  * Strip any existing transformation segment from a Cloudinary URL's rest part.
+ * Robusto: busca `v{number}/` y conserva desde ahí; si no hay versión,
+ * elimina el primer segmento solo si parece transformación (contiene , _ o :).
  */
 function stripTransformations(rest) {
-  return rest.replace(/^[^\/]+(?:,|_)[^\/]*\//, '');
+  if (!rest) return rest;
+  // Si ya empieza con versión, no hay transformación que quitar
+  if (/^v\d+\//.test(rest)) return rest;
+
+  // Busca versión `v123/` en cualquier posición — todo lo anterior es transformación
+  const vIndex = rest.search(/v\d+\//);
+  if (vIndex > 0) {
+    return rest.slice(vIndex);
+  }
+  if (vIndex === 0) return rest;
+
+  // Sin versión: quita primer segmento solo si parece transformación
+  return rest.replace(/^[^\/]*[_,:][^\/]*\//, '');
 }
 
 /**

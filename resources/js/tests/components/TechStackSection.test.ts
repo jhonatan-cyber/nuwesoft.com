@@ -5,7 +5,6 @@ import TechStackSection from '@/Components/TechStackSection.vue'
 const mockTechnologies = [
     { name: 'Vue.js', category: 'frontend', logo_url: '/vue.svg', invert_dark: false },
     { name: 'Laravel', category: 'backend', logo_url: '/laravel.svg', invert_dark: false },
-    { name: 'Docker', category: 'infrastructure', logo_url: '/docker.svg', invert_dark: false },
     { name: 'n8n', category: 'automation', logo_url: '/n8n.svg', invert_dark: false },
     { name: 'TypeScript', category: 'languages', logo_url: '/ts.svg', invert_dark: false },
 ]
@@ -33,7 +32,6 @@ describe('TechStackSection.vue', () => {
         const html = wrapper.html()
         expect(html).toContain('technologies.categories.frontend')
         expect(html).toContain('technologies.categories.backend')
-        expect(html).toContain('technologies.categories.infrastructure')
         expect(html).toContain('technologies.categories.automation')
         expect(html).toContain('technologies.categories.languages')
     })
@@ -45,7 +43,6 @@ describe('TechStackSection.vue', () => {
         const html = wrapper.html()
         expect(html).toContain('Vue.js')
         expect(html).toContain('Laravel')
-        expect(html).toContain('Docker')
         expect(html).toContain('n8n')
         expect(html).toContain('TypeScript')
     })
@@ -55,7 +52,7 @@ describe('TechStackSection.vue', () => {
             props: { technologies: mockTechnologies },
         })
         const imgs = wrapper.findAll('img')
-        expect(imgs.length).toBe(5)
+        expect(imgs.length).toBe(4)
         // Categories are sorted by CATEGORY_ORDER: languages comes before frontend
         expect(imgs[0].attributes('src')).toBe('/ts.svg')
         expect(imgs[1].attributes('src')).toBe('/vue.svg')
@@ -106,7 +103,7 @@ describe('TechStackSection.vue', () => {
 
     it('sorts categories by CATEGORY_ORDER', () => {
         const unordered = [
-            { name: 'Docker', category: 'infrastructure', logo_url: '/docker.svg', invert_dark: false },
+            { name: 'AWS', category: 'infrastructure', logo_url: '/aws.svg', invert_dark: false },
             { name: 'Vue', category: 'frontend', logo_url: '/vue.svg', invert_dark: false },
         ]
         const wrapper = mount(TechStackSection, {

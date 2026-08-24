@@ -4,7 +4,6 @@ namespace App\Observers;
 
 use App\Events\EntityUpdated;
 use App\Models\ProjectImage;
-use Illuminate\Support\Facades\Cache;
 
 class ProjectImageObserver
 {
@@ -13,7 +12,7 @@ class ProjectImageObserver
      */
     public function saved(ProjectImage $image): void
     {
-        Cache::forget('active_projects_with_relations');
+        ProjectObserver::flushCache();
         event(new EntityUpdated('project'));
     }
 
@@ -22,7 +21,7 @@ class ProjectImageObserver
      */
     public function deleted(ProjectImage $image): void
     {
-        Cache::forget('active_projects_with_relations');
+        ProjectObserver::flushCache();
         event(new EntityUpdated('project'));
     }
 }

@@ -6,12 +6,23 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
+    /**
+     * Max failed attempts before lockout.
+     */
+    private const MAX_ATTEMPTS = 5;
+
+    /**
+     * Lockout duration in seconds (5 minutes).
+     */
+    private const LOCKOUT_SECONDS = 300;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -43,7 +54,16 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->throttleKey(), self::LOCKOUT_SECONDS);
+
+            $attempts = RateLimiter::attempts($this->throttleKey());
+
+            Log::warning('Failed login attempt', [
+                'email' => $this->string('email'),
+                'ip' => $this->ip(),
+                'attempts' => $attempts,
+                'user_agent' => $this->userAgent(),
+            ]);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -51,6 +71,11 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        Log::info('Successful login', [
+            'email' => $this->string('email'),
+            'ip' => $this->ip(),
+        ]);
     }
 
     /**
@@ -60,13 +85,19 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), self::MAX_ATTEMPTS)) {
             return;
         }
 
         event(new Lockout($this));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+
+        Log::warning('Login rate limit exceeded', [
+            'email' => $this->string('email'),
+            'ip' => $this->ip(),
+            'locked_seconds' => $seconds,
+        ]);
 
         throw ValidationException::withMessages([
             'email' => trans('auth.throttle', [

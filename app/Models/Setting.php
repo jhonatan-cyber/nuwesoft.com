@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
+use App\Services\EntityCacheManager;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
@@ -43,7 +44,7 @@ class Setting extends Model
             ['value' => (string) $value]
         );
 
-        Cache::forget('settings');
+        EntityCacheManager::flushEntity('setting');
     }
 
     /**
@@ -51,7 +52,9 @@ class Setting extends Model
      */
     public static function getAll(): array
     {
-        return Cache::remember('settings', 3600, function () {
+        $cache = app(CacheService::class);
+
+        return $cache->remember('settings', 3600, function () {
             return static::all()->pluck('value', 'key')->toArray();
         });
     }

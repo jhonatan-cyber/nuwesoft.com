@@ -38,6 +38,48 @@ class PostSeeder extends Seeder
             ]);
 
         Post::firstOrCreate(
+            ['slug' => 'desarrollo-app-movil-flutter'],
+            [
+                'title' => 'Desarrollo de App Móvil Multiplataforma con Flutter',
+                'slug' => 'desarrollo-app-movil-flutter',
+                'excerpt' => 'Cómo construimos una app de delivery que funciona en iOS y Android con un solo codebase, reduciendo tiempos de desarrollo un 50%.',
+                'content' => "CASO DE ESTUDIO: APP DE DELIVERY\n\n===============================================\n\nCLIENTE: Startup de delivery en Buenos Aires\nDURACIÓN: 4 meses\nSTACK: Flutter, Dart, Firebase, Node.js, Stripe\n\n== DESAFÍO ==\n\nLa startup necesitaba lanzar rápido en iOS y Android sin duplicar esfuerzos. El presupuesto era limitado y el time-to-market crítico.\n\n== SOLUCIÓN ==\n\nDesarrollamos una app cross-platform con Flutter:\n\n- UI nativa en ambos sistemas operativos\n- Integración con Google Maps para tracking en tiempo real\n- Pagos con Stripe y Mercado Pago\n- Panel de administración web con Laravel\n- Notificaciones push con Firebase Cloud Messaging\n\n== RESULTADOS ==\n\n- 50% de reducción en tiempo de desarrollo\n- 4.7 estrellas en App Store y Google Play\n- 10,000 descargas en el primer mes\n- Costo de desarrollo 40% menor vs apps nativas",
+                'category' => 'case-study',
+                'tags' => ['Flutter', 'Firebase', 'Mobile', 'Startup'],
+                'is_published' => true,
+                'published_at' => now()->subDays(15),
+                'author_name' => 'NUWESOFT',
+            ]);
+
+        Post::firstOrCreate(
+            ['slug' => 'pipeline-ci-cd-github-actions'],
+            [
+                'title' => 'Pipeline CI/CD Completo con GitHub Actions y Docker',
+                'slug' => 'pipeline-ci-cd-github-actions',
+                'excerpt' => 'Guía práctica para configurar un pipeline de integración continua que ejecuta tests, code style, y despliega automáticamente.',
+                'content' => "ARTÍTULO TÉCNICO: CI/CD CON GITHUB ACTIONS\n\n===============================================\n\n== INTRODUCCIÓN ==\n\nUn pipeline CI/CD bien configurado es la columna vertebral de cualquier equipo de desarrollo moderno. En este artículo compartimos cómo configuramos el pipeline de Nuwesoft.\n\n== STACK DEL PIPELINE ==\n\n- GitHub Actions como orquestador\n- Docker multi-stage builds\n- PHPStan para análisis estático\n- Pint para code style\n- PHPUnit para tests\n- ESLint para frontend\n\n== FLUJO ==\n\n1. PR abierto → Tests + Lint + Build\n2. PR mergeado a main → Deploy automático a producción\n3. Backup de DB antes de cada deploy\n4. Healthcheck post-deploy\n5. Notificación a Discord\n\n== RESULTADOS ==\n\n- Deploy en 3 minutos vs 30 manuales\n- 0 errores de producción por código sin testear\n- Rollback automático si el healthcheck falla",
+                'category' => 'technical',
+                'tags' => ['CI/CD', 'GitHub Actions', 'Docker', 'DevOps'],
+                'is_published' => true,
+                'published_at' => now()->subDays(20),
+                'author_name' => 'NUWESOFT',
+            ]);
+
+        Post::firstOrCreate(
+            ['slug' => 'ia-para-atencion-al-cliente'],
+            [
+                'title' => 'Implementando IA para Atención al Cliente: Guía Práctica',
+                'slug' => 'ia-para-atencion-al-cliente',
+                'excerpt' => 'Cómo integrar modelos de lenguaje para automatizar respuestas frecuentes y mejorar la experiencia del cliente.',
+                'content' => "ARTÍCULO: IA PARA ATENCIÓN AL CLIENTE\n\n===============================================\n\n== EL PROBLEMA ==\n\nLos equipos de soporte reciben cientos de preguntas repetitivas diariamente. Las respuestas tardan en llegar y la calidad es inconsistente.\n\n== NUESTRA SOLUCIÓN ==\n\nImplementamos un sistema de IA que:\n\n1. Analiza el historial de conversaciones\n2. Genera respuestas contextuales\n3. Aprende de los mejores agentes\n4. Escala a un humano cuando no tiene certeza\n\n== TECNOLOGÍA ==\n\n- OpenAI API (GPT-4)\n- Python + FastAPI\n- PostgreSQL para historial\n- Redis para cache de respuestas\n- n8n para orquestación\n\n== RESULTADOS ==\n\n- 70% de preguntas respondidas automáticamente\n- Tiempo de respuesta: 3 seg vs 45 min promedio\n- Satisfacción del cliente: +35%\n- Costo de soporte: -50%",
+                'category' => 'insights',
+                'tags' => ['IA', 'OpenAI', 'Automatización', 'Customer Success'],
+                'is_published' => true,
+                'published_at' => now()->subDays(25),
+                'author_name' => 'NUWESOFT',
+            ]);
+
+        Post::firstOrCreate(
             ['slug' => 'migracion-cloud-on-premise-aws'],
             [
                 'title' => 'Migración a Cloud: De On-Premise a AWS sin Downtime',

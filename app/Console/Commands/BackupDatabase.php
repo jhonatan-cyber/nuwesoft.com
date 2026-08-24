@@ -87,7 +87,7 @@ class BackupDatabase extends Command
     {
         $files = collect(File::files($path))
             ->filter(fn ($f) => str_starts_with($f->getFilename(), 'backup_'))
-            ->sortByDescending(fn ($f) => $f->getMTime())
+            ->sortByDesc(fn ($f) => $f->getMTime())
             ->values();
 
         if ($files->count() > 30) {

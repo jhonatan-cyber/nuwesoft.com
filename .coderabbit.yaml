@@ -115,13 +115,6 @@ path_instructions:
       Test API Resources return correct structure.
       Mock external services (Cloudinary, Mail) in tests.
 
-  # Docker — enforce production best practices
-  - path: "docker/**"
-    instructions: |
-      Docker configs must be production-ready.
-      Use multi-stage builds for smaller images.
-      Always add healthchecks for services.
-      Use non-root users where possible.
       Log to stdout/stderr for container log aggregation.
 
   # CI/CD — enforce pipeline quality
