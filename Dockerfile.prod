@@ -55,7 +55,7 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
 COPY --chown=application:application . .
 
 # Solo dependencias Node de producción (Playwright Core + Crawlee, sin descargar otro navegador).
-RUN npm ci --omit=dev --legacy-peer-deps
+RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts
 
 # Copiar dependencias de Composer ya descargadas en el Stage 1 con el dueño correcto
 COPY --from=composer-builder --chown=application:application /app/vendor ./vendor
