@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\CacheService;
 use App\Services\EntityCacheManager;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
@@ -45,6 +46,7 @@ class Setting extends Model
         );
 
         EntityCacheManager::flushEntity('setting');
+        Cache::forget('settings');
     }
 
     /**
