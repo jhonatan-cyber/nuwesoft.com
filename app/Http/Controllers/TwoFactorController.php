@@ -147,7 +147,7 @@ class TwoFactorController extends Controller
 
         $user = $request->user();
 
-        if (! \Hash::check($request->password, $user->password)) {
+        if (! \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
             return back()->withErrors(['password' => 'Contraseña incorrecta.']);
         }
 

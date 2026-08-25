@@ -250,7 +250,7 @@
                 "confirm_delete": "ARE YOU SURE YOU WANT TO DELETE THIS PROJECT?"
             },
             "gallery": {
-                "view": "VIEW GALLERY",
+                "view": "VIEW PROJECT",
                 "subtitle": "ASSOCIATED VISUAL ASSETS",
                 "empty": "NO VISUAL ASSETS AVAILABLE",
                 "close": "CLOSE VIEWER"
@@ -594,6 +594,9 @@
         "s6_body": "You have the right to access, rectify, delete, and port your personal data, as well as to limit or object to its processing. To exercise these rights, contact us through the means indicated.",
         "s7_title": "7. CONTACT",
         "s7_body": "If you have questions about this privacy policy, you can contact us at privacy{'@'}nuwesoft.com or through our contact form."
+    },
+    "testimonials": {
+        "cta": "LEAVE US A REVIEW"
     },
     "terms_page": {
         "title": "TERMS AND CONDITIONS",

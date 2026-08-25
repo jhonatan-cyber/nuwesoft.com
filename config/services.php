@@ -38,6 +38,11 @@ return [
     'posthog' => [
         'key' => env('POSTHOG_KEY'),
         'host' => env('POSTHOG_HOST', 'https://us.i.posthog.com'),
+        'project_id' => env('POSTHOG_PROJECT_ID'),
+    ],
+
+    'browser_capture' => [
+        'node_binary' => env('NODE_BINARY', 'node'),
     ],
 
 ];

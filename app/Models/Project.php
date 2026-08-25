@@ -8,6 +8,7 @@ use App\Jobs\UploadToCloudinary;
 use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -106,7 +107,7 @@ class Project extends Model
         $this->images()->delete();
     }
 
-    public function technologies()
+    public function technologies(): BelongsToMany
     {
         return $this->belongsToMany(Technology::class);
     }

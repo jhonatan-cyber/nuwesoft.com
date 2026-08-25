@@ -54,12 +54,13 @@ class CloudinaryStorageService implements StorageServiceInterface
     public function upload(string|UploadedFile $file, string $folder = 'projects'): array
     {
         $path = $file instanceof UploadedFile ? $file->getRealPath() : $file;
+        $isProjectImage = trim($folder, '/') === 'projects';
         $folder = $this->prefixedFolder($folder);
         $result = $this->cloudinary->uploadApi()->upload($path, [
             'folder' => $folder,
-            'transformation' => [
-                ['width' => 1200, 'height' => 800, 'crop' => 'fill', 'quality' => 'auto', 'fetch_format' => 'auto'],
-            ],
+            'transformation' => $isProjectImage
+                ? [['width' => 1600, 'crop' => 'limit', 'quality' => 'auto:good', 'fetch_format' => 'auto']]
+                : [['width' => 1200, 'height' => 800, 'crop' => 'fill', 'quality' => 'auto', 'fetch_format' => 'auto']],
         ]);
 
         return [

@@ -12,12 +12,13 @@ import CTASection from '@/Components/CTASection.vue'
 import TestimonialsSection from '@/Components/TestimonialsSection.vue'
 import FeatureFlag from '@/Components/FeatureFlag.vue'
 import { usePageTracking } from '@/composables/usePageTracking'
-import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 
 const page = usePage()
 
 usePageTracking()
-const { skeletonReady } = useSkeletonLoader()
+// The landing's primary content must render immediately. Gating the whole page
+// behind the timed skeleton can leave Transition mode="out-in" with no child.
+const skeletonReady = true
 const siteName = computed(() => page.props.settings?.site_name || 'NUWESOFT')
 const pageUrl = computed(() => window.location.href)
 </script>

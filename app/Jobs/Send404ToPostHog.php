@@ -28,12 +28,12 @@ class Send404ToPostHog implements ShouldQueue
         }
 
         try {
-            $phClient = new PostHog(
+            PostHog::init(
                 config('services.posthog.key'),
                 ['host' => config('services.posthog.host')]
             );
 
-            $phClient->capture([
+            PostHog::capture([
                 'distinct_id' => $this->logData['ip'] ?? 'unknown',
                 'event' => '404_error',
                 'properties' => $this->logData,

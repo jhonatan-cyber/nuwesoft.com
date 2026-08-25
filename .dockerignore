@@ -37,6 +37,8 @@ bootstrap/cache/*
 
 # Scripts
 scripts
+!scripts/
+!scripts/browser-capture.mjs
 start-dev.bat
 
 # Config files not needed in production

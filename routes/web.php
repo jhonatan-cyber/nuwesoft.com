@@ -273,6 +273,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('dashboard/technologies', TechnologyController::class)->names('technologies')->except(['create', 'edit', 'show']);
 
     // Projects CRUD
+    Route::post('dashboard/projects/analyze-technologies', [ProjectController::class, 'analyzeTechnologies'])
+        ->middleware('throttle:10,1')
+        ->name('projects.analyze-technologies');
     Route::resource('dashboard/projects', ProjectController::class)->names('projects');
 
     // Posts (Blog)

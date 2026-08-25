@@ -11,19 +11,21 @@ const props = defineProps({
 })
 
 const { el, isVisible } = useInView(0.15)
+const { t } = useI18n()
 const activeIndex = ref(0)
 const isPaused = ref(false)
+let rotationInterval
 
 onMounted(() => {
     // Auto-rotate every 6 seconds
-    const interval = setInterval(() => {
+    rotationInterval = setInterval(() => {
         if (!isPaused.value && props.testimonials.length > 1) {
             activeIndex.value = (activeIndex.value + 1) % props.testimonials.length
         }
     }, 6000)
-    
-    onUnmounted(() => clearInterval(interval))
 })
+
+onUnmounted(() => clearInterval(rotationInterval))
 </script>
 
 <template>

@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProjectTest extends TestCase
@@ -44,7 +46,16 @@ class ProjectTest extends TestCase
         ]);
 
         $responseActive = $this->get('/portafolio/' . $activeProject->slug);
-        $responseActive->assertStatus(200);
+        $responseActive->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('PortfolioProjectDetail')
+                ->where('project.id', $activeProject->id)
+                ->where('project.name', 'Active Project')
+                ->where('project.slug', 'active-slug')
+                ->where('project.desc', 'Active Project Desc')
+                ->has('project.images')
+                ->has('project.technologies')
+            );
 
         $responseInactive = $this->get('/portafolio/' . $inactiveProject->slug);
         $responseInactive->assertStatus(404);
@@ -82,5 +93,31 @@ class ProjectTest extends TestCase
             'name' => 'New Awesome Project',
             'is_active' => true,
         ]);
+    }
+
+    public function test_analyzer_reports_fields_from_a_login_form_returning_http_200(): void
+    {
+        Http::fake([
+            'https://example.com/login' => Http::response(<<<'HTML'
+                <html><head><meta name="description" content="Plataforma de gestión empresarial"></head><body><form>
+                    <input type="email" placeholder="Correo" required>
+                    <input type="password" placeholder="Contraseña" required>
+                    <button type="submit">Ingresar</button>
+                </form></body></html>
+                HTML),
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())
+            ->postJson(route('projects.analyze-technologies'), [
+                'url' => 'https://example.com/login',
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('needs_credentials', true)
+            ->assertJsonPath('authentication_type', 'form')
+            ->assertJsonPath('page_description', 'Plataforma de gestión empresarial')
+            ->assertJsonCount(2, 'authentication_fields')
+            ->assertJsonPath('authentication_fields.0.type', 'email')
+            ->assertJsonPath('authentication_fields.1.type', 'password');
     }
 }

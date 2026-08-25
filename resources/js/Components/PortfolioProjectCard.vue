@@ -19,8 +19,6 @@ const props = defineProps({
     getIcon: { type: Function, default: () => null },
 })
 
-const emit = defineEmits(['open-lightbox'])
-
 const trackProjectClick = () => {
     capture('project_click', {
         project_id: props.project.id,
@@ -29,12 +27,9 @@ const trackProjectClick = () => {
     })
 }
 
-const trackGalleryOpen = () => {
-    capture('project_gallery_open', {
-        project_id: props.project.id,
-        images_count: props.project.images?.length || 0,
-    })
-}
+const projectHref = () => props.project.slug
+    ? route('portafolio.show', props.project.slug)
+    : route('portafolio')
 
 // ── 3D Tilt (throttled) ──
 let tiltTicking = false
@@ -78,10 +73,10 @@ const resetTilt = (e) => {
             @mouseleave="resetTilt"
         >
             <!-- Image Area -->
-            <button
-                type="button"
+            <Link
+                :href="projectHref()"
                 :class="['min-h-[18rem] w-full border-b-4 border-black dark:border-white relative flex items-center justify-center overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2', project.color || 'bg-gray-100 dark:bg-zinc-900']"
-                @click="emit('open-lightbox', project, 0)"
+                @click="trackProjectClick"
             >
                 <!-- Image with overlay -->
                 <div class="relative w-full h-full">                        <BlurImage
@@ -138,7 +133,7 @@ const resetTilt = (e) => {
 
                 <!-- Hover Overlay -->
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-all duration-500 pointer-events-none"></div>
-            </button>
+            </Link>
 
             <!-- Thumbnail Strip (hidden on mobile, shown on md+) -->
             <div
@@ -150,7 +145,7 @@ const resetTilt = (e) => {
                     :key="image.id"
                     class="h-20 border-r-2 border-black bg-zinc-100 last:border-r-0 dark:border-white dark:bg-zinc-900 overflow-hidden"
                 >
-                    <button type="button" class="h-full w-full relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-inset" @click="trackGalleryOpen(); emit('open-lightbox', project, imageIndex)">                            <BlurImage
+                    <Link :href="projectHref()" class="h-full w-full relative block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-inset" @click="trackProjectClick">                            <BlurImage
                                 :src="image.image_url"
                                 :alt="project.name"
                                 :width="200"
@@ -158,12 +153,12 @@ const resetTilt = (e) => {
                                 class="h-full w-full"
                                 img-class="transition-all duration-500 hover:scale-110"
                             />
-                    </button>
+                    </Link>
                 </div>
             </div>
 
             <!-- Card Body -->
-            <Link :href="route('portafolio.show', project.slug)" @click="trackProjectClick" class="flex flex-col flex-1">
+            <Link :href="projectHref()" @click="trackProjectClick" class="flex flex-col flex-1">
                 <CardHeader class="p-6 pb-2">
                     <!-- Tech Badges -->
                     <div
@@ -210,7 +205,7 @@ const resetTilt = (e) => {
             </Link>
 
                 <!-- Action Button -->
-                <a v-if="project.project_url" :href="project.project_url" target="_blank" class="block mt-auto">
+                <Link :href="projectHref()" class="block mt-auto" @click="trackProjectClick">
                     <Button
                         variant="outline"
                         class="w-full h-auto rounded-none border-4 border-black dark:border-white font-black uppercase italic hover:bg-brutalist-pink hover:text-white dark:hover:text-white transition-all group/btn text-sm py-3"
@@ -220,18 +215,7 @@ const resetTilt = (e) => {
                             <ArrowUpRight class="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                         </span>
                     </Button>
-                </a>
-                <Button
-                    v-else
-                    variant="outline"
-                    class="w-full h-auto rounded-none border-4 border-black dark:border-white font-black uppercase italic hover:bg-brutalist-pink hover:text-white dark:hover:text-white transition-all group/btn text-sm py-3 mt-auto"
-                    @click="emit('open-lightbox', project, 0)"
-                >
-                    <span class="flex items-center justify-center gap-2">
-                        {{ t('portafolio.view_project') }}
-                        <Eye class="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                    </span>
-                </Button>
+                </Link>
         </Card>
     </div>
 </template>

@@ -12,7 +12,6 @@ import PortfolioProjectCard from '@/Components/PortfolioProjectCard.vue';
 import LazyLoad from '@/Components/LazyLoad.vue';
 import PortfolioStats from '@/Components/PortfolioStats.vue';
 import PortfolioCta from '@/Components/PortfolioCta.vue';
-import PortfolioLightbox from '@/Components/PortfolioLightbox.vue';
 import SkeletonCard from '@/Components/SkeletonCard.vue';
 import {
     Code,
@@ -86,8 +85,6 @@ const categoryHighlights = [
 ];
 
 const activeCategory = ref('all');
-const lightboxProject = ref(null);
-const lightboxIndex = ref(0);
 
 // ── Projects ──
 const displayProjects = computed(() => {
@@ -142,15 +139,14 @@ const statTargets = computed(() => [props.projects.length, 99.9, 15000, 0]);
 watch(() => props.projects, (newProjects) => {
     if (newProjects?.length) {
         animatedStats.value = stats.value.map(() => 0);
-        statTargets.value = [newProjects.length, 99.9, 15000, 0];
     }
 }, { immediate: true });
 
 const animateCounters = () => {
     visibleStats.value = true;
-    stats.forEach((_, idx) => {
+    stats.value.forEach((_, idx) => {
         if (idx === 3) { animatedStats.value[3] = 1; return; }
-        const target = statTargets[idx];
+        const target = statTargets.value[idx];
         const duration = 2000;
         const steps = 60;
         const increment = target / steps;
@@ -174,7 +170,6 @@ const statsComponentRef = ref(null);
 
 onMounted(() => {
     isVisible.value = true;
-    window.addEventListener('keydown', handleKeydown);
 
     const observer = new IntersectionObserver(
         ([entry]) => {
@@ -191,41 +186,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown);
     if (statsObserver.value) statsObserver.value.disconnect();
 });
 
 // ── Lightbox ──
-const openLightbox = (project, index = 0) => {
-    const images = project.images?.length                ? project.images
-                : [];
-    if (!images.length) return;
-    lightboxProject.value = { ...project, images };
-    lightboxIndex.value = index;
-};
-
-const closeLightbox = () => {
-    lightboxProject.value = null;
-    lightboxIndex.value = 0;
-};
-
-const showNextImage = () => {
-    if (!lightboxProject.value) return;
-    lightboxIndex.value = (lightboxIndex.value + 1) % lightboxProject.value.images.length;
-};
-
-const showPrevImage = () => {
-    if (!lightboxProject.value) return;
-    lightboxIndex.value = (lightboxIndex.value - 1 + lightboxProject.value.images.length) % lightboxProject.value.images.length;
-};
-
-const handleKeydown = (event) => {
-    if (!lightboxProject.value) return;
-    if (event.key === 'Escape') closeLightbox();
-    if (event.key === 'ArrowRight') showNextImage();
-    if (event.key === 'ArrowLeft') showPrevImage();
-};
-
 // ── Stagger Delays ──
 const staggerDelay = (index, step = 80) => `${index * step}ms`;
 
@@ -319,7 +283,6 @@ const portfolioJsonLd = computed(() => {
                                         :index="i"
                                         :get-tech-logo="getTechLogo"
                                         :get-icon="getIcon"
-                                        @open-lightbox="(project, index) => openLightbox(project, index)"
                                     />
                                 </LazyLoad>
                             </TransitionGroup>
@@ -358,15 +321,6 @@ const portfolioJsonLd = computed(() => {
 
         <PublicSiteFooter />
 
-        <PortfolioLightbox
-            :project="lightboxProject"
-            :current-index="lightboxIndex"
-            :get-tech-logo="getTechLogo"
-            @close="closeLightbox"
-            @prev="showPrevImage"
-            @next="showNextImage"
-            @update:current-index="lightboxIndex = $event"
-        />
     </div>
 </template>
 

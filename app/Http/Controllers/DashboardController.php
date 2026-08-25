@@ -83,7 +83,7 @@ class DashboardController extends Controller
     {
         $posthogKey = config('services.posthog.key');
         $posthogHost = config('services.posthog.host', 'https://us.i.posthog.com');
-        $projectId = env('POSTHOG_PROJECT_ID');
+        $projectId = config('services.posthog.project_id');
 
         if ($posthogKey && $projectId) {
             try {

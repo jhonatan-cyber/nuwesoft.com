@@ -250,7 +250,7 @@
                 "confirm_delete": "ESTAS SEGURO DE ELIMINAR ESTE PROYECTO?"
             },
             "gallery": {
-                "view": "VER GALERIA",
+                "view": "VER PROYECTO",
                 "subtitle": "ACTIVOS VISUALES ASOCIADOS",
                 "empty": "NO HAY ACTIVOS VISUALES DISPONIBLES",
                 "close": "CERRAR VISOR"
@@ -594,6 +594,9 @@
         "s6_body": "Tienes derecho a acceder, rectificar, eliminar y portar tus datos personales, así como a limitar u oponerte a su tratamiento. Para ejercer estos derechos, contáctanos a traves de los medios indicados.",
         "s7_title": "7. CONTACTO",
         "s7_body": "Si tienes preguntas sobre esta política de privacidad, puedes contactarnos en privacy{'@'}nuwesoft.com o a traves de nuestro formulario de contacto."
+    },
+    "testimonials": {
+        "cta": "DEJANOS TU RESEÑA"
     },
     "terms_page": {
         "title": "TERMINOS Y CONDICIONES",

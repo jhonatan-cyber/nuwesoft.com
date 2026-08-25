@@ -68,7 +68,7 @@ class CloudinaryTestCommand extends Command
         // Verifica que optimized_image_url funciona
         $sampleModel = \App\Models\ProjectImage::first();
         if ($sampleModel) {
-            $this->line('   sample optimized_image_url: ' . $sampleModel->optimized_image_url);
+            $this->line('   sample optimized_image_url: ' . $sampleModel->getAttribute('optimized_image_url'));
             $this->line('   sample blur_image_url: ' . ($sampleModel->blur_image_url ?? 'n/a'));
         }
 

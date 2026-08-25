@@ -6,7 +6,6 @@ use App\Http\Requests\PublicTestimonialRequest;
 use App\Mail\NewTestimonialMail;
 use App\Models\Setting;
 use App\Models\Testimonial;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
@@ -34,7 +33,7 @@ class PublicTestimonialController extends Controller
         $validated = $request->validated();
 
         // Anti-spam: honeypot check
-        if (!empty($validated['form_token'])) {
+        if (! empty($validated['form_token'])) {
             return back()->with('success', '¡Gracias por tu reseña! Será revisada por nuestro equipo.');
         }
 
@@ -81,7 +80,7 @@ class PublicTestimonialController extends Controller
             }
         } catch (\Exception $e) {
             // Don't break the submission if email fails
-            \Log::warning('Failed to send testimonial notification email: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Failed to send testimonial notification email: ' . $e->getMessage());
         }
     }
 }

@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import { useRekaCleanup } from '@/composables/useRekaCleanup';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -14,8 +14,6 @@ import {
     ChevronRight,
     Briefcase,
     Images,
-    X,
-    Eye,
     FolderPlus,
     LayoutGrid,
     Search
@@ -61,16 +59,10 @@ const { skeletonReady } = useSkeletonLoader();
 
 const search = ref(props.filters?.search || '');
 
-const selectedProjectForGallery = ref(null);
 const isCreateModalOpen = ref(false);
 const editingProject = ref(null);
 
 useRekaCleanup(isCreateModalOpen);
-
-const isGalleryOpen = computed({
-    get: () => !!selectedProjectForGallery.value,
-    set: (val) => { if (!val) closeGallery(); },
-});
 
 const perPage = ref(String(props.projects.per_page || 10));
 
@@ -132,14 +124,6 @@ const closeFormModal = () => {
     nextTick(() => {
         editingProject.value = null;
     });
-};
-
-const openGallery = (project) => {
-    selectedProjectForGallery.value = project;
-};
-
-const closeGallery = () => {
-    selectedProjectForGallery.value = null;
 };
 
 // ── Delete confirmation ──
@@ -266,12 +250,12 @@ const confirmDelete = () => {
                         </div>
 
                         <!-- Overlay galería -->
-                        <div @click="openGallery(project)"
-                            class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center cursor-pointer">
+                        <Link :href="route('portafolio.show', project.slug)"
+                            class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset">
                             <div class="bg-white text-black font-black uppercase tracking-widest text-[10px] px-5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                                <Eye class="w-4 h-4" /> {{ t('dashboard_panel.projects.gallery.view') }}
+                                <ChevronRight class="w-4 h-4" /> {{ t('dashboard_panel.projects.gallery.view') }}
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
                     <!-- Card Body -->
@@ -355,7 +339,7 @@ const confirmDelete = () => {
 </div>
 
         <!-- Galería Modal -->
-        <Dialog v-model:open="isGalleryOpen">
+        <Dialog v-if="false">
             <DialogContent class="max-w-5xl !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black p-0 shadow-2xl dashboard-dialog-enter">
                 <div v-if="selectedProjectForGallery" class="p-6 md:p-8">
                     <div class="flex justify-between items-center mb-8 border-b border-neutral-100 dark:border-neutral-800 pb-6">

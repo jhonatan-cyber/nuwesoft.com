@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PublicGridBackground from '@/Components/PublicGridBackground.vue';
 import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
@@ -8,16 +8,17 @@ import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
-import { Dialog, DialogContent } from '@/Components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/Components/ui/dialog';
 import { useRekaCleanup } from '@/composables/useRekaCleanup';
 import { useInView } from '@/composables/useInView';
-import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import {
     ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight, ExternalLink, X, Eye, Layers,
 } from 'lucide-vue-next';
 import BlurImage from '@/Components/BlurImage.vue'
 
-const { skeletonReady } = useSkeletonLoader();
+// The project is part of the initial Inertia response, so the detail content
+// can render immediately without a timer-driven transition gap.
+const skeletonReady = true;
 
 const props = defineProps({
     project: { type: Object, required: true },
@@ -66,6 +67,8 @@ const getTechLogo = (techName) => {
 // ── Lightbox ──
 const lightboxOpen = ref(false);
 const lightboxIndex = ref(0);
+const lightboxViewport = ref(null);
+const selectedImageIndex = ref(0);
 
 useRekaCleanup(lightboxOpen);
 
@@ -87,6 +90,11 @@ const showPrev = () => {
     const images = props.project.images || [];
     lightboxIndex.value = (lightboxIndex.value - 1 + images.length) % images.length;
 };
+
+watch(lightboxIndex, async () => {
+    await nextTick();
+    lightboxViewport.value?.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 const handleKeydown = (e) => {
     if (!lightboxOpen.value) return;
@@ -233,12 +241,11 @@ const categoryColors = {
                                     <div class="relative border-4 border-black shadow-brutalist dark:border-white dark:shadow-brutalist-white overflow-hidden">
                                         <BlurImage
                                             v-if="allImages.length > 0"
-                                            :src="allImages[0].image_url"
+                                            :src="allImages[selectedImageIndex].image_url"
                                             :alt="project.name"
                                             fullRes
-                                            class="w-full h-[24rem] md:h-[32rem] cursor-pointer"
-                                            img-class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                                            @click="openLightbox(0)"
+                                            class="aspect-[8/5] w-full bg-zinc-950"
+                                            img-class="h-full w-full !object-contain object-center transition-transform duration-500"
                                         />
                                         <div
                                             v-else
@@ -250,11 +257,10 @@ const categoryColors = {
                                         <!-- Image count badge -->
                                         <div
                                             v-if="allImages.length > 1"
-                                            class="absolute bottom-4 left-4 border-2 border-black bg-white/90 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.24em] backdrop-blur-sm"
-                                            @click="openLightbox(0)"
+                                            class="absolute bottom-4 left-4 z-20 border-2 border-black bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-black shadow-[3px_3px_0_#000]"
                                         >
-                                            <span class="flex items-center gap-1.5 cursor-pointer">
-                                                <Eye class="w-3.5 h-3.5" />
+                                            <span class="flex items-center gap-1.5 whitespace-nowrap text-black">
+                                                <Eye class="w-3.5 h-3.5 shrink-0 text-black" />
                                                 {{ allImages.length }} {{ t('portafolio.images_label') }}
                                             </span>
                                         </div>
@@ -265,9 +271,12 @@ const categoryColors = {
                                         <button
                                             v-for="(image, idx) in allImages"
                                             :key="image.id"
-                                            @click="openLightbox(idx)"
+                                            type="button"
+                                            @click="selectedImageIndex = idx"
+                                            :aria-label="`Mostrar imagen ${idx + 1} de ${allImages.length}`"
+                                            :aria-pressed="idx === selectedImageIndex"
                                             class="border-4 overflow-hidden transition-all duration-200 hover:-translate-y-1"
-                                            :class="idx === 0 ? 'border-black dark:border-white' : 'border-black/30 dark:border-white/30 hover:border-black dark:hover:border-white'"
+                                            :class="idx === selectedImageIndex ? 'border-brutalist-pink dark:border-brutalist-yellow -translate-y-1' : 'border-black/30 dark:border-white/30 hover:border-black dark:hover:border-white'"
                                         >
                                             <BlurImage :src="image.image_url" :alt="project.name" :width="250" :height="180" class="h-20 w-full" />
                                         </button>
@@ -330,16 +339,6 @@ const categoryColors = {
                                                 </span>
                                             </Button>
                                         </a>
-                                        <button
-                                            v-if="allImages.length > 0"
-                                            @click="openLightbox(0)"
-                                            class="border-4 border-black px-8 py-3.5 text-base font-black uppercase italic transition-all hover:bg-black hover:text-white dark:border-white dark:hover:bg-white dark:hover:text-black"
-                                        >
-                                            <span class="flex items-center gap-2">
-                                                <Eye class="w-5 h-5" />
-                                                {{ t('portafolio.view_gallery') || 'VER GALERIA' }}
-                                            </span>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -359,7 +358,7 @@ const categoryColors = {
                                 <span class="inline-flex h-4 w-4 rotate-45 border-2 border-black bg-brutalist-pink"></span>
                                 <span class="text-[11px] font-black uppercase tracking-[0.28em] opacity-50">{{ t('portafolio.gallery_label') }}</span>
                                 <span class="h-px flex-1 bg-black/20 dark:bg-white/20"></span>
-                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{{ allImages.length }} IMAGES</span>
+                                <span class="whitespace-nowrap border-2 border-black bg-black px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white dark:border-white dark:bg-white dark:text-black">{{ allImages.length }} {{ t('portafolio.images_label') }}</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -372,13 +371,10 @@ const categoryColors = {
                                         galleryVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                                     ]"
                                 >
-                                    <button
-                                        @click="openLightbox(idx)"
-                                        class="group relative w-full overflow-hidden border-4 border-black shadow-brutalist transition-all duration-300 hover:-translate-y-1 hover:shadow-brutalist-hover"
-                                    >
+                                    <button type="button" class="group relative block w-full overflow-hidden border-4 border-black text-left shadow-brutalist transition-all duration-300 hover:-translate-y-1 hover:shadow-brutalist-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brutalist-pink" :aria-label="`Ver imagen ${idx + 1} de ${allImages.length} en pantalla completa`" @click="openLightbox(idx)">
                                         <BlurImage :src="image.image_url" :alt="project.name" :width="600" :height="400" class="w-full h-48 md:h-64" img-class="transition-all duration-500 group-hover:scale-110" />
                                         <div class="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10"></div>
-                                        <div class="absolute bottom-2 right-2 border-2 border-black bg-white/90 px-2 py-1 text-[10px] font-black uppercase opacity-0 transition-all duration-300 group-hover:opacity-100">
+                                        <div class="absolute bottom-2 right-2 border-2 border-black bg-white px-2 py-1 text-[10px] font-black uppercase text-black shadow-[2px_2px_0_#000]">
                                             #{{ (idx + 1).toString().padStart(2, '0') }}
                                         </div>
                                     </button>
@@ -459,16 +455,18 @@ const categoryColors = {
         <!-- ═══ Lightbox ═══ -->
         <Dialog v-model:open="lightboxOpen">
             <DialogContent
-                class="!max-w-6xl !w-[calc(100%-2rem)] !rounded-none !border-4 border-white !bg-black !text-white !p-0 shadow-[10px_10px_0px_rgba(255,255,255,0.3)] lightbox-dialog-enter"
+                class="!left-0 !top-0 !block !h-dvh !w-screen !max-w-none !translate-x-0 !translate-y-0 !gap-0 overflow-hidden !rounded-none !border-0 !bg-black !text-white !p-0 lightbox-dialog-enter"
             >
-                <div class="grid lg:grid-cols-[1.2fr_0.8fr]">
-                    <div class="relative min-h-[22rem] bg-zinc-950 overflow-hidden">
+                <DialogTitle class="sr-only">{{ project.name }}</DialogTitle>
+                <DialogDescription class="sr-only">{{ project.desc }}</DialogDescription>
+                <div class="grid h-full grid-rows-[minmax(0,1fr)_14rem] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1">
+                    <div ref="lightboxViewport" class="relative min-h-0 overflow-y-auto overflow-x-hidden bg-zinc-950 custom-scrollbar">
                         <transition name="lightbox-image" mode="out-in">
                             <img
                                 :key="lightboxIndex"
                                 :src="allImages[lightboxIndex]?.image_url"
                                 :alt="project.name"
-                                class="h-full w-full object-contain"
+                                class="block h-auto w-full object-contain object-top"
                                 loading="lazy"
                             />
                         </transition>
@@ -497,16 +495,19 @@ const categoryColors = {
                         </div>
                     </div>
 
-                    <div class="border-t-4 border-white p-6 lg:border-l-4 lg:border-t-0 flex flex-col">
+                    <aside class="flex min-h-0 flex-col border-t-4 border-white bg-black p-4 lg:border-l-4 lg:border-t-0">
                         <div class="mb-3 text-[11px] font-black uppercase tracking-[0.28em] text-brutalist-yellow flex items-center gap-2">
                             <span class="inline-block w-6 h-px bg-brutalist-yellow"></span>
                             {{ t('portafolio.project_label') }}
                         </div>
 
-                        <h3 class="text-3xl font-display font-black uppercase italic leading-none">{{ project.name }}</h3>
-                        <p class="mt-6 text-sm font-black uppercase leading-relaxed text-white/75">{{ project.desc }}</p>
+                        <div class="flex items-end justify-between gap-3">
+                            <h3 class="text-xl font-display font-black uppercase italic leading-none">{{ project.name }}</h3>
+                            <span class="shrink-0 border-2 border-white px-2 py-1 text-[10px] font-black">{{ lightboxIndex + 1 }} / {{ allImages.length }}</span>
+                        </div>
+                        <p class="sr-only">{{ project.desc }}</p>
 
-                        <div class="mt-6 flex flex-wrap gap-2">
+                        <div class="hidden">
                             <TooltipProvider :delay-duration="0">
                                 <Tooltip
                                     v-for="tech in project.technologies"
@@ -527,11 +528,11 @@ const categoryColors = {
                             </TooltipProvider>
                         </div>
 
-                        <div v-if="allImages.length > 1" class="mt-auto pt-6">
+                        <div v-if="allImages.length > 1" class="mt-4 flex min-h-0 flex-1 flex-col">
                             <div class="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/50">
                                 {{ t('portafolio.gallery_label') }}
                             </div>
-                            <div class="grid grid-cols-4 gap-2">
+                            <div class="grid min-h-0 grid-cols-4 gap-2 overflow-y-auto pr-1 custom-scrollbar lg:grid-cols-1">
                                 <button
                                     v-for="(image, idx) in allImages"
                                     :key="image.id"
@@ -540,12 +541,12 @@ const categoryColors = {
                                     :class="idx === lightboxIndex ? 'border-brutalist-yellow' : 'border-white/20 hover:border-white/50'"
                                     @click="lightboxIndex = idx"
                                 >
-                                    <BlurImage :src="image.image_url" :alt="project.name" :width="150" :height="100" class="h-16 w-full" />
+                                    <BlurImage :src="image.image_url" :alt="`${project.name} - imagen ${idx + 1}`" :width="320" :height="180" class="h-16 w-full lg:h-28" />
                                 </button>
                             </div>
                         </div>
 
-                        <a v-if="project.project_url" :href="project.project_url" target="_blank" class="mt-6 block">
+                        <a v-if="project.project_url" :href="project.project_url" target="_blank" class="mt-3 hidden lg:block">
                             <Button class="h-auto w-full rounded-none border-4 border-white bg-white py-4 font-black uppercase italic text-black transition-all hover:bg-brutalist-pink hover:text-white group/btn">
                                 <span class="flex items-center justify-center gap-2">
                                     {{ t('portafolio.view_project') }}
@@ -553,7 +554,7 @@ const categoryColors = {
                                 </span>
                             </Button>
                         </a>
-                    </div>
+                    </aside>
                 </div>
 
                 <!-- DialogClose button (X) positioned by DialogContent -->

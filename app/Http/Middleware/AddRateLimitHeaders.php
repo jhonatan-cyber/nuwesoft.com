@@ -25,6 +25,7 @@ class AddRateLimitHeaders
         // If ThrottleRequests already added headers (e.g. 429), don't override
         if ($response->headers->has('X-RateLimit-Limit')) {
             $this->exposeHeaders($response);
+
             return $response;
         }
 

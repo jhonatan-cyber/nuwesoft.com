@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { nextTick, ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Save, X, Upload, XCircle, Image as ImageIcon } from 'lucide-vue-next';
+import { Save, Upload, XCircle, Image as ImageIcon, ScanSearch, Loader2, LockKeyhole } from 'lucide-vue-next';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
@@ -22,6 +22,16 @@ const existingImages = ref(props.project?.images || []);
 const newImages = ref([]);
 const removeImageIds = ref([]);
 const selectedTechnologies = ref(props.project?.technologies?.map(t => t.id) || []);
+const isAnalyzing = ref(false);
+const needsCredentials = ref(false);
+const analyzerMessage = ref('');
+const analyzerError = ref('');
+const analyzerUsername = ref('');
+const analyzerPassword = ref('');
+const authenticationFields = ref([]);
+const authenticationValues = ref({});
+const automaticCaptureNames = ref(new Set());
+const gallerySection = ref(null);
 
 const form = useForm({
     name: props.project?.name ?? '',
@@ -50,6 +60,75 @@ const removeNewImage = (index) => {
 
 const getPreviewUrl = (file) => {
     return URL.createObjectURL(file);
+};
+
+const captureToFile = (capture, index) => {
+    const bytes = window.atob(capture.base64);
+    const buffer = new Uint8Array(bytes.length);
+    for (let position = 0; position < bytes.length; position += 1) {
+        buffer[position] = bytes.charCodeAt(position);
+    }
+
+    const safeName = (capture.name || `pagina-${index + 1}`).replace(/[^a-z0-9-]+/gi, '-').toLowerCase();
+    return new File([buffer], `${safeName || `pagina-${index + 1}`}.jpg`, { type: capture.mime_type || 'image/jpeg' });
+};
+
+const analyzeTechnologies = async () => {
+    analyzerError.value = '';
+    analyzerMessage.value = '';
+    if (!form.project_url) {
+        analyzerError.value = 'Ingresa primero la URL del sitio.';
+        return;
+    }
+
+    isAnalyzing.value = true;
+    try {
+        const { data } = await window.axios.post(route('projects.analyze-technologies'), {
+            url: form.project_url,
+            username: analyzerUsername.value || null,
+            password: analyzerPassword.value || null,
+            credentials: authenticationValues.value,
+        });
+        selectedTechnologies.value = [...new Set([...selectedTechnologies.value, ...data.technology_ids])];
+        const descriptionWasCompleted = !form.desc.trim() && Boolean(data.page_description);
+        if (descriptionWasCompleted) {
+            form.desc = data.page_description;
+        }
+        authenticationFields.value = data.authentication_fields || [];
+        needsCredentials.value = Boolean(data.needs_credentials);
+        if (!needsCredentials.value) {
+            analyzerPassword.value = '';
+            authenticationValues.value = {};
+        }
+        analyzerMessage.value = data.detected.length
+            ? `Detectadas: ${data.detected.join(', ')}. Se seleccionaron ${data.technology_ids.length} tecnologías disponibles.`
+            : 'El sitio respondió, pero no se identificaron tecnologías compatibles.';
+        if (needsCredentials.value) {
+            analyzerMessage.value += ' Se detectó un formulario de acceso; completa sus campos para analizar el área privada.';
+        }
+        if (descriptionWasCompleted) {
+            analyzerMessage.value += ' La descripción del proyecto también se completó con la información publicada por el sitio.';
+        }
+        if (data.captures?.length) {
+            const capturedFiles = data.captures.map(captureToFile);
+            newImages.value = [...newImages.value, ...capturedFiles];
+            automaticCaptureNames.value = new Set([...automaticCaptureNames.value, ...capturedFiles.map(file => file.name)]);
+            authenticationValues.value = {};
+            analyzerMessage.value += ` Se agregaron ${data.captures.length} capturas, incluido el acceso y los módulos encontrados.`;
+            await nextTick();
+            gallerySection.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    } catch (error) {
+        if (error.response?.status === 401 && error.response?.data?.needs_credentials) {
+            needsCredentials.value = true;
+            authenticationFields.value = [];
+            analyzerError.value = 'El sitio requiere autenticación HTTP Basic.';
+        } else {
+            analyzerError.value = error.response?.data?.message || 'No se pudo analizar el sitio.';
+        }
+    } finally {
+        isAnalyzing.value = false;
+    }
 };
 
 const submit = () => {
@@ -118,8 +197,45 @@ const submit = () => {
 
                 <div class="space-y-2">
                     <Label for="project_url" class="dark:text-slate-200">{{ t('dashboard_panel.projects.fields.url') }}</Label>
-                    <Input id="project_url" v-model="form.project_url" type="url" class="bg-white/50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 focus:border-blue-500 rounded-xl transition-colors" />
+                    <div class="flex gap-2">
+                        <Input id="project_url" v-model="form.project_url" type="url" placeholder="https://ejemplo.com" class="bg-white/50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 focus:border-blue-500 rounded-xl transition-colors" />
+                        <Button type="button" variant="outline" :disabled="isAnalyzing || !form.project_url" class="shrink-0 rounded-xl" @click="analyzeTechnologies">
+                            <Loader2 v-if="isAnalyzing" class="mr-2 h-4 w-4 animate-spin" />
+                            <ScanSearch v-else class="mr-2 h-4 w-4" />
+                            Analizar
+                        </Button>
+                    </div>
                     <div v-if="form.errors.project_url" class="text-sm text-red-500">{{ form.errors.project_url }}</div>
+                    <div v-if="needsCredentials" class="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+                        <p class="flex items-center gap-2 text-xs font-semibold text-amber-800 dark:text-amber-300"><LockKeyhole class="h-4 w-4" /> Acceso temporal (las credenciales no se guardan)</p>
+                        <div v-if="authenticationFields.length" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div v-for="field in authenticationFields" :key="field.name" class="space-y-1">
+                                <Label :for="`auth-${field.name}`" class="text-xs text-amber-900 dark:text-amber-200">{{ field.label }}</Label>
+                                <Input
+                                    :id="`auth-${field.name}`"
+                                    v-model="authenticationValues[field.name]"
+                                    :type="field.type"
+                                    :autocomplete="field.autocomplete"
+                                    :required="field.required"
+                                    :placeholder="field.label"
+                                    class="rounded-xl border-gray-200 bg-white/50 transition-colors focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900/50"
+                                />
+                            </div>
+                        </div>
+                        <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <Input v-model="analyzerUsername" autocomplete="off" placeholder="Usuario" class="rounded-xl border-gray-200 bg-white/50 transition-colors focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900/50" />
+                            <Input v-model="analyzerPassword" type="password" autocomplete="new-password" placeholder="Contraseña" class="rounded-xl border-gray-200 bg-white/50 transition-colors focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900/50" />
+                        </div>
+                        <Button type="button" :disabled="isAnalyzing" class="rounded-xl bg-blue-600 px-5 text-white shadow-md shadow-blue-200 transition-all hover:bg-blue-700 dark:shadow-blue-900/20" @click="analyzeTechnologies">
+                            <Loader2 v-if="isAnalyzing" class="mr-2 h-4 w-4 animate-spin" />
+                            <ScanSearch v-else class="mr-2 h-4 w-4" />
+                            Continuar análisis
+                        </Button>
+                    </div>
+                    <p v-if="analyzerMessage" class="text-xs font-medium text-emerald-600 dark:text-emerald-400">{{ analyzerMessage }}</p>
+                    <div v-if="analyzerError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                        {{ analyzerError }}
+                    </div>
                 </div>
             </div>
 
@@ -155,10 +271,11 @@ const submit = () => {
             </div>
         </div>
 
-        <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-800">
+        <div ref="gallerySection" class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-800">
             <Label class="text-lg font-semibold flex items-center gap-2 dark:text-slate-100">
                 <ImageIcon class="w-5 h-5 text-blue-500" />
                 {{ t('dashboard_panel.projects.fields.images') }}
+                <span v-if="newImages.length" class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ newImages.length }} nuevas</span>
             </Label>
             
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -173,6 +290,7 @@ const submit = () => {
                 <!-- New Images Previews -->
                 <div v-for="(file, index) in newImages" :key="index" class="relative group aspect-video rounded-xl overflow-hidden border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-900/20">
                     <img :src="getPreviewUrl(file)" class="w-full h-full object-cover" />
+                    <span v-if="automaticCaptureNames.has(file.name)" class="absolute bottom-1.5 left-1.5 rounded-md bg-slate-950/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white backdrop-blur">Captura automática</span>
                     <button type="button" @click="removeNewImage(index)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:opacity-100">
                         <XCircle class="w-4 h-4" />
                     </button>
