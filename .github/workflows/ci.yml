@@ -70,7 +70,9 @@ jobs:
       # ── PHPUnit ──
       - name: Copy .env
         if: matrix.check == 'test'
-        run: cp .env.example .env.testing
+        run: |
+          cp .env.example .env.testing
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env.testing
 
       - name: Generate app key
         if: matrix.check == 'test'
