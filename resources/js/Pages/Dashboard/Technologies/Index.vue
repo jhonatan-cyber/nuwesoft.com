@@ -1,61 +1,34 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { 
-    Plus, 
-    Search, 
-    MoreHorizontal, 
-    Pencil, 
-    Trash2, 
-    Code2,
-    CheckCircle2,
-    XCircle,
-    X,
-    ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
-    AlertTriangle,
+import {
+    Plus, Search, MoreHorizontal, Pencil, Trash2, Code2,
+    CheckCircle2, XCircle, X, AlertTriangle,
 } from 'lucide-vue-next';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
-    DialogTitle, 
-    DialogDescription,
-    DialogTrigger,
-    DialogFooter,
+import {
+    Dialog, DialogContent, DialogHeader, DialogTitle,
+    DialogDescription, DialogTrigger, DialogFooter,
 } from '@/Components/ui/dialog';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { Badge } from '@/Components/ui/badge';
-import TechnologyForm from './TechnologyForm.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import { ref, watch, nextTick, onUnmounted } from 'vue';
-import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
 import {
-    Pagination,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationLast,
-    PaginationList,
-    PaginationListItem,
-    PaginationNext,
-    PaginationPrev,
+    Pagination, PaginationEllipsis, PaginationFirst, PaginationLast,
+    PaginationList, PaginationListItem, PaginationNext, PaginationPrev,
 } from '@/Components/ui/pagination';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import SkeletonDashCard from '@/Components/SkeletonDashCard.vue';
+import TechnologyForm from './TechnologyForm.vue';
+import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
+import { useTechnologyIndex } from './useTechnologyIndex';
+
 const props = defineProps({
     technologies: Object,
     filters: {
@@ -65,166 +38,13 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-
 const { skeletonReady } = useSkeletonLoader();
-
-// ── Filter state (initialized from server props) ──
-const search = ref(props.filters?.search || '');
-const sortField = ref(props.filters?.sort_field || 'created_at');
-const sortOrder = ref(props.filters?.sort_order || 'desc');
-const perPage = ref(String(props.technologies.per_page || 24));
-
-// ── Delete confirmation ──
-const deleteTarget = ref(null);
-const isDeleteModalOpen = ref(false);
-const deleteForm = useForm({});
-
-// ── Create / Edit modals ──
-const isCreateModalOpen = ref(false);
-const isEditModalOpen = ref(false);
-const editingTechnology = ref(null);
-
-// ── Helpers ──
-function applyFilters(extra = {}) {
-    router.get(route('technologies.index'), {
-        search: search.value || '',
-        sort_field: sortField.value,
-        sort_order: sortOrder.value,
-        per_page: perPage.value,
-        ...extra,
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-        only: ['technologies', 'filters'],
-    });
-}
-
-// ── Watchers ──
-let debounceTimer;
-watch(search, () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => applyFilters(), 400);
-});
-
-watch(perPage, () => applyFilters());
-
-watch([sortField, sortOrder], () => applyFilters());
-
-// Clean up deleteTarget when delete dialog closes (Escape, click-outside, or cancel)
-watch(isDeleteModalOpen, (val) => {
-    if (!val) {
-        deleteTarget.value = null;
-    }
-});
-
-// ── Pagination ──
-const handlePageChange = (page) => {
-    applyFilters({ page });
-};
-
-// ── Sort toggle ──
-function toggleSort(field) {
-    if (sortField.value === field) {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortField.value = field;
-        sortOrder.value = 'asc';
-    }
-}
-
-function sortIcon(field) {
-    if (sortField.value !== field) return ArrowUpDown;
-    return sortOrder.value === 'asc' ? ArrowUp : ArrowDown;
-}
-
-// ── Edit / Delete ──
-const openEditModal = (tech) => {
-    editingTechnology.value = tech;
-    // Let dropdown menu finish closing before opening the dialog
-    nextTick(() => {
-        isEditModalOpen.value = true;
-    });
-};
-
-// ─────────────────────────────────────────────────────────────────
-// Radix Vue / reka-ui cleanup
-//
-// reka-ui's DismissableLayer has a cleanup ordering bug: when a dialog
-// closes, two watchEffect cleanups run LIFO. The first removes the
-// layer from the internal set; the second checks whether it was the
-// *last* layer before restoring body.style.pointerEvents. Since the
-// layer is already gone, the check fails and pointer-events is never
-// restored — leaving the entire page unclickable.
-//
-// Additionally, Presence delays unmount of the overlay until the exit
-// animation finishes (~200ms). If the page navigates mid-animation the
-// overlay stays permanently in the DOM, blocking all clicks forever.
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Force-clean every trace reka-ui leaves behind.
- *
- * reka-ui's DismissableLayer has a cleanup ordering bug: when a dialog
- * closes, two watchEffect cleanups run LIFO. The first removes the
- * layer from the internal set; the second checks whether it was the
- * *last* layer before restoring `body.style.pointerEvents`. Since the
- * layer is already gone, the check fails and pointer-events is never
- * restored — leaving the entire page unclickable.
- *
- * Additionally, reka-ui's Presence delays unmount of the overlay until
- * the exit animation finishes (~200ms). If something interrupts the
- * animation (e.g. Inertia navigation), the overlay stays in the DOM,
- * blocking all clicks.
- *
- * This function removes body styles/attributes AND nukes any leftover
- * overlay elements that might be stuck in the DOM.
- */
-import { useRekaCleanup } from '@/composables/useRekaCleanup';
-
-useRekaCleanup(isCreateModalOpen, isEditModalOpen, isDeleteModalOpen);
-
-
-const closeModals = () => {
-    isCreateModalOpen.value = false;
-    isEditModalOpen.value = false;
-    nextTick(() => {
-        editingTechnology.value = null;
-    });
-};
-
-const openDeleteConfirm = (tech) => {
-    deleteTarget.value = tech;
-    nextTick(() => {
-        isDeleteModalOpen.value = true;
-    });
-};
-
-const confirmDelete = () => {
-    if (!deleteTarget.value) return;
-    deleteForm.delete(route('technologies.destroy', deleteTarget.value.id), {
-        onSuccess: () => { 
-            isDeleteModalOpen.value = false;
-            deleteTarget.value = null; 
-        },
-    });
-};
-
-// ── Category colors ──
-const categoryColors = {
-    languages: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700',
-    frontend: 'bg-neutral-900 dark:bg-white text-white dark:text-black border-neutral-900 dark:border-white',
-    backend: 'bg-neutral-300 dark:bg-neutral-600 text-neutral-900 dark:text-white border-neutral-400 dark:border-neutral-500',
-    mobile: 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-600',
-    database: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700',
-    infrastructure: 'bg-neutral-300 dark:bg-neutral-600 text-neutral-900 dark:text-white border-neutral-400 dark:border-neutral-500',
-    automation: 'bg-neutral-900 dark:bg-white text-white dark:text-black border-neutral-900 dark:border-white',
-    ui: 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-neutral-300 dark:border-neutral-600',
-};
-
-function getCategoryColor(category) {
-    return categoryColors[category] || 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
-}
+const {
+    search, sortField, sortOrder, perPage, deleteTarget, isDeleteModalOpen,
+    deleteForm, isCreateModalOpen, isEditModalOpen, editingTechnology,
+    handlePageChange, toggleSort, sortIcon, openEditModal, closeModals,
+    openDeleteConfirm, confirmDelete, getCategoryColor,
+} = useTechnologyIndex(props);
 </script>
 
 <template>
@@ -246,13 +66,13 @@ function getCategoryColor(category) {
                     <DialogTrigger as-child>
                         <Button size="sm" class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-4 py-2 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group">
                             <Plus class="w-4 h-4 mr-1.5 group-hover:rotate-90 transition-transform duration-300" />
-                            <span class="font-bold uppercase tracking-widest text-[10px]">{{ t('technologies.actions.add') }}</span>
+                            <span class="font-bold uppercase tracking-widest text-xs">{{ t('technologies.actions.add') }}</span>
                         </Button>
                     </DialogTrigger>
                     <DialogContent class="sm:max-w-[500px] max-h-[85dvh] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl dashboard-dialog-enter">
                         <DialogHeader class="shrink-0">
                             <DialogTitle class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.create_title') }}</DialogTitle>
-                            <DialogDescription class="text-[9px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.create_desc') }}</DialogDescription>
+                            <DialogDescription class="text-xs sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.create_desc') }}</DialogDescription>
                         </DialogHeader>
                         <div class="flex-1 overflow-y-auto scrollbar-imperceptible min-h-0">
                             <TechnologyForm @close="closeModals" />
@@ -334,7 +154,7 @@ function getCategoryColor(category) {
                             ]"
                             :key="opt.key"
                             @click="toggleSort(opt.key)"
-                            :class="['inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2',
+                            :class="['inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2',
                                     sortField === opt.key
                                         ? 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white shadow-sm'
                                         : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
@@ -349,7 +169,7 @@ function getCategoryColor(category) {
 
                     <!-- Per page -->
                     <div class="flex items-center gap-3">
-                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest hidden sm:block">{{ t('pagination.per_page') }}</p>
+                        <p class="text-xs font-bold text-neutral-400 uppercase tracking-widest hidden sm:block">{{ t('pagination.per_page') }}</p>
                         <Select v-model="perPage">
                             <SelectTrigger class="w-24 h-10 rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-bold text-xs">
                                 <SelectValue />
@@ -386,12 +206,12 @@ function getCategoryColor(category) {
                                 <DropdownMenuContent align="end" class="w-48 p-2 rounded-2xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black shadow-2xl">
                                     <DropdownMenuItem @click="openEditModal(tech)" class="rounded-xl cursor-pointer focus:bg-neutral-100 dark:focus:bg-neutral-800 focus:text-black dark:focus:text-white py-2.5">
                                         <Pencil class="mr-2 h-4 w-4" />
-                                        <span class="font-bold uppercase text-[10px] tracking-widest">{{ t('actions.edit') }}</span>
+                                        <span class="font-bold uppercase text-xs tracking-widest">{{ t('actions.edit') }}</span>
                                     </DropdownMenuItem>
                                     <div class="h-px bg-neutral-100 dark:bg-neutral-800 my-1"></div>
-                                    <DropdownMenuItem @click="openDeleteConfirm(tech)" class="rounded-xl cursor-pointer text-rose-500 focus:bg-rose-50 dark:focus:bg-rose-500/10 focus:text-rose-600 py-2.5">
+                                    <DropdownMenuItem @click="openDeleteConfirm(tech)" class="cursor-pointer rounded-xl py-2.5 text-status-danger focus:bg-status-danger/10 focus:text-status-danger">
                                         <Trash2 class="mr-2 h-4 w-4" />
-                                        <span class="font-bold uppercase text-[10px] tracking-widest">{{ t('actions.delete') }}</span>
+                                        <span class="font-bold uppercase text-xs tracking-widest">{{ t('actions.delete') }}</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -404,14 +224,14 @@ function getCategoryColor(category) {
                         </div>
 
                         <div class="w-full min-w-0">
-                            <h3 class="font-black text-[11px] tracking-tight text-neutral-900 dark:text-white uppercase truncate px-1">
+                            <h3 class="font-black text-sm tracking-tight text-neutral-900 dark:text-white uppercase truncate px-1">
                                 {{ tech.name }}
                             </h3>
                             <div class="flex flex-col items-center gap-1 mt-1.5">
-                                <Badge variant="outline" :class="['rounded-full px-2 py-0 text-[8px] font-bold uppercase tracking-widest', getCategoryColor(tech.category)]">
+                                <Badge variant="outline" :class="['rounded-full px-2 py-0 text-xs font-bold uppercase tracking-widest', getCategoryColor(tech.category)]">
                                     {{ t(`technologies.categories.${tech.category}`) }}
                                 </Badge>
-                                <Badge v-if="!tech.is_active" variant="destructive" class="rounded-full px-2 py-0 text-[8px] font-bold uppercase tracking-widest">
+                                <Badge v-if="!tech.is_active" variant="destructive" class="rounded-full px-2 py-0 text-xs font-bold uppercase tracking-widest">
                                     {{ t('technologies.status.inactive') }}
                                 </Badge>
                             </div>
@@ -422,7 +242,7 @@ function getCategoryColor(category) {
                     <div class="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-center">
                         <div class="flex items-center gap-1.5">
                             <component :is="tech.is_active ? CheckCircle2 : XCircle" :class="['w-3 h-3', tech.is_active ? 'text-neutral-900 dark:text-white' : 'text-neutral-400']" />
-                            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400">{{ tech.is_active ? t('technologies.status.active') : t('technologies.status.inactive') }}</span>
+                            <span class="text-xs font-bold uppercase tracking-[0.1em] text-neutral-400">{{ tech.is_active ? t('technologies.status.active') : t('technologies.status.inactive') }}</span>
                         </div>
                     </div>
                 </div>
@@ -464,7 +284,7 @@ function getCategoryColor(category) {
                         <PaginationLast />
                     </PaginationList>
                 </Pagination>
-                <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                <p class="text-xs font-bold text-neutral-400 uppercase tracking-widest">
                     {{ t('pagination.showing') }} {{ technologies.from }}–{{ technologies.to }} {{ t('pagination.of') }} {{ technologies.total }}
                 </p>
             </div>
@@ -475,7 +295,7 @@ function getCategoryColor(category) {
             <DialogContent class="sm:max-w-[500px] max-h-[85dvh] flex flex-col !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl dashboard-dialog-enter">
                 <DialogHeader class="shrink-0">
                     <DialogTitle class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ t('technologies.modals.edit_title') }}</DialogTitle>
-                    <DialogDescription class="text-[9px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.edit_desc') }}</DialogDescription>
+                    <DialogDescription class="text-xs sm:text-xs font-bold text-neutral-400 uppercase tracking-widest">{{ t('technologies.modals.edit_desc') }}</DialogDescription>
                 </DialogHeader>
                 <div class="flex-1 overflow-y-auto scrollbar-imperceptible min-h-0">
                     <TechnologyForm v-if="editingTechnology" :technology="editingTechnology" @close="closeModals" />

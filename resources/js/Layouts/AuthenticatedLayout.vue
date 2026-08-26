@@ -224,12 +224,9 @@ router.on('navigate', () => {
                     <slot name="header" />
                 </div>
 
-                <!-- Main Slot with Page Transition -->
-                <Transition name="page" mode="out-in">
-                    <div :key="$page.url">
-                        <slot />
-                    </div>
-                </Transition>
+                <div :key="$page.url">
+                    <slot />
+                </div>
             </main>
 
             <!-- Refined Footer -->

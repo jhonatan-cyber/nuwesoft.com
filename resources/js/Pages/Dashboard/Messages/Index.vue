@@ -140,7 +140,7 @@ function formatDate(date) {
                     <Button
                         variant="outline"
                         size="sm"
-                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest"
+                        class="rounded-xl font-bold uppercase text-xs tracking-widest"
                         @click="window.location.href = route('messages.export.csv', { filter: filter !== 'all' ? filter : undefined })"
                     >
                         <Download class="w-4 h-4 mr-1.5" />
@@ -150,7 +150,7 @@ function formatDate(date) {
                         v-if="unreadCount > 0"
                         variant="outline"
                         size="sm"
-                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest"
+                        class="rounded-xl font-bold uppercase text-xs tracking-widest"
                         @click="router.post(route('messages.read-all'), {}, { preserveScroll: true })"
                     >
                         <CheckCheck class="w-4 h-4 mr-1.5" />
@@ -160,7 +160,7 @@ function formatDate(date) {
                         v-if="selected.length > 0"
                         variant="outline"
                         size="sm"
-                        class="rounded-xl font-bold uppercase text-[10px] tracking-widest border-rose-300 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                        class="rounded-xl border-status-danger/30 text-xs font-bold uppercase tracking-widest text-status-danger hover:bg-status-danger/10"
                         @click="isBulkDeleteOpen = true"
                     >
                         <Trash2 class="w-4 h-4 mr-1.5" />
@@ -179,7 +179,7 @@ function formatDate(date) {
                     { key: 'read', label: t('messages.filters.read') },
                 ]" :key="opt.key"
                     @click="filter = opt.key"
-                    :class="['px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2',
+                    :class="['px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2',
                                     filter === opt.key
                                         ? 'bg-black dark:bg-white text-white dark:text-black shadow-sm'
                                         : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
@@ -260,9 +260,9 @@ function formatDate(date) {
                                 <span :class="['text-sm font-black uppercase truncate', !msg.read_at && 'text-black dark:text-white']">
                                     {{ msg.nombre }}
                                 </span>
-                                <span class="text-[10px] text-neutral-400 font-mono break-all">{{ msg.email }}</span>
+                                <span class="text-xs text-neutral-400 font-mono break-all">{{ msg.email }}</span>
                             </div>
-                            <p class="text-[11px] text-neutral-500 truncate mt-0.5">
+                            <p class="text-sm text-neutral-500 truncate mt-0.5">
                                 {{ msg.mensaje || t('messages.no_message') }}
                                 <span v-if="msg.attachment_name" class="inline-flex items-center gap-1 ml-1 text-brutalist-pink">
                                     <FileText class="w-3 h-3" />
@@ -273,11 +273,11 @@ function formatDate(date) {
 
                         <!-- Date + actions -->
                         <div class="flex items-center gap-3 shrink-0">
-                            <span class="text-[10px] text-neutral-400 font-mono hidden sm:block">
+                            <span class="text-xs text-neutral-400 font-mono hidden sm:block">
                                 {{ formatDate(msg.created_at) }}
                             </span>
                             <Button variant="ghost" size="sm"
-                                class="h-8 w-8 p-0 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                class="h-8 w-8 rounded-lg p-0 text-status-danger/70 hover:bg-status-danger/10 hover:text-status-danger"
                                 @click.stop="openDelete(msg)"
                             >
                                 <Trash2 class="w-4 h-4" />
@@ -310,17 +310,17 @@ function formatDate(date) {
                                     <p class="text-xs font-bold text-neutral-700 dark:text-neutral-300 truncate">{{ msg.attachment_name }}</p>
                                 </div>
                                 <a :href="msg.attachment_url" target="_blank" rel="noopener"
-                                    class="shrink-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg bg-brutalist-pink text-white hover:bg-brutalist-pink/90 transition-colors">
+                                    class="shrink-0 px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-lg bg-brutalist-pink text-white hover:bg-brutalist-pink/90 transition-colors">
                                     <Download class="w-3.5 h-3.5 inline-block mr-1" />
                                     {{ t('messages.actions.download') }}
                                 </a>
                             </div>
                             <div class="mt-4 flex items-center justify-between">
                                 <a :href="`mailto:${msg.email}`"
-                                    class="text-[10px] font-black uppercase tracking-widest text-brutalist-pink hover:underline">
+                                    class="text-xs font-black uppercase tracking-widest text-brutalist-pink hover:underline">
                                     {{ t('messages.actions.reply_by_email') }} →
                                 </a>
-                                <span class="text-[10px] text-neutral-400">
+                                <span class="text-xs text-neutral-400">
                                     {{ formatDate(msg.created_at) }}
                                 </span>
                             </div>
@@ -363,7 +363,7 @@ function formatDate(date) {
                         <PaginationNext /><PaginationLast />
                     </PaginationList>
                 </Pagination>
-                <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                <p class="text-xs font-bold text-neutral-400 uppercase tracking-widest">
                     {{ t('messages.pagination.showing', { from: messages.from, to: messages.to, total: messages.total }) }}
                 </p>
             </div>

@@ -217,14 +217,20 @@ class AntiSpamTest extends TestCase
     {
         $response = $this->get('/contacto');
 
-        $token = $response->viewData('page')->props['anti_spam_token'] ?? null;
+        $response->assertInertia(fn ($page) => $page
+            ->where('anti_spam_token', function ($token): bool {
+                $this->assertIsString($token);
+                $this->assertNotSame('', $token);
 
-        if ($token) {
-            $decoded = json_decode(Crypt::decryptString($token), true);
-            $this->assertArrayHasKey('ts', $decoded);
-            $this->assertIsInt($decoded['ts']);
-            $this->assertGreaterThan(0, $decoded['ts']);
-        }
+                $decoded = json_decode(Crypt::decryptString($token), true);
+                $this->assertIsArray($decoded);
+                $this->assertArrayHasKey('ts', $decoded);
+                $this->assertIsInt($decoded['ts']);
+                $this->assertGreaterThan(0, $decoded['ts']);
+
+                return true;
+            })
+        );
     }
 
     // ── Combined Scenarios ──

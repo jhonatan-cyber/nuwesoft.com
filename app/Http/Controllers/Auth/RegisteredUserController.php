@@ -31,6 +31,8 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterRequest $request): RedirectResponse
     {
+        abort_if(User::query()->exists(), 403, 'El registro público está cerrado.');
+
         $throttleKey = 'register|' . $request->ip();
 
         if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 3)) {
@@ -47,6 +49,7 @@ class RegisteredUserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'is_admin' => true,
         ]);
 
         event(new Registered($user));

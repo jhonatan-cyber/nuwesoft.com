@@ -37,6 +37,8 @@ add-port.php
 cookies.txt
 curl/
 *.http
+/test-results/
+/playwright-report/
 
 # Freebuff tool cache
 .freebuff/

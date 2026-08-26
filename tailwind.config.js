@@ -60,6 +60,12 @@ export default {
                     DEFAULT: 'hsl(var(--card))',
                     foreground: 'hsl(var(--card-foreground))',
                 },
+                status: {
+                    success: 'hsl(var(--status-success))',
+                    warning: 'hsl(var(--status-warning))',
+                    danger: 'hsl(var(--status-danger))',
+                    info: 'hsl(var(--status-info))',
+                },
                 brand: {
                     black: '#0A0A0B',
                     surface: '#121214',

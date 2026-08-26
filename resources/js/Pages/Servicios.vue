@@ -1,163 +1,24 @@
 <script setup>
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { onMounted, ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { Head, Link } from '@inertiajs/vue3';
+import { ArrowRight } from 'lucide-vue-next';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
 import PublicGridBackground from '@/Components/PublicGridBackground.vue';
-import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
+import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import ServiceCard from '@/Components/ServiceCard.vue';
 import TechStackSection from '@/Components/TechStackSection.vue';
 import WorkflowSteps from '@/Components/WorkflowSteps.vue';
-import { ArrowRight } from 'lucide-vue-next';
-import { Button } from '@/Components/ui/button';
-import { Badge } from '@/Components/ui/badge';
-import { usePageTracking } from '@/composables/usePageTracking';
-import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
-import { useInView } from '@/composables/useInView'
+import { useServicesPage } from './useServicesPage';
 
-const { t } = useI18n();
-
-const page = usePage();
-const settings = computed(() => page.props.settings || {});
-const siteName = computed(() => settings.value.site_name || 'NUWESOFT');
-const pageTitle = computed(() => t('servicios.head_title').replace('NUWESOFT', siteName.value));
-const pageUrl = computed(() => window.location.href);
-const pageDesc = computed(() => t('servicios.subtitle'));
-
-const { skeletonReady } = useSkeletonLoader();
-
-const props = defineProps({
-    technologies: {
-        type: Array,
-        default: () => [],
-    },
+defineProps({
+    technologies: { type: Array, default: () => [] },
 });
 
-const { el: ctaRef, isVisible: ctaVisible } = useInView(0.1)
-const isVisible = ref(false);
-
-// ── JSON-LD Structured Data ──
-const serviciosJsonLd = computed(() => [
-    {
-        '@context': 'https://schema.org',
-        '@type': 'ProfessionalService',
-        'name': 'Software a Medida',
-        'description': 'Desarrollo de software fullstack a medida: backend, frontend, arquitectura y experiencia de usuario.',
-        'serviceType': 'Custom Software Development',
-        'provider': {
-            '@type': 'Organization',
-            'name': siteName.value,
-            'url': window.location.origin,
-        },
-        'areaServed': 'Global',
-        'url': window.location.href,
-    },
-    {
-        '@context': 'https://schema.org',
-        '@type': 'ProfessionalService',
-        'name': 'Cloud y DevOps',
-        'description': 'Infraestructura cloud, automatización de despliegues, CI/CD y observabilidad.',
-        'serviceType': 'Cloud Infrastructure & DevOps',
-        'provider': {
-            '@type': 'Organization',
-            'name': siteName.value,
-            'url': window.location.origin,
-        },
-        'areaServed': 'Global',
-        'url': window.location.href,
-    },
-    {
-        '@context': 'https://schema.org',
-        '@type': 'ProfessionalService',
-        'name': 'Automatización',
-        'description': 'Integraciones, flujos automáticos y eliminación de trabajo repetitivo.',
-        'serviceType': 'Business Process Automation',
-        'provider': {
-            '@type': 'Organization',
-            'name': siteName.value,
-            'url': window.location.origin,
-        },
-        'areaServed': 'Global',
-        'url': window.location.href,
-    },
-    {
-        '@context': 'https://schema.org',
-        '@type': 'ProfessionalService',
-        'name': 'Frontend Premium',
-        'description': 'Interfaces de alta calidad, accesibles y optimizadas para conversión.',
-        'serviceType': 'Frontend Development',
-        'provider': {
-            '@type': 'Organization',
-            'name': siteName.value,
-            'url': window.location.origin,
-        },
-        'areaServed': 'Global',
-        'url': window.location.href,
-    },
-]);
-
-const serviceStats = [
-    { value: 'END-TO-END', labelKey: 'servicios.stats.s1' },
-    { value: 'MULTISTACK', labelKey: 'servicios.stats.s2' },
-    { value: 'SHIP FAST', labelKey: 'servicios.stats.s3' },
-];
-
-const sectionDelay = (index, step = 120) => ({ transitionDelay: `${index * step}ms` });
-
-onMounted(() => {
-    isVisible.value = true;
-});
-
-const services = [
-    {
-        slug: 'software',
-        eyebrow: t('servicios.items.software.eyebrow'),
-        title: t('servicios.items.software.title'),
-        description: t('servicios.items.software.desc'),
-        bullets: [
-            t('servicios.items.software.b1'),
-            t('servicios.items.software.b2'),
-            t('servicios.items.software.b3'),
-        ],
-        color: 'bg-brutalist-pink',
-    },
-    {
-        slug: 'cloud',
-        eyebrow: t('servicios.items.cloud.eyebrow'),
-        title: t('servicios.items.cloud.title'),
-        description: t('servicios.items.cloud.desc'),
-        bullets: [
-            t('servicios.items.cloud.b1'),
-            t('servicios.items.cloud.b2'),
-            t('servicios.items.cloud.b3'),
-        ],
-        color: 'bg-brutalist-blue',
-    },
-    {
-        slug: 'automation',
-        eyebrow: t('servicios.items.automation.eyebrow'),
-        title: t('servicios.items.automation.title'),
-        description: t('servicios.items.automation.desc'),
-        bullets: [
-            t('servicios.items.automation.b1'),
-            t('servicios.items.automation.b2'),
-            t('servicios.items.automation.b3'),
-        ],
-        color: 'bg-brutalist-yellow',
-    },
-    {
-        slug: 'frontend',
-        eyebrow: t('servicios.items.frontend.eyebrow'),
-        title: t('servicios.items.frontend.title'),
-        description: t('servicios.items.frontend.desc'),
-        bullets: [
-            t('servicios.items.frontend.b1'),
-            t('servicios.items.frontend.b2'),
-            t('servicios.items.frontend.b3'),
-        ],
-        color: 'bg-brutalist-pink',
-    },
-];
+const {
+    t, pageTitle, pageUrl, pageDesc, skeletonReady, ctaRef, ctaVisible,
+    isVisible, serviciosJsonLd, serviceStats, sectionDelay, services,
+} = useServicesPage();
 </script>
 
 <template>

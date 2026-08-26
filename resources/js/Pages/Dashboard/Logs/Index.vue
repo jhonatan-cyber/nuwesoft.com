@@ -99,8 +99,8 @@ const refresh = () => {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <Card class="rounded-2xl border-neutral-200 dark:border-neutral-800 shadow-sm">
                         <CardHeader class="pb-2">
-                            <CardTitle class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
-                                <AlertTriangle class="w-3.5 h-3.5 text-rose-500" />
+                            <CardTitle class="text-xs font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
+                                <AlertTriangle class="w-3.5 h-3.5 text-status-danger" />
                                 TOTAL 404S
                             </CardTitle>
                         </CardHeader>
@@ -110,7 +110,7 @@ const refresh = () => {
                     </Card>
                     <Card class="rounded-2xl border-neutral-200 dark:border-neutral-800 shadow-sm">
                         <CardHeader class="pb-2">
-                            <CardTitle class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
+                            <CardTitle class="text-xs font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
                                 <Clock class="w-3.5 h-3.5 text-brutalist-blue" />
                                 HOY
                             </CardTitle>
@@ -121,7 +121,7 @@ const refresh = () => {
                     </Card>
                     <Card class="rounded-2xl border-neutral-200 dark:border-neutral-800 shadow-sm">
                         <CardHeader class="pb-2">
-                            <CardTitle class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
+                            <CardTitle class="text-xs font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-2">
                                 <Link class="w-3.5 h-3.5 text-brutalist-yellow" />
                                 URLS UNICAS
                             </CardTitle>
@@ -148,11 +148,11 @@ const refresh = () => {
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
-                                    <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">URL</th>
-                                    <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hidden md:table-cell">REFERER</th>
-                                    <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hidden lg:table-cell">IP</th>
-                                    <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hidden lg:table-cell">USER AGENT</th>
-                                    <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">FECHA</th>
+                                    <th class="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">URL</th>
+                                    <th class="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500 hidden md:table-cell">REFERER</th>
+                                    <th class="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500 hidden lg:table-cell">IP</th>
+                                    <th class="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500 hidden lg:table-cell">USER AGENT</th>
+                                    <th class="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">FECHA</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,8 +171,8 @@ const refresh = () => {
                                 >
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-2">
-                                            <Globe class="w-3.5 h-3.5 shrink-0 text-rose-400" />
-                                            <span class="font-mono text-xs text-rose-600 dark:text-rose-400 break-all max-w-[250px] inline-block">{{ log.url }}</span>
+                                            <Globe class="w-3.5 h-3.5 shrink-0 text-status-danger/70" />
+                                            <span class="inline-block max-w-[250px] break-all font-mono text-xs text-status-danger">{{ log.url }}</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 hidden md:table-cell">
@@ -185,7 +185,7 @@ const refresh = () => {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 hidden lg:table-cell">
-                                        <span class="text-[10px] text-neutral-400 max-w-[150px] inline-block truncate" :title="log.user_agent">{{ log.user_agent || '—' }}</span>
+                                        <span class="text-xs text-neutral-400 max-w-[150px] inline-block truncate" :title="log.user_agent">{{ log.user_agent || '—' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="text-xs text-neutral-500">{{ log.created_at }}</span>

@@ -1,7 +1,9 @@
 name: Deploy to VPS
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches:
       - main
 
@@ -11,10 +13,13 @@ env:
 jobs:
   deploy:
     name: Deploy to Production
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy to VPS via SSH
         id: deploy
@@ -34,9 +39,22 @@ jobs:
 
             # Backup database BEFORE pulling new code
             echo "Backing up database..."
-            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress 2>/dev/null || echo "WARNING: Backup failed, continuing deploy..."
-            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web ls -lh storage/app/backups/ 2>/dev/null | tail -1 | awk '{print $5}' || echo "unknown")
+            docker compose -f compose.prod.yaml exec -T web php artisan backup:database --compress || { echo "ERROR: Backup failed; deploy cancelled"; exit 1; }
+            LATEST_BACKUP=$(docker compose -f compose.prod.yaml exec -T web sh -lc "ls -1t storage/app/backups/backup_*.sql.gz | head -1")
+            docker compose -f compose.prod.yaml exec -T web sh -lc "test -s '$LATEST_BACKUP' && gzip -t '$LATEST_BACKUP'" || { echo "ERROR: Backup verification failed; deploy cancelled"; exit 1; }
+            BACKUP_SIZE=$(docker compose -f compose.prod.yaml exec -T web sh -lc "du -h '$LATEST_BACKUP' | cut -f1")
             echo "Backup size: $BACKUP_SIZE"
+
+            rollback_deploy() {
+              echo "Restoring database from $LATEST_BACKUP..."
+              docker compose -f compose.prod.yaml exec -T web php artisan backup:restore "$LATEST_BACKUP" --force || {
+                echo "CRITICAL: Database restore failed. Manual intervention required."
+                return 1
+              }
+              git checkout "$PREV_COMMIT"
+              docker compose -f compose.prod.yaml up -d --build --remove-orphans || return 1
+              docker compose -f compose.prod.yaml exec -T web php artisan optimize:clear || true
+            }
 
             # Pull latest changes
             echo "Pulling latest changes..."
@@ -50,7 +68,7 @@ jobs:
 
             # Run database migrations
             echo "Running database migrations..."
-            docker compose -f compose.prod.yaml exec -T web php artisan migrate --force || { echo "ERROR: Migration failed. Rolling back..."; git checkout $PREV_COMMIT; docker compose -f compose.prod.yaml up -d --build --remove-orphans; exit 1; }
+            docker compose -f compose.prod.yaml exec -T web php artisan migrate --force || { echo "ERROR: Migration failed. Rolling back..."; rollback_deploy; exit 1; }
 
             # Clear and rebuild caches
             echo "Optimizing application..."
@@ -69,8 +87,7 @@ jobs:
 
             if [ $RETRIES -eq 0 ]; then
               echo "ERROR: App failed healthcheck. Rolling back..."
-              git checkout $PREV_COMMIT
-              docker compose -f compose.prod.yaml up -d --build --remove-orphans
+              rollback_deploy || exit 1
               # Wait for rollback to be healthy
               ROLLBACK_RETRIES=12
               until [ $ROLLBACK_RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
@@ -108,7 +125,7 @@ jobs:
                 "color": 3066993,
                 "fields": [
                   {"name": "🌐 URL", "value": "https://nuwesoft.nuwesomme.cloud", "inline": false},
-                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "📋 Commit", "value": "${{ github.event.workflow_run.head_sha }}", "inline": false},
                   {"name": "💾 Backup", "value": "DB antes del deploy", "inline": true},
                   {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
                   {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true}
@@ -130,7 +147,7 @@ jobs:
                 "description": "El despliegue de Nuwesoft falló. Puede haberse ejecutado un rollback automático.",
                 "color": 15158332,
                 "fields": [
-                  {"name": "📋 Commit", "value": "${{ github.sha }}", "inline": false},
+                  {"name": "📋 Commit", "value": "${{ github.event.workflow_run.head_sha }}", "inline": false},
                   {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
                   {"name": "📦 Repo", "value": "${{ github.repository }}", "inline": true},
                   {"name": "🔗 Logs", "value": "[Ver logs del workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}

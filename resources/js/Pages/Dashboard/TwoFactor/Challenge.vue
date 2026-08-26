@@ -58,7 +58,7 @@ function submit() {
                             class="text-center text-3xl font-mono tracking-[0.5em] w-full py-6"
                             autofocus
                         />
-                        <p v-if="error" class="text-xs text-red-500 mt-3 text-center flex items-center justify-center gap-1">
+                        <p v-if="error" class="mt-3 flex items-center justify-center gap-1 text-center text-xs text-status-danger">
                             <AlertTriangle class="w-3 h-3" />
                             {{ error }}
                         </p>
@@ -75,7 +75,7 @@ function submit() {
                 </form>
 
                 <div class="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800 text-center">
-                    <p class="text-[10px] text-neutral-400 uppercase tracking-widest">
+                    <p class="text-xs text-neutral-400 uppercase tracking-widest">
                         ¿No tenés acceso a tu app? Usá un código de recuperación.
                     </p>
                 </div>
