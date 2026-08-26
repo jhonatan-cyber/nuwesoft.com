@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\StorageServiceInterface;
 use App\Models\Project;
+use App\Models\ProjectImage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -119,5 +121,109 @@ class ProjectTest extends TestCase
             ->assertJsonCount(2, 'authentication_fields')
             ->assertJsonPath('authentication_fields.0.type', 'email')
             ->assertJsonPath('authentication_fields.1.type', 'password');
+    }
+
+    public function test_authenticated_user_can_toggle_project_status(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create([
+            'name' => 'Toggle Project',
+            'category' => 'web',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('projects.status', $project->id), ['is_active' => false])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('projects', [
+            'id' => $project->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_deleting_project_removes_cloudinary_images_first(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create([
+            'name' => 'Delete Project',
+            'category' => 'web',
+            'is_active' => true,
+        ]);
+        $image = ProjectImage::create([
+            'project_id' => $project->id,
+            'image_url' => 'https://res.cloudinary.com/test/image/upload/project.jpg',
+            'public_id' => 'nuwesoft/projects/project',
+            'order_index' => 0,
+        ]);
+
+        $storage = $this->mock(StorageServiceInterface::class);
+        $storage->shouldReceive('delete')
+            ->once()
+            ->with('nuwesoft/projects/project');
+
+        $this->actingAs($user)
+            ->delete(route('projects.destroy', $project->id))
+            ->assertRedirect(route('projects.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseMissing('projects', ['id' => $project->id]);
+        $this->assertDatabaseMissing('project_images', ['id' => $image->id]);
+    }
+
+    public function test_project_is_preserved_when_cloudinary_delete_fails(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create([
+            'name' => 'Preserved Project',
+            'category' => 'web',
+            'is_active' => true,
+        ]);
+        $image = ProjectImage::create([
+            'project_id' => $project->id,
+            'image_url' => 'https://res.cloudinary.com/test/image/upload/project.jpg',
+            'public_id' => 'nuwesoft/projects/project',
+            'order_index' => 0,
+        ]);
+
+        $storage = $this->mock(StorageServiceInterface::class);
+        $storage->shouldReceive('delete')
+            ->once()
+            ->andThrow(new \RuntimeException('Cloudinary unavailable'));
+
+        $this->actingAs($user)
+            ->from(route('projects.index'))
+            ->delete(route('projects.destroy', $project->id))
+            ->assertRedirect(route('projects.index'))
+            ->assertSessionHasErrors('delete');
+
+        $this->assertDatabaseHas('projects', ['id' => $project->id]);
+        $this->assertDatabaseHas('project_images', ['id' => $image->id]);
+    }
+
+    public function test_partial_cloudinary_delete_does_not_leave_stale_image_rows(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create(['name' => 'Partial Delete', 'category' => 'web', 'is_active' => true]);
+        $first = ProjectImage::create([
+            'project_id' => $project->id, 'image_url' => 'https://example.com/first.jpg',
+            'public_id' => 'projects/first', 'order_index' => 0,
+        ]);
+        $second = ProjectImage::create([
+            'project_id' => $project->id, 'image_url' => 'https://example.com/second.jpg',
+            'public_id' => 'projects/second', 'order_index' => 1,
+        ]);
+
+        $storage = $this->mock(StorageServiceInterface::class);
+        $storage->shouldReceive('delete')->once()->with('projects/first');
+        $storage->shouldReceive('delete')->once()->with('projects/second')
+            ->andThrow(new \RuntimeException('Cloudinary unavailable'));
+
+        $this->actingAs($user)->from(route('projects.index'))
+            ->delete(route('projects.destroy', $project->id))->assertSessionHasErrors('delete');
+
+        $this->assertDatabaseHas('projects', ['id' => $project->id]);
+        $this->assertDatabaseMissing('project_images', ['id' => $first->id]);
+        $this->assertDatabaseHas('project_images', ['id' => $second->id]);
     }
 }

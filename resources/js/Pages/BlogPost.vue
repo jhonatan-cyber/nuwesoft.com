@@ -10,6 +10,7 @@ import PublicSiteFooter from '@/Components/PublicSiteFooter.vue'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
 import MarkdownPreview from '@/Components/MarkdownPreview.vue'
+import { safeJsonLd } from '@/utils/safeJsonLd'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -25,7 +26,7 @@ const props = defineProps({
     related: { type: Array, default: () => [] },
 })
 
-const articleJsonLd = computed(() => JSON.stringify({
+const articleJsonLd = computed(() => safeJsonLd({
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: props.post.title,

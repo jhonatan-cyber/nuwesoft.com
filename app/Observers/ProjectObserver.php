@@ -24,7 +24,7 @@ class ProjectObserver
      */
     public function updating(Project $project): void
     {
-        if ($project->isDirty('name') && ! $project->isDirty('slug')) {
+        if (empty($project->slug) || ($project->isDirty('name') && ! $project->isDirty('slug'))) {
             $project->slug = self::generateUniqueSlug($project->name, $project->id);
         }
     }

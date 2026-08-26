@@ -141,10 +141,10 @@ const confirmDelete = () => {
                     <h2 class="text-3xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
                         TESTIMONIOS
                     </h2>
-                    <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
+                    <p class="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
                         CLIENTES / FEEDBACK
                         <span v-if="pendingCount > 0"
-                            class="ml-2 inline-flex items-center justify-center w-5 h-5 text-[9px] font-black bg-brutalist-pink text-white rounded-full">
+                            class="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-black bg-brutalist-pink text-white rounded-full">
                             {{ pendingCount }}
                         </span>
                     </p>
@@ -186,7 +186,7 @@ const confirmDelete = () => {
                             <button v-for="filter in statusFilters" :key="filter.value"
                                 @click="filterByStatus(filter.value)"
                                 :class="[
-                                    'px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all',
+                                    'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all',
                                     currentStatus === filter.value
                                         ? 'bg-black dark:bg-white text-white dark:text-black'
                                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
@@ -205,7 +205,7 @@ const confirmDelete = () => {
                             <button v-for="filter in ratingFilters" :key="String(filter.value)"
                                 @click="filterByRating(filter.value)"
                                 :class="[
-                                    'px-2.5 py-1.5 text-[10px] font-bold tracking-wider rounded-lg transition-all flex items-center gap-1',
+                                    'px-2.5 py-1.5 text-xs font-bold tracking-wider rounded-lg transition-all flex items-center gap-1',
                                     (currentRating === null && filter.value === null) || Number(currentRating) === filter.value
                                         ? 'bg-brutalist-yellow text-black'
                                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
@@ -232,19 +232,19 @@ const confirmDelete = () => {
                                         class="w-4 h-4" />
                                 </span>
                                 <span v-if="item.status === 'pending'"
-                                    class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    class="rounded bg-status-warning/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-warning">
                                     PENDIENTE
                                 </span>
                                 <span v-else-if="item.status === 'approved'"
-                                    class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    class="rounded bg-status-success/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-success">
                                     APROBADO
                                 </span>
                                 <span v-else-if="item.status === 'rejected'"
-                                    class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    class="rounded bg-status-danger/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-danger">
                                     RECHAZADO
                                 </span>
                                 <span v-if="!item.is_active"
-                                    class="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-400 text-[9px] font-bold uppercase tracking-wider rounded">
+                                    class="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-400 text-xs font-bold uppercase tracking-wider rounded">
                                     INACTIVO
                                 </span>
                             </div>
@@ -259,12 +259,12 @@ const confirmDelete = () => {
                         </div>
                         <div class="flex items-center gap-2 ml-4">
                             <button v-if="item.status === 'pending'" @click="approveTestimonial(item.id)"
-                                class="p-2 border border-green-300 dark:border-green-700 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all text-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+                                class="rounded-xl border border-status-success/30 p-2 text-status-success transition-all hover:bg-status-success/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-2"
                                 title="Aprobar">
                                 <Check class="w-4 h-4" />
                             </button>
                             <button v-if="item.status === 'pending'" @click="rejectTestimonial(item.id)"
-                                class="p-2 border border-red-300 dark:border-red-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                                class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2"
                                 title="Rechazar">
                                 <Ban class="w-4 h-4" />
                             </button>
@@ -273,7 +273,7 @@ const confirmDelete = () => {
                                 <Edit class="w-4 h-4" />
                             </button>
                             <button @click="openDelete(item)"
-                                class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+                                class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2">
                                 <Trash2 class="w-4 h-4" />
                             </button>
                         </div>
@@ -285,7 +285,7 @@ const confirmDelete = () => {
                 class="bg-white dark:bg-black border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center">
                 <Quote class="w-12 h-12 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
                 <p class="text-lg font-bold uppercase tracking-tight text-neutral-400">NO HAY TESTIMONIOS</p>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mt-2">
+                <p class="text-xs font-bold uppercase tracking-widest text-neutral-400 mt-2">
                     Agregá el primer feedback de cliente
                 </p>
                 <button @click="openCreate"
@@ -306,43 +306,43 @@ const confirmDelete = () => {
                         <DialogTitle class="text-2xl font-black uppercase italic text-neutral-900 dark:text-white">
                             {{ editingTestimonial ? 'EDITAR TESTIMONIO' : 'NUEVO TESTIMONIO' }}
                         </DialogTitle>
-                        <DialogDescription class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                        <DialogDescription class="text-xs font-bold uppercase tracking-widest text-neutral-400">
                             {{ editingTestimonial ? 'Editá los datos del testimonio' : 'Agregá un nuevo testimonio de cliente' }}
                         </DialogDescription>
                     </DialogHeader>
 
                     <form @submit.prevent="submit" class="space-y-4">
                         <div>
-                            <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">CLIENTE</label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">CLIENTE</label>
                             <input v-model="form.client_name" required
                                 class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">ROL</label>
+                                <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">ROL</label>
                                 <input v-model="form.client_role"
                                     class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none" />
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">EMPRESA</label>
+                                <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">EMPRESA</label>
                                 <input v-model="form.client_company"
                                     class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none" />
                             </div>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">TEXTO</label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">TEXTO</label>
                             <textarea v-model="form.content" required rows="4"
                                 class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none resize-none"></textarea>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">RATING (1-5)</label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">RATING (1-5)</label>
                             <select v-model="form.rating"
                                 class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs">
                                 <option :value="i" v-for="i in 5" :key="i">{{ i }} estrella{{ i > 1 ? 's' : '' }}</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">ESTADO</label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">ESTADO</label>
                             <select v-model="form.status"
                                 class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs">
                                 <option value="pending">PENDIENTE</option>

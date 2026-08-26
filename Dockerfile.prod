@@ -1,7 +1,7 @@
 # ========================================================
 # STAGE 1: Descarga de Dependencias PHP (Composer Builder)
 # ========================================================
-FROM composer:2 AS composer-builder
+FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS composer-builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN composer install --no-dev --no-interaction --no-autoloader --no-scripts --ig
 # ========================================================
 # STAGE 2: Compilación de Assets Frontend (Vite Builder)
 # ========================================================
-FROM oven/bun:latest AS frontend-builder
+FROM oven/bun:latest@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6 AS frontend-builder
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ RUN bun run build
 # ========================================================
 # STAGE 3: Aplicación PHP + Nginx en Producción
 # ========================================================
-FROM webdevops/php-nginx:8.4-alpine
+FROM webdevops/php-nginx:8.4-alpine@sha256:f1f19fa820fae05fefe63d71a8df39644f5751969587addc876b33281536d423
 
 WORKDIR /var/www/html
 

@@ -28,6 +28,8 @@ const props = defineProps({
     confirmLabel: { type: String, default: '' },
     /** Cancel button label */
     cancelLabel: { type: String, default: '' },
+    /** Label shown while the confirmation request is running */
+    loadingLabel: { type: String, default: '' },
     /** Icon component to show (default: Trash2) */
     icon: { type: [Object, null], default: null },
     /** Color variant: 'danger' | 'warning' | 'info' */
@@ -56,19 +58,19 @@ const resolvedIcon = props.icon || Trash2;
 
 const variantClasses = {
     danger: {
-        iconBg: 'bg-red-50 dark:bg-red-500/10',
-        iconColor: 'text-red-500',
-        confirmBtn: 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20',
+        iconBg: 'bg-status-danger/10',
+        iconColor: 'text-status-danger',
+        confirmBtn: 'bg-status-danger hover:bg-status-danger/90 shadow-lg shadow-status-danger/20',
     },
     warning: {
-        iconBg: 'bg-amber-50 dark:bg-amber-500/10',
-        iconColor: 'text-amber-500',
-        confirmBtn: 'bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/20',
+        iconBg: 'bg-status-warning/10',
+        iconColor: 'text-status-warning',
+        confirmBtn: 'bg-status-warning hover:bg-status-warning/90 shadow-lg shadow-status-warning/20',
     },
     info: {
-        iconBg: 'bg-blue-50 dark:bg-blue-500/10',
-        iconColor: 'text-blue-500',
-        confirmBtn: 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20',
+        iconBg: 'bg-status-info/10',
+        iconColor: 'text-status-info',
+        confirmBtn: 'bg-status-info hover:bg-status-info/90 shadow-lg shadow-status-info/20',
     },
 };
 
@@ -96,7 +98,9 @@ const v = variantClasses[props.variant] || variantClasses.danger;
                 </Button>
                 <Button @click="handleConfirm" :disabled="loading"
                     :class="['rounded-xl text-white font-bold uppercase text-[10px] tracking-widest', v.confirmBtn]">
-                    <span v-if="loading" class="animate-pulse">{{ t('messages.actions.deleting') }}</span>
+                    <span v-if="loading" class="animate-pulse">
+                        {{ loadingLabel || t('messages.actions.deleting') }}
+                    </span>
                     <span v-else>{{ confirmLabel || t('actions.delete') }}</span>
                 </Button>
             </DialogFooter>

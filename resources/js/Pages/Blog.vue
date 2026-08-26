@@ -24,6 +24,7 @@ import {
     PaginationPrev,
 } from '@/Components/ui/pagination'
 import { ArrowRight, Calendar, User, Search, X } from 'lucide-vue-next'
+import { safeJsonLd } from '@/utils/safeJsonLd'
 
 const { t } = useI18n()
 const page = usePage()
@@ -146,7 +147,7 @@ const blogJsonLd = computed(() => {
             :key="idx"
             :is="'script'"
             type="application/ld+json"
-            v-html="JSON.stringify(schema)"
+            v-html="safeJsonLd(schema)"
         />
     </Teleport>
 

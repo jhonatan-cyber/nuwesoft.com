@@ -31,11 +31,13 @@ class Project extends Model
     protected $fillable = [
         'name', 'slug', 'category', 'desc',
         'icon', 'project_url', 'is_active',
+        'media_status', 'pending_uploads', 'media_error',
     ];
 
     protected $casts = [
         'category' => ProjectCategory::class,
         'is_active' => 'boolean',
+        'pending_uploads' => 'integer',
     ];
 
     public function setAttribute($key, $value): static
@@ -71,24 +73,30 @@ class Project extends Model
             ? $file->store('temp/uploads')
             : $file;
 
-        UploadToCloudinary::dispatch(
-            filePath: $path,
-            folder: 'projects',
-            modelType: 'project_image',
-            projectId: $this->id,
-            orderIndex: ($this->images()->max('order_index') ?? -1) + 1,
-        );
+        $this->increment('pending_uploads');
+        $this->update(['media_status' => 'pending', 'media_error' => null]);
+
+        try {
+            UploadToCloudinary::dispatch(
+                filePath: $path,
+                folder: 'projects',
+                modelType: 'project_image',
+                projectId: $this->id,
+                orderIndex: ($this->images()->max('order_index') ?? -1) + 1,
+            );
+        } catch (\Throwable $exception) {
+            $this->decrement('pending_uploads');
+            $this->update(['media_status' => 'failed', 'media_error' => $exception->getMessage()]);
+
+            throw $exception;
+        }
     }
 
     public function deleteImage(int $imageId): void
     {
         $image = $this->images()->find($imageId);
         if ($image && $image->public_id) {
-            try {
-                app(StorageServiceInterface::class)->delete($image->public_id);
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            app(StorageServiceInterface::class)->delete($image->public_id);
             $image->delete();
         }
     }
@@ -97,14 +105,13 @@ class Project extends Model
     {
         foreach ($this->images as $image) {
             if ($image->public_id) {
-                try {
-                    app(StorageServiceInterface::class)->delete($image->public_id);
-                } catch (\Throwable $e) {
-                    report($e);
-                }
+                app(StorageServiceInterface::class)->delete($image->public_id);
             }
+
+            // Commit each successful remote deletion locally. If a later deletion
+            // fails, no database row remains pointing to an already removed asset.
+            $image->delete();
         }
-        $this->images()->delete();
     }
 
     public function technologies(): BelongsToMany

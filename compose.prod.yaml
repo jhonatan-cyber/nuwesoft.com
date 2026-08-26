@@ -51,6 +51,8 @@ services:
         volumes:
             # Persistencia de los archivos subidos por los usuarios (uploads)
             - "storage_data:/var/www/html/storage/app/public"
+            # Los respaldos sobreviven a la recreación o reemplazo del contenedor web.
+            - "backups_data:/var/www/html/storage/app/backups"
         networks:
             - production-network
         healthcheck:
@@ -69,7 +71,7 @@ services:
     # Base de Datos PostgreSQL
     # ----------------------------------------------------
     pgsql:
-        image: "postgres:18-alpine"
+        image: "postgres:18.6-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
         restart: always
         # Expuesto SOLO en localhost del VPS (no público) para permitir túneles SSH de desarrollo.
         # Puerto host 15432: el 5432 nativo del VPS está ocupado.
@@ -96,7 +98,7 @@ services:
     # Servidor Redis (Caché, Colas y Sesiones)
     # ----------------------------------------------------
     redis:
-        image: "redis:alpine"
+        image: "redis:8.10.1-alpine@sha256:becdda6c7f4b3fb42e42fd7f120bbf5c54c4caaaf16f26da24e4563d2c1f0576"
         restart: always
         # NO se expone ningún puerto al host por seguridad (acceso solo interno)
         volumes:
@@ -119,4 +121,6 @@ volumes:
     redis_data:
         driver: local
     storage_data:
+        driver: local
+    backups_data:
         driver: local

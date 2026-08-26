@@ -14,6 +14,13 @@ class HealthController extends Controller
 {
     public function index(Request $request)
     {
+        if (! $request->user()?->is_admin) {
+            return response()->json([
+                'status' => 'healthy',
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        }
+
         $startTime = microtime(true);
 
         $health = [
@@ -46,17 +53,13 @@ class HealthController extends Controller
 
         $health['response_time_ms'] = round((microtime(true) - $startTime) * 1000, 2);
 
-        $isAuthenticated = $request->user() !== null;
-
-        if ($isAuthenticated) {
-            $health['metrics']['users_count'] = \App\Models\User::count();
-            $health['metrics']['total_projects'] = Project::count();
-            $health['metrics']['total_technologies'] = Technology::count();
-            $health['disk'] = [
-                'free' => $this->formatBytes(disk_free_space(storage_path())),
-                'total' => $this->formatBytes(disk_total_space(storage_path())),
-            ];
-        }
+        $health['metrics']['users_count'] = \App\Models\User::count();
+        $health['metrics']['total_projects'] = Project::count();
+        $health['metrics']['total_technologies'] = Technology::count();
+        $health['disk'] = [
+            'free' => $this->formatBytes(disk_free_space(storage_path())),
+            'total' => $this->formatBytes(disk_total_space(storage_path())),
+        ];
 
         return response()->json($health, 200, [
             'Content-Type' => 'application/json',

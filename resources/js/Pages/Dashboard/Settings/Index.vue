@@ -131,7 +131,7 @@ const socialFields = [
                     </h2>
                     <div class="flex items-center gap-3">
                         <div class="h-0.5 w-8 bg-black dark:bg-white rounded-full"></div>
-                        <p class="text-[10px] font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                        <p class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
                             {{ t('settings.subtitle') }}
                         </p>
                     </div>
@@ -179,7 +179,7 @@ const socialFields = [
                             <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
                                 {{ t('settings.sections.identity') }}
                             </CardTitle>
-                            <CardDescription class="text-[10px] font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
                                 {{ t('settings.sections.identity_desc') }}
                             </CardDescription>
                         </div>
@@ -208,7 +208,7 @@ const socialFields = [
                                     @change="handleLogoChange"
                                     class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs"
                                 />
-                                <p class="text-[9px] font-medium text-neutral-400 mt-1">{{ t('settings.hints.logo') }}</p>
+                                <p class="text-xs font-medium text-neutral-400 mt-1">{{ t('settings.hints.logo') }}</p>
                             </div>
                         </div>
                     </div>
@@ -221,7 +221,7 @@ const socialFields = [
                             v-model="form.site_name"
                             class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
                         />
-                        <p v-if="form.errors.site_name" class="text-xs text-rose-500">{{ form.errors.site_name }}</p>
+                        <p v-if="form.errors.site_name" class="text-xs text-status-danger">{{ form.errors.site_name }}</p>
                     </div>
 
                     <!-- Tagline -->
@@ -232,7 +232,7 @@ const socialFields = [
                             v-model="form.tagline"
                             class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
                         />
-                        <p v-if="form.errors.tagline" class="text-xs text-rose-500">{{ form.errors.tagline }}</p>
+                        <p v-if="form.errors.tagline" class="text-xs text-status-danger">{{ form.errors.tagline }}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -248,7 +248,7 @@ const socialFields = [
                             <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
                                 {{ t('settings.sections.contact') }}
                             </CardTitle>
-                            <CardDescription class="text-[10px] font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
                                 {{ t('settings.sections.contact_desc') }}
                             </CardDescription>
                         </div>
@@ -266,7 +266,7 @@ const socialFields = [
                             type="email"
                             class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
                         />
-                        <p v-if="form.errors.email" class="text-xs text-rose-500">{{ form.errors.email }}</p>
+                        <p v-if="form.errors.email" class="text-xs text-status-danger">{{ form.errors.email }}</p>
                     </div>
 
                     <!-- Phone -->
@@ -280,7 +280,7 @@ const socialFields = [
                             type="tel"
                             class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
                         />
-                        <p v-if="form.errors.phone" class="text-xs text-rose-500">{{ form.errors.phone }}</p>
+                        <p v-if="form.errors.phone" class="text-xs text-status-danger">{{ form.errors.phone }}</p>
                     </div>
 
                     <!-- Address -->
@@ -293,7 +293,7 @@ const socialFields = [
                             v-model="form.address"
                             class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
                         />
-                        <p v-if="form.errors.address" class="text-xs text-rose-500">{{ form.errors.address }}</p>
+                        <p v-if="form.errors.address" class="text-xs text-status-danger">{{ form.errors.address }}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -309,7 +309,7 @@ const socialFields = [
                             <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
                                 {{ t('settings.sections.social') }}
                             </CardTitle>
-                            <CardDescription class="text-[10px] font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
                                 {{ t('settings.sections.social_desc') }}
                             </CardDescription>
                         </div>

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
+import DOMPurify from 'dompurify'
 import 'highlight.js/styles/github-dark.css'
 
 const props = defineProps<{
@@ -33,7 +34,11 @@ marked.setOptions({
 const renderedHTML = computed(() => {
     if (!props.content) return '<p class="text-neutral-400 italic">Sin contenido aún...</p>'
     try {
-        return marked.parse(props.content) as string
+        return DOMPurify.sanitize(marked.parse(props.content) as string, {
+            USE_PROFILES: { html: true },
+            FORBID_TAGS: ['form', 'iframe', 'object', 'embed', 'style'],
+            FORBID_ATTR: ['style'],
+        })
     } catch (e) {
         return `<p class="text-red-500">Error al renderizar markdown</p>`
     }

@@ -78,7 +78,7 @@ function submit() {
 
                 <!-- Manual entry -->
                 <div class="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-4">
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">
+                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-2">
                         O ingresá el código manualmente:
                     </p>
                     <div class="flex items-center gap-3">
@@ -86,7 +86,7 @@ function submit() {
                             {{ secret }}
                         </code>
                         <Button variant="outline" size="sm" @click="copySecret" class="shrink-0">
-                            <Check v-if="copied" class="w-4 h-4 text-emerald-500" />
+                            <Check v-if="copied" class="w-4 h-4 text-status-success" />
                             <Copy v-else class="w-4 h-4" />
                         </Button>
                     </div>
@@ -111,7 +111,7 @@ function submit() {
                             class="text-center text-2xl font-mono tracking-[0.5em] w-48 mx-auto"
                             autofocus
                         />
-                        <p v-if="error" class="text-xs text-red-500 mt-2 text-center flex items-center justify-center gap-1">
+                        <p v-if="error" class="mt-2 flex items-center justify-center gap-1 text-center text-xs text-status-danger">
                             <AlertTriangle class="w-3 h-3" />
                             {{ error }}
                         </p>

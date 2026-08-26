@@ -181,7 +181,7 @@ const submit = () => {
                 <div class="space-y-2">
                     <Label for="name" class="dark:text-slate-200">{{ t('dashboard_panel.projects.fields.name') }}</Label>
                     <Input id="name" v-model="form.name" @blur="form.name = capitalizeWords(form.name)" required class="bg-white/50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 focus:border-blue-500 rounded-xl transition-colors" />
-                    <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
+                    <div v-if="form.errors.name" class="text-sm text-status-danger">{{ form.errors.name }}</div>
                 </div>
 
                 <div class="space-y-2">
@@ -192,7 +192,7 @@ const submit = () => {
                         <option value="cloud">Cloud / DevOps</option>
                         <option value="automation">Automatización</option>
                     </select>
-                    <div v-if="form.errors.category" class="text-sm text-red-500">{{ form.errors.category }}</div>
+                    <div v-if="form.errors.category" class="text-sm text-status-danger">{{ form.errors.category }}</div>
                 </div>
 
                 <div class="space-y-2">
@@ -205,12 +205,12 @@ const submit = () => {
                             Analizar
                         </Button>
                     </div>
-                    <div v-if="form.errors.project_url" class="text-sm text-red-500">{{ form.errors.project_url }}</div>
-                    <div v-if="needsCredentials" class="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
-                        <p class="flex items-center gap-2 text-xs font-semibold text-amber-800 dark:text-amber-300"><LockKeyhole class="h-4 w-4" /> Acceso temporal (las credenciales no se guardan)</p>
+                    <div v-if="form.errors.project_url" class="text-sm text-status-danger">{{ form.errors.project_url }}</div>
+                    <div v-if="needsCredentials" class="space-y-3 rounded-xl border border-status-warning/30 bg-status-warning/10 p-3">
+                        <p class="flex items-center gap-2 text-xs font-semibold text-status-warning"><LockKeyhole class="h-4 w-4" /> Acceso temporal (las credenciales no se guardan)</p>
                         <div v-if="authenticationFields.length" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div v-for="field in authenticationFields" :key="field.name" class="space-y-1">
-                                <Label :for="`auth-${field.name}`" class="text-xs text-amber-900 dark:text-amber-200">{{ field.label }}</Label>
+                                <Label :for="`auth-${field.name}`" class="text-xs text-status-warning">{{ field.label }}</Label>
                                 <Input
                                     :id="`auth-${field.name}`"
                                     v-model="authenticationValues[field.name]"
@@ -232,8 +232,8 @@ const submit = () => {
                             Continuar análisis
                         </Button>
                     </div>
-                    <p v-if="analyzerMessage" class="text-xs font-medium text-emerald-600 dark:text-emerald-400">{{ analyzerMessage }}</p>
-                    <div v-if="analyzerError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                    <p v-if="analyzerMessage" class="text-xs font-medium text-status-success">{{ analyzerMessage }}</p>
+                    <div v-if="analyzerError" role="alert" class="rounded-xl border border-status-danger/30 bg-status-danger/10 px-3 py-2 text-xs font-semibold text-status-danger">
                         {{ analyzerError }}
                     </div>
                 </div>
@@ -241,7 +241,7 @@ const submit = () => {
 
             <div class="space-y-4">
                 <div class="space-y-2">
-                    <Label class="dark:text-slate-200 uppercase text-[10px] font-bold tracking-widest text-slate-400">Stack Tecnológico (Selección)</Label>
+                    <Label class="dark:text-slate-200 uppercase text-xs font-bold tracking-widest text-slate-400">Stack Tecnológico (Selección)</Label>
                     <div class="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 custom-scrollbar">
                         <label v-for="tech in technologies" :key="tech.id" class="flex items-center gap-2 p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
                             <input 
@@ -252,7 +252,7 @@ const submit = () => {
                             />
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <img v-if="tech.logo_url" :src="tech.logo_url" :class="['w-4 h-4 object-contain opacity-70 group-hover:opacity-100', tech.invert_dark ? 'dark:invert dark:brightness-0 dark:invert' : '']" />
-                                <span class="text-[10px] font-bold uppercase tracking-tight text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white truncate">{{ tech.name }}</span>
+                                <span class="text-xs font-bold uppercase tracking-tight text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white truncate">{{ tech.name }}</span>
                             </div>
                         </label>
                     </div>
@@ -261,7 +261,7 @@ const submit = () => {
                 <div class="space-y-2">
                     <Label for="desc" class="dark:text-slate-200">{{ t('dashboard_panel.projects.fields.description') }}</Label>
                     <Textarea id="desc" v-model="form.desc" @blur="form.desc = capitalizeFirstLetter(form.desc)" rows="4" class="bg-white/50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 focus:border-blue-500 rounded-xl transition-colors" />
-                    <div v-if="form.errors.desc" class="text-sm text-red-500">{{ form.errors.desc }}</div>
+                    <div v-if="form.errors.desc" class="text-sm text-status-danger">{{ form.errors.desc }}</div>
                 </div>
 
                 <div class="flex items-center space-x-2 pt-4">
@@ -275,14 +275,14 @@ const submit = () => {
             <Label class="text-lg font-semibold flex items-center gap-2 dark:text-slate-100">
                 <ImageIcon class="w-5 h-5 text-blue-500" />
                 {{ t('dashboard_panel.projects.fields.images') }}
-                <span v-if="newImages.length" class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ newImages.length }} nuevas</span>
+                <span v-if="newImages.length" class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ newImages.length }} nuevas</span>
             </Label>
             
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <!-- Existing Images -->
                 <div v-for="image in existingImages" :key="image.id" class="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
                     <img :src="image.url" class="w-full h-full object-cover" />
-                    <button type="button" @click="removeExistingImage(image.id)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:opacity-100">
+                    <button type="button" @click="removeExistingImage(image.id)" class="absolute right-1 top-1 rounded-full bg-status-danger p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2">
                         <XCircle class="w-4 h-4" />
                     </button>
                 </div>
@@ -290,8 +290,8 @@ const submit = () => {
                 <!-- New Images Previews -->
                 <div v-for="(file, index) in newImages" :key="index" class="relative group aspect-video rounded-xl overflow-hidden border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-900/20">
                     <img :src="getPreviewUrl(file)" class="w-full h-full object-cover" />
-                    <span v-if="automaticCaptureNames.has(file.name)" class="absolute bottom-1.5 left-1.5 rounded-md bg-slate-950/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white backdrop-blur">Captura automática</span>
-                    <button type="button" @click="removeNewImage(index)" class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:opacity-100">
+                    <span v-if="automaticCaptureNames.has(file.name)" class="absolute bottom-1.5 left-1.5 rounded-md bg-slate-950/80 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white backdrop-blur">Captura automática</span>
+                    <button type="button" @click="removeNewImage(index)" class="absolute right-1 top-1 rounded-full bg-status-danger p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2">
                         <XCircle class="w-4 h-4" />
                     </button>
                 </div>

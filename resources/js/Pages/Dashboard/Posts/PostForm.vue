@@ -60,7 +60,7 @@ const removeTag = (tag) => {
                         <h2 class="text-3xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
                             {{ isEditing ? 'EDITAR POST' : 'NUEVO POST' }}
                         </h2>
-                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
+                        <p class="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
                             {{ isEditing ? 'ACTUALIZAR' : 'CREAR' }} CASO DE ESTUDIO / ARTÍCULO
                         </p>
                     </div>
@@ -78,17 +78,17 @@ const removeTag = (tag) => {
             <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-8 shadow-sm space-y-8">
                 <!-- Title -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">TÍTULO</label>
+                    <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">TÍTULO</label>
                     <input v-model="form.title"
                         class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 text-lg font-bold uppercase tracking-tight focus:border-black dark:focus:border-white focus:outline-none transition-colors"
                         placeholder="EJ. PLATAFORMA DE GESTIÓN LOGÍSTICA" />
-                    <p v-if="form.errors.title" class="text-[10px] font-bold text-red-500">{{ form.errors.title }}</p>
+                    <p v-if="form.errors.title" class="text-xs font-bold text-status-danger">{{ form.errors.title }}</p>
                 </div>
 
                 <!-- Category + Author -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">CATEGORÍA</label>
+                        <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">CATEGORÍA</label>
                         <select v-model="form.category"
                             class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs tracking-wider focus:border-black dark:focus:border-white focus:outline-none transition-colors">
                             <option value="case-study">CASO DE ESTUDIO</option>
@@ -98,7 +98,7 @@ const removeTag = (tag) => {
                         </select>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">AUTOR</label>
+                        <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">AUTOR</label>
                         <input v-model="form.author_name"
                             class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none transition-colors"
                             placeholder="NUWESOFT" />
@@ -107,7 +107,7 @@ const removeTag = (tag) => {
 
                 <!-- Excerpt -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">EXTRACTO</label>
+                    <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">EXTRACTO</label>
                     <textarea v-model="form.excerpt" rows="2"
                         class="w-full bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none transition-colors resize-none"
                         placeholder="BREVE DESCRIPCIÓN DEL ARTÍCULO..."></textarea>
@@ -116,14 +116,14 @@ const removeTag = (tag) => {
                 <!-- Content with Live Preview -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">CONTENIDO (MARKDOWN)</label>
+                        <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">CONTENIDO (MARKDOWN)</label>
                         <!-- Tab switcher -->
                         <div class="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 border border-neutral-200 dark:border-neutral-700">
                             <button
                                 type="button"
                                 @click="previewMode = false"
                                 :class="[
-                                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
+                                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
                                     !previewMode
                                         ? 'bg-white dark:bg-black text-black dark:text-white shadow-sm'
                                         : 'text-neutral-400 hover:text-black dark:hover:text-white'
@@ -136,7 +136,7 @@ const removeTag = (tag) => {
                                 type="button"
                                 @click="previewMode = true"
                                 :class="[
-                                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
+                                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
                                     previewMode
                                         ? 'bg-white dark:bg-black text-black dark:text-white shadow-sm'
                                         : 'text-neutral-400 hover:text-black dark:hover:text-white'
@@ -168,7 +168,7 @@ const removeTag = (tag) => {
 
                 <!-- Tags -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">TAGS</label>
+                    <label class="text-xs font-bold uppercase tracking-widest text-neutral-500">TAGS</label>
                     <div class="flex items-center gap-2">
                         <input v-model="tagInput" @keydown.enter.prevent="addTag"
                             class="flex-1 bg-transparent border-2 border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 font-bold uppercase text-xs focus:border-black dark:focus:border-white focus:outline-none transition-colors"
@@ -180,9 +180,9 @@ const removeTag = (tag) => {
                     </div>
                     <div class="flex flex-wrap gap-2 mt-2">
                         <span v-for="tag in form.tags" :key="tag"
-                            class="flex items-center gap-1 px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                            class="flex items-center gap-1 px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs font-bold uppercase tracking-wider">
                             {{ tag }}
-                            <button @click="removeTag(tag)" class="text-red-500 hover:text-red-700 ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 rounded">&times;</button>
+                            <button @click="removeTag(tag)" class="ml-1 rounded text-status-danger hover:text-status-danger/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2">&times;</button>
                         </span>
                     </div>
                 </div>

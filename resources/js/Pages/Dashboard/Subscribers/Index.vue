@@ -104,13 +104,13 @@ const formatDate = (dateStr) => {
                     <h2 class="text-3xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
                         SUSCRIPTORES
                     </h2>
-                    <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
+                    <p class="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
                         NEWSLETTER / {{ stats.active }} ACTIVOS
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button v-if="selectedIds.length" @click="bulkDelete"
-                        class="flex items-center gap-2 bg-red-500 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
+                        class="flex items-center gap-2 rounded-xl bg-status-danger px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-status-danger/90">
                         <Trash2 class="w-4 h-4" />
                         ELIMINAR ({{ selectedIds.length }})
                     </button>
@@ -129,22 +129,22 @@ const formatDate = (dateStr) => {
                 <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
                     <Users class="w-5 h-5 text-neutral-400 mb-2" />
                     <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ stats.total }}</p>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Total</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Total</p>
                 </div>
                 <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <UserCheck class="w-5 h-5 text-green-500 mb-2" />
-                    <p class="text-2xl font-black text-green-600">{{ stats.active }}</p>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Activos</p>
+                    <UserCheck class="mb-2 h-5 w-5 text-status-success" />
+                    <p class="text-2xl font-black text-status-success">{{ stats.active }}</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Activos</p>
                 </div>
                 <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <UserX class="w-5 h-5 text-red-400 mb-2" />
-                    <p class="text-2xl font-black text-red-500">{{ stats.unsubscribed }}</p>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Desuscriptos</p>
+                    <UserX class="mb-2 h-5 w-5 text-status-danger/70" />
+                    <p class="text-2xl font-black text-status-danger">{{ stats.unsubscribed }}</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Desuscriptos</p>
                 </div>
                 <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
                     <Calendar class="w-5 h-5 text-brutalist-yellow mb-2" />
                     <p class="text-2xl font-black text-brutalist-yellow">{{ stats.this_month }}</p>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Este mes</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Este mes</p>
                 </div>
             </div>
 
@@ -170,13 +170,13 @@ const formatDate = (dateStr) => {
                             <button v-for="filter in statusFilters" :key="filter.value"
                                 @click="filterByStatus(filter.value)"
                                 :class="[
-                                    'px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all',
+                                    'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all',
                                     currentStatus === filter.value
                                         ? 'bg-black dark:bg-white text-white dark:text-black'
                                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
                                 ]">
                                 {{ filter.label }}
-                                <span v-if="filter.value === 'active'" class="ml-1 text-green-500">({{ stats.active }})</span>
+                                <span v-if="filter.value === 'active'" class="ml-1 text-status-success">({{ stats.active }})</span>
                             </button>
                         </div>
 
@@ -198,7 +198,7 @@ const formatDate = (dateStr) => {
 
                     <!-- List -->
                     <div v-if="subscribers.data?.length" class="space-y-2">
-                        <div class="flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                        <div class="flex items-center gap-3 px-4 py-2 text-xs font-bold uppercase tracking-widest text-neutral-400">
                             <input type="checkbox" v-model="selectAll"
                                 class="w-4 h-4 border-2 border-neutral-300 rounded" />
                             <span class="w-10">#</span>
@@ -215,29 +215,29 @@ const formatDate = (dateStr) => {
                             <input type="checkbox" :checked="selectedIds.includes(item.id)"
                                 @change="toggleSelect(item.id)"
                                 class="w-4 h-4 border-2 border-neutral-300 rounded" />
-                            <span class="w-10 text-[10px] font-bold text-neutral-400">{{ item.id }}</span>
+                            <span class="w-10 text-xs font-bold text-neutral-400">{{ item.id }}</span>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-bold text-neutral-900 dark:text-white truncate">{{ item.email }}</p>
                             </div>
                             <span class="w-32 text-xs text-neutral-500 hidden md:block truncate">{{ item.name || '—' }}</span>
                             <span class="w-20 hidden md:block">
-                                <span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
+                                <span class="px-2 py-0.5 text-xs font-bold uppercase rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
                                     {{ item.source }}
                                 </span>
                             </span>
                             <span class="w-24 hidden md:block">
                                 <span v-if="item.status === 'active'"
-                                    class="px-2 py-0.5 text-[9px] font-bold uppercase rounded bg-green-100 dark:bg-green-900/30 text-green-600">
+                                    class="rounded bg-status-success/10 px-2 py-0.5 text-xs font-bold uppercase text-status-success">
                                     ACTIVO
                                 </span>
                                 <span v-else
-                                    class="px-2 py-0.5 text-[9px] font-bold uppercase rounded bg-red-100 dark:bg-red-900/30 text-red-500">
+                                    class="rounded bg-status-danger/10 px-2 py-0.5 text-xs font-bold uppercase text-status-danger">
                                     {{ item.status === 'unsubscribed' ? 'DESUSC.' : item.status.toUpperCase() }}
                                 </span>
                             </span>
-                            <span class="w-24 text-[10px] text-neutral-400 hidden md:block">{{ formatDate(item.subscribed_at || item.created_at) }}</span>
+                            <span class="w-24 text-xs text-neutral-400 hidden md:block">{{ formatDate(item.subscribed_at || item.created_at) }}</span>
                             <button @click="openDelete(item)"
-                                class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-500">
+                                class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10">
                                 <Trash2 class="w-4 h-4" />
                             </button>
                         </div>

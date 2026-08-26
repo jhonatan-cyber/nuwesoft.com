@@ -43,6 +43,7 @@ return [
 
     'browser_capture' => [
         'node_binary' => env('NODE_BINARY', 'node'),
+        'chrome_path' => env('CHROME_PATH'),
     ],
 
 ];
