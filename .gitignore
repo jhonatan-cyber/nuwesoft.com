@@ -3,6 +3,7 @@
 .env
 .env.testing
 .env.local
+.env.e2e
 .env.backup
 .env.production
 .phpactor.json
