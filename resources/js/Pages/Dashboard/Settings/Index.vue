@@ -4,8 +4,9 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { ref, h } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
+import SettingsSkeleton from '@/Components/SettingsSkeleton.vue';
+import SettingsSubmitButton from '@/Components/SettingsSubmitButton.vue';
 import {
-    Save,
     Globe,
     Mail,
     Phone,
@@ -19,7 +20,6 @@ import {
     Link as LinkIcon,
     X,
 } from 'lucide-vue-next';
-import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
@@ -144,42 +144,10 @@ const socialFields = [
         name="fade"
         mode="out-in"
       >
-        <!-- Skeleton -->
-        <div
+        <SettingsSkeleton
           v-if="!skeletonReady"
           key="skeleton"
-          class="space-y-8"
-        >
-          <div
-            v-for="i in 3"
-            :key="'card-' + i"
-            class="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden pointer-events-none select-none relative"
-          >
-            <div class="absolute inset-0 shimmer-sweep z-10" />
-            <div class="p-6 border-b border-neutral-100 dark:border-neutral-800">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl skeleton-bg shrink-0" />
-                <div class="space-y-2 flex-1">
-                  <div class="h-5 w-48 rounded skeleton-bg" />
-                  <div class="h-3 w-32 rounded skeleton-bg" />
-                </div>
-              </div>
-            </div>
-            <div class="p-6 space-y-5">
-              <div
-                v-for="j in 3"
-                :key="'field-' + j"
-                class="space-y-2"
-              >
-                <div class="h-3 w-24 rounded skeleton-bg" />
-                <div class="h-12 rounded-xl skeleton-bg" />
-              </div>
-            </div>
-          </div>
-          <div class="flex justify-end">
-            <div class="h-14 w-36 rounded-xl skeleton-bg" />
-          </div>
-        </div>
+        />
 
         <div
           v-else
@@ -410,22 +378,10 @@ const socialFields = [
             </CardContent>
           </Card>
 
-          <!-- Submit Button -->
-          <div class="flex justify-end pt-4">
-            <Button
-              :disabled="processing"
-              class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-10 py-6 shadow-lg font-bold uppercase text-xs tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
-              @click="submit"
-            >
-              <Save class="w-4 h-4 mr-2" />
-              <template v-if="processing">
-                <span class="animate-pulse">{{ t('settings.saving') }}</span>
-              </template>
-              <template v-else>
-                {{ t('settings.save') }}
-              </template>
-            </Button>
-          </div>
+          <SettingsSubmitButton
+            :processing="processing"
+            @submit="submit"
+          />
         </div>
       </Transition>
     </div>

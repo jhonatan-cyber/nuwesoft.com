@@ -3,14 +3,14 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
-import { usePostHog } from '@/composables/usePostHog';
 import { usePageTracking } from '@/composables/usePageTracking';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 
 usePageTracking();
 import LocalFeatureFlags from '@/Components/LocalFeatureFlags.vue';
+import DashboardPostHogPanel from '@/Components/DashboardPostHogPanel.vue';
+import DashboardActivityLog from '@/Components/DashboardActivityLog.vue';
 import {
-    Clock,
     ArrowRight,
     ExternalLink,
     Code,
@@ -19,26 +19,11 @@ import {
     MessageSquare,
     Server,
     Layers,
-    TrendingUp,
-    Users,
-    MousePointerClick,
-    Flag,
     FileText,
-    Mail,
-    Plus,
-    Pencil,
-    Trash2,
-    LogIn
+    Mail
 } from 'lucide-vue-next';
 
 const { t } = useI18n();
-
-const { allFlags } = usePostHog();
-const posthogConfigured = computed(() => !!import.meta.env.VITE_POSTHOG_KEY);
-const activeFlags = computed(() => {
-    const flags = allFlags();
-    return Object.entries(flags).filter(([, val]) => val).map(([key]) => key);
-});
 
 const { skeletonReady } = useSkeletonLoader();
 
@@ -218,168 +203,9 @@ const shortcuts = [
             </div>
           </div>
 
-          <!-- PostHog Analytics Widget -->
-          <div
-            v-if="posthogConfigured"
-            class="mb-8"
-          >
-            <div class="flex items-center gap-4 mb-6">
-              <TrendingUp class="w-5 h-5 text-neutral-500" />
-              <h3 class="text-xl font-display font-bold uppercase tracking-tight text-neutral-900 dark:text-white">
-                POSTHOG ANALYTICS
-              </h3>
-              <div class="flex-1 h-px bg-neutral-100 dark:bg-neutral-800" />
-            </div>
+          <DashboardPostHogPanel />
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-xl bg-brutalist-pink/10 flex items-center justify-center">
-                    <Flag class="w-4 h-4 text-brutalist-pink" />
-                  </div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">FEATURE FLAGS</span>
-                </div>
-                <p class="text-2xl font-display font-bold">
-                  {{ activeFlags.length }}
-                </p>
-                <p class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">
-                  Flags activos
-                </p>
-              </div>
-
-              <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-xl bg-brutalist-blue/10 flex items-center justify-center">
-                    <Users class="w-4 h-4 text-brutalist-blue" />
-                  </div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">AUTOCAPTURE</span>
-                </div>
-                <p class="text-2xl font-display font-bold">
-                  ACTIVE
-                </p>
-                <p class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">
-                  Eventos automáticos
-                </p>
-              </div>
-
-              <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-xl bg-brutalist-yellow/10 flex items-center justify-center">
-                    <TrendingUp class="w-4 h-4 text-brutalist-yellow" />
-                  </div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">PAGEVIEWS</span>
-                </div>
-                <p class="text-2xl font-display font-bold">
-                  AUTO
-                </p>
-                <p class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">
-                  Tracking via Inertia
-                </p>
-              </div>
-
-              <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <MousePointerClick class="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">EVENTOS KEY</span>
-                </div>
-                <p class="text-2xl font-display font-bold">
-                  5
-                </p>
-                <p class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">
-                  Eventos trackeados
-                </p>
-              </div>
-            </div>
-
-            <div
-              v-if="activeFlags.length > 0"
-              class="mt-4 p-4 bg-brutalist-yellow/5 border border-brutalist-yellow/20 rounded-2xl"
-            >
-              <div class="flex items-center gap-2 mb-2">
-                <Flag class="w-4 h-4 text-brutalist-yellow" />
-                <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-600 dark:text-neutral-400">FLAGS ACTIVOS</span>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="flag in activeFlags"
-                  :key="flag"
-                  class="px-3 py-1 bg-brutalist-yellow/20 border border-brutalist-yellow/40 text-[10px] font-bold uppercase tracking-wider rounded-lg text-brutalist-yellow-800 dark:text-brutalist-yellow-200"
-                >
-                  {{ flag }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- PostHog Not Configured -->
-          <div
-            v-else
-            class="mb-8"
-          >
-            <div class="flex items-center gap-4 mb-6">
-              <TrendingUp class="w-5 h-5 text-neutral-400" />
-              <h3 class="text-xl font-display font-bold uppercase tracking-tight text-neutral-500">
-                POSTHOG ANALYTICS
-              </h3>
-              <div class="flex-1 h-px bg-neutral-100 dark:bg-neutral-800" />
-            </div>
-            <div class="bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800 p-6 rounded-2xl">
-              <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
-                Configurá <code class="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded">POSTHOG_KEY</code> en tu <code class="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded">.env</code> para activar analytics.
-              </p>
-            </div>
-          </div>
-
-          <!-- Activity Log -->
-          <div v-if="activity_log.length > 0">
-            <div class="flex items-center gap-4 mb-6">
-              <Clock class="w-5 h-5 text-neutral-500" />
-              <h3 class="text-xl font-display font-bold uppercase tracking-tight text-neutral-900 dark:text-white">
-                ACTIVITY LOG
-              </h3>
-              <div class="flex-1 h-px bg-neutral-100 dark:bg-neutral-800" />
-            </div>
-            <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
-              <div
-                v-for="log in activity_log"
-                :key="log.id"
-                class="flex items-start gap-4 px-5 py-4 border-b border-neutral-50 dark:border-neutral-800 last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
-              >
-                <div
-                  :class="[
-                    'w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5',
-                    log.type === 'created' ? 'bg-emerald-500/10' :
-                    log.type === 'updated' ? 'bg-blue-500/10' :
-                    log.type === 'deleted' ? 'bg-red-500/10' : 'bg-neutral-100 dark:bg-neutral-800'
-                  ]"
-                >
-                  <component
-                    :is="
-                      log.type === 'created' ? Plus :
-                      log.type === 'updated' ? Pencil :
-                      log.type === 'deleted' ? Trash2 : LogIn
-                    "
-                    :class="[
-                      'w-4 h-4',
-                      log.type === 'created' ? 'text-emerald-500' :
-                      log.type === 'updated' ? 'text-blue-500' :
-                      log.type === 'deleted' ? 'text-red-500' : 'text-neutral-400'
-                    ]"
-                  />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                    {{ log.description }}
-                  </p>
-                  <p class="text-[10px] text-neutral-400 mt-1 font-mono">
-                    {{ new Date(log.created_at).toLocaleString('es-AR') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DashboardActivityLog :activity-log="activity_log" />
 
           <!-- Local Feature Flags Panel -->
           <div class="max-w-2xl">

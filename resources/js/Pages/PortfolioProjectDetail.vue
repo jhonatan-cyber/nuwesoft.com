@@ -7,12 +7,10 @@ import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
 import PortfolioProjectHero from '@/Components/PortfolioProjectHero.vue';
 import PortfolioProjectGallery from '@/Components/PortfolioProjectGallery.vue';
-import { Badge } from '@/Components/ui/badge';
+import PortfolioProjectInfo from '@/Components/PortfolioProjectInfo.vue';
 import { Button } from '@/Components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/Components/ui/dialog';
 import { useRekaCleanup } from '@/composables/useRekaCleanup';
-import { useInView } from '@/composables/useInView';
 import { useCspNonce } from '@/composables/useCspNonce';
 import {
     ArrowLeft,
@@ -21,10 +19,6 @@ import {
     ExternalLink
 } from 'lucide-vue-next';
 import BlurImage from '@/Components/BlurImage.vue'
-
-// The project is part of the initial Inertia response, so the detail content
-// can render immediately without a timer-driven transition gap.
-const skeletonReady = true;
 
 const props = defineProps({
     project: { type: Object, required: true },
@@ -57,8 +51,6 @@ const projectJsonLd = computed(() => ({
     },
     image: allImages.value.length > 0 ? allImages.value[0].image_url : undefined,
 }))
-const { el: contentRef, isVisible: contentVisible } = useInView(0.05);
-
 // ── Lightbox ──
 const lightboxOpen = ref(false);
 const lightboxIndex = ref(0);
@@ -178,177 +170,50 @@ const allImages = computed(() => {
       id="main-content"
       class="relative z-10 pt-32"
     >
-      <!-- ═══ Skeleton / Content Transition ═══ -->
-      <Transition
-        name="fade"
-        mode="out-in"
-      >
-        <div
-          v-if="!skeletonReady"
-          key="skeleton"
-          class="relative overflow-hidden px-6 pointer-events-none select-none"
-        >
-          <div class="max-w-[1400px] mx-auto relative z-10">
-            <!-- Back link skeleton -->
-            <div class="flex justify-end">
-              <div class="h-10 w-56 skeleton-bg border-2 border-black dark:border-white" />
-            </div>
+      <!-- ═══ Content ═══ -->
+      <div>
+        <PortfolioProjectHero
+          :project="project"
+          :all-images="allImages"
+        />
 
-            <div class="mt-8 grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-              <!-- Left: Image skeleton -->
-              <div>
-                <div class="relative border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white overflow-hidden">
-                  <div class="w-full h-[24rem] md:h-[32rem] skeleton-bg" />
-                  <!-- Image count badge skeleton -->
-                  <div class="absolute bottom-4 left-4 border-2 border-black bg-white/90 px-3 py-1.5">
-                    <div class="h-3 w-24 skeleton-bg" />
-                  </div>
-                </div>
+        <PortfolioProjectGallery
+          :project="project"
+          :all-images="allImages"
+          @open="openLightbox"
+        />
 
-                <!-- Thumbnail strip skeleton -->
-                <div class="mt-4 grid grid-cols-5 gap-3">
-                  <div
-                    v-for="j in 5"
-                    :key="'thumb-' + j"
-                    class="border-4 border-black/30 dark:border-white/30 h-20 skeleton-bg"
-                  />
-                </div>
-              </div>
+        <PortfolioProjectInfo
+          :project="project"
+          :images="allImages"
+        />
 
-              <!-- Right: Info skeleton -->
-              <div class="space-y-6">
-                <!-- Category badge -->
-                <div class="flex items-center gap-4">
-                  <div class="h-4 w-4 rotate-45 skeleton-bg border-2 border-black dark:border-white" />
-                  <div class="h-10 w-32 skeleton-bg border-4 border-black dark:border-white" />
-                  <div class="h-px flex-1 skeleton-bg" />
-                </div>
-
-                <!-- Title -->
-                <div class="space-y-3">
-                  <div class="h-16 w-full skeleton-bg" />
-                  <div class="h-16 w-3/4 skeleton-bg" />
-                  <div class="h-16 w-5/6 skeleton-bg" />
-                </div>
-
-                <!-- Description -->
-                <div class="space-y-2">
-                  <div class="h-5 w-full skeleton-bg" />
-                  <div class="h-5 w-5/6 skeleton-bg" />
-                  <div class="h-5 w-4/6 skeleton-bg" />
-                </div>
-
-                <!-- Tech Stack -->
-                <div class="pt-4">
-                  <div class="mb-4 h-3 w-24 skeleton-bg" />
-                  <div class="flex flex-wrap gap-3">
-                    <div
-                      v-for="j in 5"
-                      :key="'tech-' + j"
-                      class="h-11 w-16 skeleton-bg border-2 border-black dark:border-white"
-                    />
-                  </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex flex-wrap gap-4 pt-4">
-                  <div class="h-14 w-44 skeleton-bg border-4 border-black dark:border-white" />
-                  <div class="h-14 w-40 skeleton-bg border-4 border-black dark:border-white" />
-                </div>
-              </div>
+        <!-- ═══ CTA ═══ -->
+        <section class="relative border-y-8 border-black bg-black py-20 text-white dark:border-white dark:bg-white dark:text-black">
+          <div
+            class="absolute inset-0"
+            style="background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);"
+            aria-hidden="true"
+          />
+          <div class="max-w-[1400px] mx-auto px-6 relative z-10">
+            <div class="flex flex-col items-center text-center gap-8">
+              <span class="inline-flex h-5 w-5 rotate-45 border-2 border-white bg-brutalist-yellow dark:border-black" />
+              <h2 class="text-[clamp(2rem,4vw,3.5rem)] font-display font-black uppercase italic leading-[0.9]">
+                {{ t('portafolio.cta_title') || 'EXPLORA MAS PROYECTOS' }}
+              </h2>
+              <p class="text-lg font-black uppercase italic text-white/70 dark:text-black/70 max-w-lg">
+                {{ t('portafolio.cta_desc') || 'Cada proyecto cuenta una historia diferente. Volvé al portfolio y descubrí más trabajos.' }}
+              </p>
+              <Link :href="route('portafolio')">
+                <span class="inline-flex items-center gap-3 border-4 border-white bg-white px-10 py-4 text-sm font-black uppercase italic tracking-[0.2em] text-black transition-all hover:translate-x-[4px] hover:translate-y-[4px] dark:border-black dark:bg-black dark:text-white">
+                  {{ t('portafolio.back') || 'VOLVER AL PORTAFOLIO' }}
+                  <ArrowLeft class="w-5 h-5" />
+                </span>
+              </Link>
             </div>
           </div>
-
-          <div class="absolute inset-0 shimmer-sweep z-10" />
-        </div>
-
-        <div
-          v-else
-          key="content"
-        >
-          <PortfolioProjectHero
-            :project="project"
-            :all-images="allImages"
-          />
-
-          <PortfolioProjectGallery
-            :project="project"
-            :all-images="allImages"
-            @open="openLightbox"
-          />
-
-          <!-- ═══ More Info ═══ -->
-          <section
-            ref="contentRef"
-            class="px-6 py-24"
-          >
-            <div class="max-w-[1400px] mx-auto">
-              <div
-                :class="['grid gap-16 lg:grid-cols-2 transition-all duration-700', contentVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0']"
-              >
-                <div>
-                  <div class="mb-6 flex items-center gap-4">
-                    <span class="inline-flex h-4 w-4 rotate-45 border-2 border-black bg-brutalist-blue" />
-                    <span class="text-[11px] font-black uppercase tracking-[0.28em] opacity-50">{{ t('portafolio.project_overview') || 'DESCRIPCION' }}</span>
-                    <span class="h-px flex-1 bg-black/20 dark:bg-white/20" />
-                  </div>
-                  <p class="text-xl font-black uppercase italic leading-relaxed">
-                    {{ project.desc }}
-                  </p>
-                </div>
-                <div>
-                  <div class="mb-6 flex items-center gap-4">
-                    <span class="inline-flex h-4 w-4 rotate-45 border-2 border-black bg-brutalist-yellow" />
-                    <span class="text-[11px] font-black uppercase tracking-[0.28em] opacity-50">{{ t('portafolio.project_details') || 'DETALLES' }}</span>
-                    <span class="h-px flex-1 bg-black/20 dark:bg-white/20" />
-                  </div>
-                  <div class="space-y-4">
-                    <div class="flex items-center gap-4 border-2 border-black p-4">
-                      <span class="text-[10px] font-black uppercase tracking-[0.24em] opacity-50 w-24">{{ t('portafolio.category_label') || 'CATEGORIA' }}</span>
-                      <Badge class="border-2 border-black bg-white px-3 py-1 text-[10px] font-black uppercase dark:border-white dark:bg-zinc-900 dark:text-white">
-                        {{ project.category }}
-                      </Badge>
-                    </div>
-                    <div class="flex items-center gap-4 border-2 border-black p-4">
-                      <span class="text-[10px] font-black uppercase tracking-[0.24em] opacity-50 w-24">{{ t('portafolio.tech_count') || 'TECNOLOGIAS' }}</span>                                            <span class="text-sm font-black uppercase italic">{{ project.technologies?.length || 0 }}</span>
-                    </div>
-                    <div class="flex items-center gap-4 border-2 border-black p-4">
-                      <span class="text-[10px] font-black uppercase tracking-[0.24em] opacity-50 w-24">{{ t('portafolio.images_count') || 'IMAGENES' }}</span>
-                      <span class="text-sm font-black uppercase italic">{{ allImages.length }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- ═══ CTA ═══ -->
-          <section class="relative border-y-8 border-black bg-black py-20 text-white dark:border-white dark:bg-white dark:text-black">
-            <div
-              class="absolute inset-0"
-              style="background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);"
-              aria-hidden="true"
-            />
-            <div class="max-w-[1400px] mx-auto px-6 relative z-10">
-              <div class="flex flex-col items-center text-center gap-8">
-                <span class="inline-flex h-5 w-5 rotate-45 border-2 border-white bg-brutalist-yellow dark:border-black" />
-                <h2 class="text-[clamp(2rem,4vw,3.5rem)] font-display font-black uppercase italic leading-[0.9]">
-                  {{ t('portafolio.cta_title') || 'EXPLORA MAS PROYECTOS' }}
-                </h2>
-                <p class="text-lg font-black uppercase italic text-white/70 dark:text-black/70 max-w-lg">
-                  {{ t('portafolio.cta_desc') || 'Cada proyecto cuenta una historia diferente. Volvé al portfolio y descubrí más trabajos.' }}
-                </p>
-                <Link :href="route('portafolio')">
-                  <span class="inline-flex items-center gap-3 border-4 border-white bg-white px-10 py-4 text-sm font-black uppercase italic tracking-[0.2em] text-black transition-all hover:translate-x-[4px] hover:translate-y-[4px] dark:border-black dark:bg-black dark:text-white">
-                    {{ t('portafolio.back') || 'VOLVER AL PORTAFOLIO' }}
-                    <ArrowLeft class="w-5 h-5" />
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </section>
-        </div>
-      </Transition>
+        </section>
+      </div>
     </main>
 
     <PublicSiteFooter />
@@ -421,34 +286,6 @@ const allImages = computed(() => {
             <p class="sr-only">
               {{ project.desc }}
             </p>
-
-            <div class="hidden">
-              <TooltipProvider :delay-duration="0">
-                <Tooltip
-                  v-for="tech in project.technologies"
-                  :key="'lightbox-' + tech.id"
-                >
-                  <TooltipTrigger as-child>
-                    <span
-                      class="border-2 border-white/50 bg-transparent px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white flex items-center justify-center w-12 h-9"
-                    >
-                      <img
-                        v-if="tech.logo_url"
-                        :src="tech.logo_url"
-                        class="w-full h-full object-contain"
-                      >
-                      <span v-else>{{ tech.name }}</span>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    :side-offset="8"
-                  >
-                    {{ tech.name }}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
 
             <div
               v-if="allImages.length > 1"

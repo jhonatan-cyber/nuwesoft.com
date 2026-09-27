@@ -4,47 +4,22 @@ import { Head, useForm, router } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
-import { Star, Plus, Edit, Trash2, Quote, X, Check, Ban, Filter } from 'lucide-vue-next'
+import { useRekaCleanup } from '@/composables/useRekaCleanup'
+import { Plus, Quote, X } from 'lucide-vue-next'
 import ConfirmDialog from '@/Components/ConfirmDialog.vue'
+import TestimonialFilters from '@/Components/TestimonialFilters.vue'
+import TestimonialItemCard from '@/Components/TestimonialItemCard.vue'
 
 const { t } = useI18n()
 
 const { skeletonReady } = useSkeletonLoader()
 
-const props = defineProps({
+defineProps({
     testimonials: { type: Object, default: () => ({}) },
     pendingCount: { type: Number, default: 0 },
     currentStatus: { type: String, default: 'all' },
     currentRating: { type: [String, Number, null], default: null },
 })
-
-const ratingFilters = [
-    { value: null, label: 'TODAS' },
-    { value: 5, label: '5★' },
-    { value: 4, label: '4★' },
-    { value: 3, label: '3★' },
-    { value: 2, label: '2★' },
-    { value: 1, label: '1★' },
-]
-
-const filterByRating = (rating) => {
-    const params = { status: props.currentStatus }
-    if (rating !== null) params.rating = rating
-    router.get(route('testimonials.index', params), {}, { preserveState: true })
-}
-
-const filterByStatus = (status) => {
-    const params = { status }
-    if (props.currentRating !== null) params.rating = props.currentRating
-    router.get(route('testimonials.index', params), {}, { preserveState: true })
-}
-
-const statusFilters = [
-    { value: 'all', label: 'TODOS' },
-    { value: 'pending', label: 'PENDIENTES' },
-    { value: 'approved', label: 'APROBADOS' },
-    { value: 'rejected', label: 'RECHAZADOS' },
-]
 
 const approveTestimonial = (id) => {
     router.post(route('testimonials.approve', id))
@@ -199,148 +174,26 @@ const confirmDelete = () => {
           v-else
           key="content"
         >
-          <!-- Filters -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-            <!-- Status -->
-            <div class="flex items-center gap-2">
-              <Filter class="w-4 h-4 text-neutral-400 flex-shrink-0" />
-              <button
-                v-for="filter in statusFilters"
-                :key="filter.value"
-                :class="[
-                  'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all',
-                  currentStatus === filter.value
-                    ? 'bg-black dark:bg-white text-white dark:text-black'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
-                ]"
-                @click="filterByStatus(filter.value)"
-              >
-                {{ filter.label }}
-                <span
-                  v-if="filter.value === 'pending' && pendingCount > 0"
-                  class="ml-1 text-brutalist-pink"
-                >({{ pendingCount }})</span>
-              </button>
-            </div>
-
-            <span class="hidden sm:block w-px h-4 bg-neutral-200 dark:bg-neutral-700" />
-
-            <!-- Rating -->
-            <div class="flex items-center gap-1.5">
-              <Star class="w-4 h-4 text-neutral-400 flex-shrink-0" />
-              <button
-                v-for="filter in ratingFilters"
-                :key="String(filter.value)"
-                :class="[
-                  'px-2.5 py-1.5 text-xs font-bold tracking-wider rounded-lg transition-all flex items-center gap-1',
-                  (currentRating === null && filter.value === null) || Number(currentRating) === filter.value
-                    ? 'bg-brutalist-yellow text-black'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
-                ]"
-                @click="filterByRating(filter.value)"
-              >
-                <template v-if="filter.value !== null">
-                  <Star class="w-3 h-3 fill-current" />
-                </template>
-                {{ filter.label }}
-              </button>
-            </div>
-          </div>
+          <TestimonialFilters
+            :current-status="currentStatus"
+            :current-rating="currentRating"
+            :pending-count="pendingCount"
+          />
 
           <!-- List -->
           <div
             v-if="testimonials.data?.length"
             class="grid gap-4"
           >
-            <div
+            <TestimonialItemCard
               v-for="item in testimonials.data"
               :key="item.id"
-              class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all"
-            >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <Quote class="w-5 h-5 text-brutalist-pink" />
-                    <span class="flex items-center gap-0.5">
-                      <Star
-                        v-for="i in 5"
-                        :key="i"
-                        :class="i <= item.rating ? 'text-brutalist-yellow fill-brutalist-yellow' : 'text-neutral-300'"
-                        class="w-4 h-4"
-                      />
-                    </span>
-                    <span
-                      v-if="item.status === 'pending'"
-                      class="rounded bg-status-warning/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-warning"
-                    >
-                      PENDIENTE
-                    </span>
-                    <span
-                      v-else-if="item.status === 'approved'"
-                      class="rounded bg-status-success/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-success"
-                    >
-                      APROBADO
-                    </span>
-                    <span
-                      v-else-if="item.status === 'rejected'"
-                      class="rounded bg-status-danger/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-status-danger"
-                    >
-                      RECHAZADO
-                    </span>
-                    <span
-                      v-if="!item.is_active"
-                      class="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-400 text-xs font-bold uppercase tracking-wider rounded"
-                    >
-                      INACTIVO
-                    </span>
-                  </div>
-                  <p class="text-sm font-bold leading-relaxed text-neutral-700 dark:text-neutral-300 italic mb-3">
-                    "{{ item.content }}"
-                  </p>
-                  <div class="flex items-center gap-3 text-xs">
-                    <span class="font-bold uppercase text-neutral-900 dark:text-white">{{ item.client_name }}</span>
-                    <span
-                      v-if="item.client_role"
-                      class="text-neutral-400"
-                    >— {{ item.client_role }}</span>
-                    <span
-                      v-if="item.client_company"
-                      class="text-neutral-400"
-                    >{{ item.client_company }}</span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 ml-4">
-                  <button
-                    v-if="item.status === 'pending'"
-                    class="rounded-xl border border-status-success/30 p-2 text-status-success transition-all hover:bg-status-success/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-2"
-                    title="Aprobar"
-                    @click="approveTestimonial(item.id)"
-                  >
-                    <Check class="w-4 h-4" />
-                  </button>
-                  <button
-                    v-if="item.status === 'pending'"
-                    class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2"
-                    title="Rechazar"
-                    @click="rejectTestimonial(item.id)"
-                  >
-                    <Ban class="w-4 h-4" />
-                  </button>
-                  <button
-                    class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
-                    @click="openEdit(item)"
-                  >
-                    <Edit class="w-4 h-4" />
-                  </button>
-                  <button
-                    class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger focus-visible:ring-offset-2"
-                    @click="openDelete(item)"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              :item="item"
+              @approve="approveTestimonial"
+              @reject="rejectTestimonial"
+              @edit="openEdit"
+              @delete="openDelete"
+            />
           </div>
 
           <div
