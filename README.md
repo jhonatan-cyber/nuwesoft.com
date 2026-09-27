@@ -7,6 +7,7 @@ Sitio público y panel administrativo de Nuwesoft, construido con Laravel, Inert
 - Docker Desktop con Docker Compose.
 - Git y PowerShell 7 en Windows.
 - Node.js/npm y Bun para ejecutar herramientas frontend fuera del contenedor.
+- PHP 8.4 CLI local (opcional, para Pint/PHPUnit sin contenedor; ver abajo).
 - Acceso SSH al VPS solamente cuando se necesite consultar la base remota.
 
 Nunca confirmes `.env`, `.env.tunnel`, claves SSH ni credenciales de Cloudinary en Git.
@@ -81,6 +82,24 @@ bun audit
 ```
 
 El primer comando fuerza SQLite en memoria. No ejecutes la suite heredando las variables del túnel porque podría intentar conectarse a PostgreSQL remoto.
+
+### PHP local sin contenedor (Pint, PHPUnit, PHPStan)
+
+Hay un PHP 8.4 CLI portátil (la misma versión mayor que usa CI) en `D:\DEV\tools\php-8.4`, añadido al PATH de usuario. No requiere instalador ni admin. Si hay que reproducirlo en otra máquina:
+
+1. Descarga «PHP 8.4 NTS Win32 vs17 x64» de windows.php.net y descomprímelo en `D:\DEV\tools\php-8.4`.
+2. Copia el ini de referencia del proyecto: `cp .freebuff/php/php.ini D:\DEV\tools\php-8.4\php.ini` (extensiones `pdo_sqlite`, `mbstring`, `gd`, `intl`, etc.; ctype/dom/xml ya van embebidas en el binario).
+3. Añade la carpeta al PATH de usuario y abre una terminal nueva.
+
+Con `vendor/` ya instalado, `php` no necesita Composer para las herramientas: el check de plataforma de Composer solo exige ≥ 8.3.2. Los comandos equivalentes sin contenedor:
+
+```powershell
+php vendor/bin/pint --test                                   # estilo (lo mismo que el hook pre-commit)
+php artisan test --env=testing                               # suite completa
+php vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+```
+
+`php artisan test --env=testing` usa el `.env.testing` local (sqlite en memoria, cola sync, broadcast null); el archivo está en `.gitignore`, se genera con `cp .env.example .env.testing` ajustando `APP_ENV`/`DB_*` y requiere `php artisan key:generate --env=testing` la primera vez. Es necesario `.env.testing` porque Laravel carga `.env` en el proceso de `artisan test` y las variables del túnel ganarían a los `<env>` de `phpunit.xml`.
 
 `bun.lock` es el único lockfile de JavaScript: CI, `Makefile`, `dev.ps1` y `Dockerfile.prod` usan Bun, y `package-lock.json` está excluido del repositorio. Las versiones parcheadas de dependencias transitivas se fijan en `overrides` dentro de `package.json`.
 
