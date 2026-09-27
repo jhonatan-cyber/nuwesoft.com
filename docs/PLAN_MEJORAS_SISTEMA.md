@@ -1,6 +1,6 @@
 # Plan de mejoras y seguimiento del sistema
 
-Última actualización: 2026-08-26
+Última actualización: 2026-09-27
 
 ## Objetivo
 
@@ -13,6 +13,7 @@ Fortalecer la seguridad, confiabilidad operativa, rendimiento y experiencia de u
 - Build de producción: correcto.
 - JavaScript: sin vulnerabilidades conocidas.
 - PHP: sin alertas de seguridad conocidas (`composer audit`).
+- Content Security Policy: `script-src` y `style-src` exigen nonce por request y ya no admiten `'unsafe-inline'`; 5 pruebas PHPUnit y 17 pruebas E2E cubren la política.
 - Auditoría visual: 10/20; principales problemas en tamaños táctiles, microtexto y densidad.
 
 ## Tablero de seguimiento
@@ -25,6 +26,7 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 | SEG-02  | P0        | Agregar roles y autorización administrativa          | Completado | El dashboard requiere permiso administrativo, no solo autenticación.                                                     |
 | SEG-03  | P0        | Sanitizar Markdown y HTML del blog                   | Completado | Scripts, eventos HTML y protocolos inseguros no se guardan ni ejecutan.                                                  |
 | SEG-04  | P0        | Aislar el capturador contra SSRF                     | Completado | Chromium bloquea IP privadas, cambios de origen y protocolos no permitidos en cada request.                              |
+| SEG-05  | P1        | Exigir nonce en la CSP y podar hosts muertos         | Completado | `script-src`/`style-src` no admiten `'unsafe-inline'` y la allowlist de hosts de scripts queda fijada por pruebas.       |
 | DEP-01  | P0        | Actualizar Laravel, Symfony, Guzzle y CommonMark     | Completado | `composer audit` no reporta vulnerabilidades altas o medias aplicables.                                                  |
 | OPS-01  | P1        | Persistir y comprobar respaldos de PostgreSQL        | Completado | El backup queda fuera del contenedor, se valida y puede restaurarse.                                                     |
 | OPS-02  | P1        | Condicionar Deploy al éxito de CI                    | Completado | Producción solo se despliega después de pruebas, análisis y build exitosos.                                              |
@@ -35,6 +37,7 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 | API-01  | P1        | Reducir información pública de `/health`             | Completado | El endpoint público solo devuelve estado; métricas y errores requieren autorización.                                     |
 | QA-01   | P1        | Ejecutar Vitest y ESLint en CI                       | Completado | CI ejecuta pruebas frontend y lint además del build.                                                                     |
 | QA-02   | P1        | Añadir pruebas E2E de flujos críticos                | En curso   | Playwright cubre login, CRUD de proyectos, estado y eliminación.                                                         |
+| QA-03   | P1        | Pruebas automatizadas de la CSP                      | Completado | PHPUnit valida la cabecera y Playwright falla si algún script inline se bloquea en páginas públicas o del dashboard.      |
 | UX-01   | P2        | Aumentar objetivos táctiles a 44 px                  | Completado | Todas las acciones principales cumplen un mínimo de 44×44 px.                                                            |
 | UX-02   | P2        | Eliminar microtexto de 8–10 px                       | Completado | El texto operativo es legible y cumple contraste WCAG AA.                                                                |
 | UX-03   | P2        | Ajustar densidad y columnas del dashboard            | En curso   | Las tarjetas no se comprimen ni pierden acciones en ningún ancho.                                                        |
@@ -46,9 +49,9 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 
 ## Fases
 
-1. **Seguridad:** SEG-01 a SEG-04 y DEP-01.
+1. **Seguridad:** SEG-01 a SEG-05 y DEP-01.
 2. **Datos y despliegue:** OPS-01 a OPS-03, MED-01, MED-02 y API-01.
-3. **Calidad automatizada:** QA-01, QA-02 y MED-03.
+3. **Calidad automatizada:** QA-01, QA-02, QA-03 y MED-03.
 4. **UX y rendimiento:** UX-01 a UX-04, PERF-01 y PERF-02.
 5. **Operación:** OPS-04 y DOC-01; ensayar backup y rollback en staging.
 
@@ -92,6 +95,42 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 | 2026-08-26 | OPS-04/PERF-02 | Servidor local configurado con cuatro workers PHP y túnel SSH remoto restablecido                                                                                                     | `/login` y `/health` responden 200; las peticiones ya no quedan bloqueadas detrás del healthcheck                                                                                                                            | Codex       |
 | 2026-08-26 | QA-02/UX-03    | Ensayo E2E repetido en contenedor Linux y PostgreSQL temporal `e2e_codex`; corregida la creación del administrador verificado con `forceCreate` y ampliada la espera de autenticación | El montaje Docker/Windows devuelve autenticación web inválida aunque `Auth::attempt` dentro del mismo contenedor es correcto; entorno temporal eliminado. Pendiente runner Linux, bloqueado por credenciales GitHub vencidas | Codex       |
 | 2026-08-26 | DESIGN-01      | Contexto de producto y sistema visual documentados                                                                                                                                    | Dirección audaz, tecnológica, confiable y WCAG AA registrada en PRODUCT.md/DESIGN.md                                                                                                                                         | Codex       |
+| 2026-09-27 | SEG-05         | Nonce por request en `SecurityHeaders`, compartido a Blade, Vite e Inertia; `script-src` y `style-src` sin `'unsafe-inline'`, con `style-src-attr` para atributos de Vue              | 5 pruebas PHPUnit de cabecera y nonce; JSON-LD de las páginas Vue también nonced                                                                                                                                             | Codebuff    |
+| 2026-09-27 | QA-03          | Prueba E2E de CSP con trampa de `securitypolicyviolation` en 7 páginas públicas y 10 rutas del dashboard autenticado                                                                  | 17 pruebas; verificadas contra fixture local: política sana pasa, script bloqueado, cabecera legacy y CDN muerto en `script-src` fallan                                                                                      | Codebuff    |
+| 2026-09-27 | SEG-05         | Hosts de `script-src` reducidos a allowlist explícita; `cdn.jsdelivr.net` eliminado por muerto (solo servía imágenes) y fijado por pruebas                                            | `test_script_src_hosts_are_a_tight_allowlist` y asertión equivalente en E2E; beacon de Cloudflare y assets de PostHog conservados por estar en uso                                                                           | Codebuff    |
+
+## Cobertura de Content Security Policy
+
+### Política vigente
+
+Definida en `app/Http/Middleware/SecurityHeaders.php`, con nonce por request (`random_bytes`) que se comparte con Blade (`app.blade.php`), Vite (`Vite::useCspNonce`) e Inertia (`HandleInertiaRequests`):
+
+| Directivo | Valor y motivo |
+| --------- | -------------- |
+| `script-src` | `'self' 'nonce-…'` sin `'unsafe-inline'`; `'unsafe-eval'` solo en local; hosts permitidos: `static.cloudflareinsights.com` (beacon de Web Analytics) y `us-/eu-assets.i.posthog.com` (config y extensiones diferidas de PostHog). `cdn.jsdelivr.net` se eliminó: no carga ningún script. |
+| `style-src` | `'self' 'nonce-…'` más Google Fonts y jsdelivr; sin `'unsafe-inline'`. |
+| `style-src-attr` | `'unsafe-inline'` para los atributos `style="…"` que Vue aplica en plantillas estáticas. |
+| Resto | `img-src`, `font-src`, `connect-src`, `frame-src 'none'`, `object-src 'none'`, `base-uri` y `form-action` sin cambios. |
+
+### Pruebas PHPUnit
+
+`tests/Feature/SecurityHeadersTest.php` (5 pruebas, se ejecutan con el resto del backend en CI):
+
+1. `script-src` exige nonce y rechaza `'unsafe-inline'`.
+2. `style-src` rechaza `'unsafe-inline'` pero conserva `style-src-attr`.
+3. Los scripts inline de la respuesta llevan el mismo nonce de la política.
+4. Los hosts de `script-src` coinciden exactamente con la allowlist (falla si reaparece un CDN muerto o se quita un host en uso).
+5. Cabeceras complementarias: `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`.
+
+### Pruebas E2E (Playwright)
+
+`tests/e2e/csp.spec.ts` (17 pruebas, job `e2e` de CI contra `php artisan serve --env=testing`):
+
+- **7 páginas públicas:** `/`, `/servicios`, `/portafolio`, `/blog`, `/contacto`, `/privacidad`, `/terminos`.
+- **10 rutas autenticadas:** `/dashboard`, `/dashboard/projects`, `/dashboard/messages`, `/dashboard/posts`, `/dashboard/technologies`, `/dashboard/testimonials`, `/dashboard/subscribers`, `/dashboard/settings`, `/dashboard/logs` y `/profile`, con login en `beforeEach` (mismo administrador que `projects.spec.ts`).
+- **Por página se verifica:** cabecera presente con nonce y sin `'unsafe-inline'`, hosts dentro de la allowlist, Vue montado en `#app`, al menos un `script[nonce]`, y **cero violaciones** registradas por la trampa de `securitypolicyviolation` más los rechazos de consola. Un script inline bloqueado falla el test con el directivo y el recurso afectados.
+
+Ejecución: `php artisan test --filter=SecurityHeadersTest` y `bun run test:e2e`. La suite E2E se verificó contra un servidor fixture local en cuatro escenarios: política sana (pasa), script sin nonce (falla), cabecera antigua con `'unsafe-inline'` (falla) y CDN muerto en `script-src` (falla).
 
 ## Protección durante limpiezas
 

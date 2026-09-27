@@ -16,6 +16,9 @@ export default defineConfig({
     } : undefined,
     use: {
         baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:8000',
+        launchOptions: process.env.PLAYWRIGHT_EXECUTABLE_PATH
+            ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
+            : undefined,
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
     },
