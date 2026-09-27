@@ -21,14 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register Eloquent Observers
-        \App\Models\Project::observe(ProjectObserver::class);
-        \App\Models\Post::observe(PostObserver::class);
-        \App\Models\Technology::observe(TechnologyObserver::class);
-        \App\Models\ContactMessage::observe(ContactMessageObserver::class);
-        \App\Models\Testimonial::observe(TestimonialObserver::class);
-        \App\Models\ProjectImage::observe(ProjectImageObserver::class);
-
         $this->app->singleton(
             \App\Contracts\StorageServiceInterface::class,
             \App\Services\CloudinaryStorageService::class
@@ -63,6 +55,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Eloquent's event dispatcher is fully initialized during boot. Registering
+        // observers here also keeps them active in cached production containers.
+        \App\Models\Project::observe(ProjectObserver::class);
+        \App\Models\Post::observe(PostObserver::class);
+        \App\Models\Technology::observe(TechnologyObserver::class);
+        \App\Models\ContactMessage::observe(ContactMessageObserver::class);
+        \App\Models\Testimonial::observe(TestimonialObserver::class);
+        \App\Models\ProjectImage::observe(ProjectImageObserver::class);
+
         if (app()->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
