@@ -1,13 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
-import { useI18n } from 'vue-i18n'
+import { Head, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader'
 import { Users, UserCheck, UserX, Calendar, Search, Trash2, Download, X, Mail } from 'lucide-vue-next'
 import ConfirmDialog from '@/Components/ConfirmDialog.vue'
 
-const { t } = useI18n()
 const { skeletonReady } = useSkeletonLoader()
 
 const props = defineProps({
@@ -95,185 +93,265 @@ const formatDate = (dateStr) => {
 </script>
 
 <template>
-    <Head title="Suscriptores | Dashboard" />
+  <Head title="Suscriptores | Dashboard" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-3xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
-                        SUSCRIPTORES
-                    </h2>
-                    <p class="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
-                        NEWSLETTER / {{ stats.active }} ACTIVOS
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button v-if="selectedIds.length" @click="bulkDelete"
-                        class="flex items-center gap-2 rounded-xl bg-status-danger px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-status-danger/90">
-                        <Trash2 class="w-4 h-4" />
-                        ELIMINAR ({{ selectedIds.length }})
-                    </button>
-                    <button @click="exportCsv"
-                        class="flex items-center gap-2 border-2 border-neutral-200 dark:border-neutral-700 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black dark:hover:border-white transition-all">
-                        <Download class="w-4 h-4" />
-                        EXPORTAR CSV
-                    </button>
-                </div>
-            </div>
-        </template>
-
-        <div class="space-y-6">
-            <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <Users class="w-5 h-5 text-neutral-400 mb-2" />
-                    <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ stats.total }}</p>
-                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Total</p>
-                </div>
-                <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <UserCheck class="mb-2 h-5 w-5 text-status-success" />
-                    <p class="text-2xl font-black text-status-success">{{ stats.active }}</p>
-                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Activos</p>
-                </div>
-                <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <UserX class="mb-2 h-5 w-5 text-status-danger/70" />
-                    <p class="text-2xl font-black text-status-danger">{{ stats.unsubscribed }}</p>
-                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Desuscriptos</p>
-                </div>
-                <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <Calendar class="w-5 h-5 text-brutalist-yellow mb-2" />
-                    <p class="text-2xl font-black text-brutalist-yellow">{{ stats.this_month }}</p>
-                    <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">Este mes</p>
-                </div>
-            </div>
-
-            <Transition name="fade" mode="out-in">
-                <div v-if="!skeletonReady" key="skeleton" class="space-y-4">
-                    <div v-for="i in 5" :key="'skel-'+i"
-                        class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 overflow-hidden relative pointer-events-none select-none">
-                        <div class="absolute inset-0 shimmer-sweep z-10"></div>
-                        <div class="relative z-20 flex items-center gap-4">
-                            <div class="w-5 h-5 skeleton-bg rounded"></div>
-                            <div class="flex-1 space-y-2">
-                                <div class="h-4 w-48 skeleton-bg"></div>
-                                <div class="h-3 w-32 skeleton-bg"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else key="content">
-                    <!-- Filters + Search -->
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-                        <div class="flex items-center gap-2">
-                            <button v-for="filter in statusFilters" :key="filter.value"
-                                @click="filterByStatus(filter.value)"
-                                :class="[
-                                    'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all',
-                                    currentStatus === filter.value
-                                        ? 'bg-black dark:bg-white text-white dark:text-black'
-                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
-                                ]">
-                                {{ filter.label }}
-                                <span v-if="filter.value === 'active'" class="ml-1 text-status-success">({{ stats.active }})</span>
-                            </button>
-                        </div>
-
-                        <div class="flex-1"></div>
-
-                        <!-- Search -->
-                        <div class="relative">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                            <input v-model="searchQuery"
-                                @keyup.enter="search"
-                                placeholder="Buscar por email o nombre..."
-                                class="w-full sm:w-64 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-8 py-2 text-xs font-bold focus:border-black dark:focus:border-white focus:outline-none" />
-                            <button v-if="searchQuery" @click="clearSearch"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600">
-                                <X class="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- List -->
-                    <div v-if="subscribers.data?.length" class="space-y-2">
-                        <div class="flex items-center gap-3 px-4 py-2 text-xs font-bold uppercase tracking-widest text-neutral-400">
-                            <input type="checkbox" v-model="selectAll"
-                                class="w-4 h-4 border-2 border-neutral-300 rounded" />
-                            <span class="w-10">#</span>
-                            <span class="flex-1">EMAIL</span>
-                            <span class="w-32 hidden md:block">NOMBRE</span>
-                            <span class="w-20 hidden md:block">FUENTE</span>
-                            <span class="w-24 hidden md:block">ESTADO</span>
-                            <span class="w-24 hidden md:block">FECHA</span>
-                            <span class="w-10"></span>
-                        </div>
-
-                        <div v-for="item in subscribers.data" :key="item.id"
-                            class="flex items-center gap-3 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl px-4 py-3 hover:shadow-sm transition-all">
-                            <input type="checkbox" :checked="selectedIds.includes(item.id)"
-                                @change="toggleSelect(item.id)"
-                                class="w-4 h-4 border-2 border-neutral-300 rounded" />
-                            <span class="w-10 text-xs font-bold text-neutral-400">{{ item.id }}</span>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-bold text-neutral-900 dark:text-white truncate">{{ item.email }}</p>
-                            </div>
-                            <span class="w-32 text-xs text-neutral-500 hidden md:block truncate">{{ item.name || '—' }}</span>
-                            <span class="w-20 hidden md:block">
-                                <span class="px-2 py-0.5 text-xs font-bold uppercase rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
-                                    {{ item.source }}
-                                </span>
-                            </span>
-                            <span class="w-24 hidden md:block">
-                                <span v-if="item.status === 'active'"
-                                    class="rounded bg-status-success/10 px-2 py-0.5 text-xs font-bold uppercase text-status-success">
-                                    ACTIVO
-                                </span>
-                                <span v-else
-                                    class="rounded bg-status-danger/10 px-2 py-0.5 text-xs font-bold uppercase text-status-danger">
-                                    {{ item.status === 'unsubscribed' ? 'DESUSC.' : item.status.toUpperCase() }}
-                                </span>
-                            </span>
-                            <span class="w-24 text-xs text-neutral-400 hidden md:block">{{ formatDate(item.subscribed_at || item.created_at) }}</span>
-                            <button @click="openDelete(item)"
-                                class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10">
-                                <Trash2 class="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div v-else class="bg-white dark:bg-black border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center">
-                        <Mail class="w-12 h-12 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
-                        <p class="text-lg font-bold uppercase tracking-tight text-neutral-400">
-                            {{ searchQuery ? 'NO SE ENCONTRARON RESULTADOS' : 'NO HAY SUSCRIPTORES' }}
-                        </p>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div v-if="subscribers.last_page > 1" class="flex items-center justify-center gap-2 mt-8">
-                        <template v-for="link in subscribers.links" :key="link.label">
-                            <button v-if="link.url" @click="router.get(link.url, {}, { preserveState: true })"
-                                :class="[
-                                    'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
-                                    link.active
-                                        ? 'bg-black dark:bg-white text-white dark:text-black'
-                                        : 'border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-black dark:hover:border-white'
-                                ]" v-html="link.label">
-                            </button>
-                        </template>
-                    </div>
-                </div>
-            </Transition>
-
-            <ConfirmDialog
-                v-model:open="isDeleteOpen"
-                :description="'Eliminar a ' + (deleteTarget?.email || '') + '? Esta acción no se puede deshacer.'"
-                :loading="isDeleting"
-                @confirm="confirmDelete"
-            />
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-3xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
+            SUSCRIPTORES
+          </h2>
+          <p class="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-1">
+            NEWSLETTER / {{ stats.active }} ACTIVOS
+          </p>
         </div>
-    </AuthenticatedLayout>
+        <div class="flex items-center gap-2">
+          <button
+            v-if="selectedIds.length"
+            class="flex items-center gap-2 rounded-xl bg-status-danger px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-status-danger/90"
+            @click="bulkDelete"
+          >
+            <Trash2 class="w-4 h-4" />
+            ELIMINAR ({{ selectedIds.length }})
+          </button>
+          <button
+            class="flex items-center gap-2 border-2 border-neutral-200 dark:border-neutral-700 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black dark:hover:border-white transition-all"
+            @click="exportCsv"
+          >
+            <Download class="w-4 h-4" />
+            EXPORTAR CSV
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <div class="space-y-6">
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+          <Users class="w-5 h-5 text-neutral-400 mb-2" />
+          <p class="text-2xl font-black text-neutral-900 dark:text-white">
+            {{ stats.total }}
+          </p>
+          <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
+            Total
+          </p>
+        </div>
+        <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+          <UserCheck class="mb-2 h-5 w-5 text-status-success" />
+          <p class="text-2xl font-black text-status-success">
+            {{ stats.active }}
+          </p>
+          <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
+            Activos
+          </p>
+        </div>
+        <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+          <UserX class="mb-2 h-5 w-5 text-status-danger/70" />
+          <p class="text-2xl font-black text-status-danger">
+            {{ stats.unsubscribed }}
+          </p>
+          <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
+            Desuscriptos
+          </p>
+        </div>
+        <div class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+          <Calendar class="w-5 h-5 text-brutalist-yellow mb-2" />
+          <p class="text-2xl font-black text-brutalist-yellow">
+            {{ stats.this_month }}
+          </p>
+          <p class="text-xs font-bold uppercase tracking-widest text-neutral-400">
+            Este mes
+          </p>
+        </div>
+      </div>
+
+      <Transition
+        name="fade"
+        mode="out-in"
+      >
+        <div
+          v-if="!skeletonReady"
+          key="skeleton"
+          class="space-y-4"
+        >
+          <div
+            v-for="i in 5"
+            :key="'skel-'+i"
+            class="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 overflow-hidden relative pointer-events-none select-none"
+          >
+            <div class="absolute inset-0 shimmer-sweep z-10" />
+            <div class="relative z-20 flex items-center gap-4">
+              <div class="w-5 h-5 skeleton-bg rounded" />
+              <div class="flex-1 space-y-2">
+                <div class="h-4 w-48 skeleton-bg" />
+                <div class="h-3 w-32 skeleton-bg" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-else
+          key="content"
+        >
+          <!-- Filters + Search -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+            <div class="flex items-center gap-2">
+              <button
+                v-for="filter in statusFilters"
+                :key="filter.value"
+                :class="[
+                  'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all',
+                  currentStatus === filter.value
+                    ? 'bg-black dark:bg-white text-white dark:text-black'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                ]"
+                @click="filterByStatus(filter.value)"
+              >
+                {{ filter.label }}
+                <span
+                  v-if="filter.value === 'active'"
+                  class="ml-1 text-status-success"
+                >({{ stats.active }})</span>
+              </button>
+            </div>
+
+            <div class="flex-1" />
+
+            <!-- Search -->
+            <div class="relative">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                v-model="searchQuery"
+                placeholder="Buscar por email o nombre..."
+                class="w-full sm:w-64 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-8 py-2 text-xs font-bold focus:border-black dark:focus:border-white focus:outline-none"
+                @keyup.enter="search"
+              >
+              <button
+                v-if="searchQuery"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                @click="clearSearch"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- List -->
+          <div
+            v-if="subscribers.data?.length"
+            class="space-y-2"
+          >
+            <div class="flex items-center gap-3 px-4 py-2 text-xs font-bold uppercase tracking-widest text-neutral-400">
+              <input
+                v-model="selectAll"
+                type="checkbox"
+                class="w-4 h-4 border-2 border-neutral-300 rounded"
+              >
+              <span class="w-10">#</span>
+              <span class="flex-1">EMAIL</span>
+              <span class="w-32 hidden md:block">NOMBRE</span>
+              <span class="w-20 hidden md:block">FUENTE</span>
+              <span class="w-24 hidden md:block">ESTADO</span>
+              <span class="w-24 hidden md:block">FECHA</span>
+              <span class="w-10" />
+            </div>
+
+            <div
+              v-for="item in subscribers.data"
+              :key="item.id"
+              class="flex items-center gap-3 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl px-4 py-3 hover:shadow-sm transition-all"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedIds.includes(item.id)"
+                class="w-4 h-4 border-2 border-neutral-300 rounded"
+                @change="toggleSelect(item.id)"
+              >
+              <span class="w-10 text-xs font-bold text-neutral-400">{{ item.id }}</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                  {{ item.email }}
+                </p>
+              </div>
+              <span class="w-32 text-xs text-neutral-500 hidden md:block truncate">{{ item.name || '—' }}</span>
+              <span class="w-20 hidden md:block">
+                <span class="px-2 py-0.5 text-xs font-bold uppercase rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
+                  {{ item.source }}
+                </span>
+              </span>
+              <span class="w-24 hidden md:block">
+                <span
+                  v-if="item.status === 'active'"
+                  class="rounded bg-status-success/10 px-2 py-0.5 text-xs font-bold uppercase text-status-success"
+                >
+                  ACTIVO
+                </span>
+                <span
+                  v-else
+                  class="rounded bg-status-danger/10 px-2 py-0.5 text-xs font-bold uppercase text-status-danger"
+                >
+                  {{ item.status === 'unsubscribed' ? 'DESUSC.' : item.status.toUpperCase() }}
+                </span>
+              </span>
+              <span class="w-24 text-xs text-neutral-400 hidden md:block">{{ formatDate(item.subscribed_at || item.created_at) }}</span>
+              <button
+                class="rounded-xl border border-status-danger/30 p-2 text-status-danger transition-all hover:bg-status-danger/10"
+                @click="openDelete(item)"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="bg-white dark:bg-black border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center"
+          >
+            <Mail class="w-12 h-12 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
+            <p class="text-lg font-bold uppercase tracking-tight text-neutral-400">
+              {{ searchQuery ? 'NO SE ENCONTRARON RESULTADOS' : 'NO HAY SUSCRIPTORES' }}
+            </p>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            v-if="subscribers.last_page > 1"
+            class="flex items-center justify-center gap-2 mt-8"
+          >
+            <template
+              v-for="link in subscribers.links"
+              :key="link.label"
+            >
+              <!-- Label is generated server-side by Laravel's paginator (page number or arrow), never user input -->
+              <!-- eslint-disable vue/no-v-html -->
+              <button
+                v-if="link.url"
+                :class="[
+                  'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
+                  link.active
+                    ? 'bg-black dark:bg-white text-white dark:text-black'
+                    : 'border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-black dark:hover:border-white'
+                ]"
+                @click="router.get(link.url, {}, { preserveState: true })"
+                v-html="link.label"
+              />
+              <!-- eslint-enable vue/no-v-html -->
+            </template>
+          </div>
+        </div>
+      </Transition>
+
+      <ConfirmDialog
+        v-model:open="isDeleteOpen"
+        :description="'Eliminar a ' + (deleteTarget?.email || '') + '? Esta acción no se puede deshacer.'"
+        :loading="isDeleting"
+        @confirm="confirmDelete"
+      />
+    </div>
+  </AuthenticatedLayout>
 </template>
 
 <style>

@@ -12,5 +12,5 @@ const show = computed(() => isFeatureEnabled(props.flag) ?? props.fallback);
 </script>
 
 <template>
-    <slot v-if="show" />
+  <slot v-if="show" />
 </template>

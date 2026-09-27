@@ -4,8 +4,8 @@ import {
   useForwardPropsEmits,
 } from 'radix-vue'
 
-const props = defineProps()
-const emits = defineEmits()
+const props = defineProps({})
+const emits = defineEmits({})
 
 const forwarded = useForwardPropsEmits(props, emits)
 </script>

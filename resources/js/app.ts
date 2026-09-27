@@ -14,6 +14,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Declare global window properties
 declare global {
+    // eslint-disable-next-line no-unused-vars -- interface augmentation: TypeScript merges it with the global Window type
     interface Window {
         __nuwesoft_navStart?: number;
         Echo?: any;
@@ -86,6 +87,7 @@ createInertiaApp({
         if (window.Echo) {
             window.Echo.channel('public-updates')
                 .listen('.entity.updated', (event: any) => {
+                    // eslint-disable-next-line no-console -- diagnostics for the realtime reload channel
                     console.log('Real-time sync event received:', event);
                     router.reload();
                 });

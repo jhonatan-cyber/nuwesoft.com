@@ -32,7 +32,21 @@ export default [
             'no-debugger': 'warn',
             'prefer-const': 'error',
             'no-var': 'error',
-            'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+            // `_name` marks intentionally unused values (destructuring rest, type-only signatures).
+            'no-unused-vars': ['warn', {
+                args: 'all',
+                argsIgnorePattern: '^_',
+                varsIgnorePattern: '^_',
+                caughtErrorsIgnorePattern: '^_',
+                ignoreRestSiblings: true,
+            }],
+        },
+    },
+    {
+        // Declaration files only declare types: the core rule cannot see type usage.
+        files: ['resources/js/**/*.d.ts'],
+        rules: {
+            'no-unused-vars': 'off',
         },
     },
     {

@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { Trash2, AlertTriangle, Info } from 'lucide-vue-next';
+import { Trash2 } from 'lucide-vue-next';
 import {
     Dialog,
     DialogContent,
@@ -78,32 +78,44 @@ const v = variantClasses[props.variant] || variantClasses.danger;
 </script>
 
 <template>
-    <Dialog v-model:open="internalOpen">
-        <DialogContent class="sm:max-w-[420px] !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl p-8 dashboard-dialog-enter">
-            <DialogHeader>
-                <div :class="['mx-auto flex h-14 w-14 items-center justify-center rounded-2xl mb-4', v.iconBg]">
-                    <component :is="resolvedIcon" :class="['h-7 w-7', v.iconColor]" />
-                </div>
-                <DialogTitle class="text-xl font-black uppercase text-center tracking-tight text-neutral-900 dark:text-white">
-                    {{ title || t('actions.confirm_delete') }}
-                </DialogTitle>
-                <DialogDescription class="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-2">
-                    {{ description }}
-                </DialogDescription>
-            </DialogHeader>
-            <DialogFooter class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-center pt-4">
-                <Button variant="outline" @click="handleClose"
-                    class="rounded-xl border-neutral-200 dark:border-neutral-700 font-bold text-xs uppercase tracking-widest">
-                    {{ cancelLabel || t('actions.cancel') }}
-                </Button>
-                <Button @click="handleConfirm" :disabled="loading"
-                    :class="['rounded-xl text-white font-bold uppercase text-[10px] tracking-widest', v.confirmBtn]">
-                    <span v-if="loading" class="animate-pulse">
-                        {{ loadingLabel || t('messages.actions.deleting') }}
-                    </span>
-                    <span v-else>{{ confirmLabel || t('actions.delete') }}</span>
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
+  <Dialog v-model:open="internalOpen">
+    <DialogContent class="sm:max-w-[420px] !rounded-[2rem] border border-neutral-200 dark:border-neutral-800 !bg-white dark:!bg-black shadow-2xl p-8 dashboard-dialog-enter">
+      <DialogHeader>
+        <div :class="['mx-auto flex h-14 w-14 items-center justify-center rounded-2xl mb-4', v.iconBg]">
+          <component
+            :is="resolvedIcon"
+            :class="['h-7 w-7', v.iconColor]"
+          />
+        </div>
+        <DialogTitle class="text-xl font-black uppercase text-center tracking-tight text-neutral-900 dark:text-white">
+          {{ title || t('actions.confirm_delete') }}
+        </DialogTitle>
+        <DialogDescription class="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-2">
+          {{ description }}
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-center pt-4">
+        <Button
+          variant="outline"
+          class="rounded-xl border-neutral-200 dark:border-neutral-700 font-bold text-xs uppercase tracking-widest"
+          @click="handleClose"
+        >
+          {{ cancelLabel || t('actions.cancel') }}
+        </Button>
+        <Button
+          :disabled="loading"
+          :class="['rounded-xl text-white font-bold uppercase text-[10px] tracking-widest', v.confirmBtn]"
+          @click="handleConfirm"
+        >
+          <span
+            v-if="loading"
+            class="animate-pulse"
+          >
+            {{ loadingLabel || t('messages.actions.deleting') }}
+          </span>
+          <span v-else>{{ confirmLabel || t('actions.delete') }}</span>
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

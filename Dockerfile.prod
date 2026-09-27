@@ -35,14 +35,27 @@ COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN bun run build
 
 # ========================================================
-# STAGE 3: Aplicación PHP + Nginx en Producción
+# STAGE 3: Dependencias Node de Producción (Crawlee + Playwright Core)
+# ========================================================
+FROM oven/bun:latest@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6 AS node-deps
+
+WORKDIR /app
+
+# Mismos artefactos que el builder de frontend: un único lockfile (bun.lock)
+COPY package.json bun.lock ./
+
+# Solo dependencias de producción, sin scripts de instalación
+RUN bun install --production --frozen-lockfile --ignore-scripts
+
+# ========================================================
+# STAGE 4: Aplicación PHP + Nginx en Producción
 # ========================================================
 FROM webdevops/php-nginx:8.4-alpine@sha256:f1f19fa820fae05fefe63d71a8df39644f5751969587addc876b33281536d423
 
 WORKDIR /var/www/html
 
-# Navegador aislado para el analizador de proyectos protegidos.
-RUN apk add --no-cache nodejs npm chromium nss freetype harfbuzz ca-certificates ttf-freefont
+# Navegador aislado para el analizador de proyectos protegidos (node en tiempo de ejecución, sin npm).
+RUN apk add --no-cache nodejs chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql-client
 
 # Configuración de variables de entorno de la imagen webdevops
 ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
@@ -54,8 +67,9 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
 # Copiar todo el código de la aplicación Laravel con el dueño correcto
 COPY --chown=application:application . .
 
-# Solo dependencias Node de producción (Playwright Core + Crawlee, sin descargar otro navegador).
-RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts
+# Solo dependencias Node de producción (Playwright Core + Crawlee, sin descargar otro navegador),
+# instaladas con el único lockfile del proyecto y sin scripts de post-instalación.
+COPY --from=node-deps --chown=application:application /app/node_modules ./node_modules
 
 # Copiar dependencias de Composer ya descargadas en el Stage 1 con el dueño correcto
 COPY --from=composer-builder --chown=application:application /app/vendor ./vendor

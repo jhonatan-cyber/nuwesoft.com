@@ -77,9 +77,14 @@ docker compose exec laravel.test vendor/bin/phpstan analyse --no-progress --memo
 bun run test
 bun run lint
 bun run build
+bun audit
 ```
 
 El primer comando fuerza SQLite en memoria. No ejecutes la suite heredando las variables del túnel porque podría intentar conectarse a PostgreSQL remoto.
+
+`bun.lock` es el único lockfile de JavaScript: CI, `Makefile`, `dev.ps1` y `Dockerfile.prod` usan Bun, y `package-lock.json` está excluido del repositorio. Las versiones parcheadas de dependencias transitivas se fijan en `overrides` dentro de `package.json`.
+
+Estado de `bun audit`: una única excepción conocida, `stream-json@1.9.1` (dependencia de `@crawlee/core`, sin versión 1.x corregida y con la 3.x incompatible con su ruta de importación). No es alcanzable desde el navegador y solo se usa para leer JSON de almacenamiento local generado por el propio crawlee.
 
 Las pruebas E2E están en `tests/e2e`. El flujo CI crea una base PostgreSQL vacía, un administrador temporal y ejecuta Playwright sin conectarse a producción.
 

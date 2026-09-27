@@ -44,50 +44,50 @@ const toggleTheme = (newTheme) => {
 </script>
 
 <template>
-    <div class="flex items-center p-1 bg-white dark:bg-black border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white">
-        <button 
-            @click="toggleTheme('light')"
-            :class="[
-                'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
-                theme === 'light' 
-                    ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                    : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
-            ]"
-            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
-            aria-label="Modo Claro"
-            title="Modo Claro"
-        >
-            <Sun class="w-4 h-4" />
-        </button>
+  <div class="flex items-center p-1 bg-white dark:bg-black border-4 border-black dark:border-white shadow-brutalist dark:shadow-brutalist-white">
+    <button 
+      :class="[
+        'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
+        theme === 'light' 
+          ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+          : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
+      ]"
+      class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+      aria-label="Modo Claro"
+      title="Modo Claro"
+      @click="toggleTheme('light')"
+    >
+      <Sun class="w-4 h-4" />
+    </button>
         
-        <button 
-            @click="toggleTheme('dark')"
-            :class="[
-                'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
-                theme === 'dark' 
-                    ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                    : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
-            ]"
-            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
-            aria-label="Modo Oscuro"
-            title="Modo Oscuro"
-        >
-            <Moon class="w-4 h-4" />
-        </button>
+    <button 
+      :class="[
+        'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
+        theme === 'dark' 
+          ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+          : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
+      ]"
+      class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+      aria-label="Modo Oscuro"
+      title="Modo Oscuro"
+      @click="toggleTheme('dark')"
+    >
+      <Moon class="w-4 h-4" />
+    </button>
         
-        <button 
-            @click="toggleTheme('system')"
-            :class="[
-                'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
-                theme === 'system' 
-                    ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                    : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
-            ]"
-            class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
-            aria-label="Sistema"
-            title="Sistema"
-        >
-            <Monitor class="w-4 h-4" />
-        </button>
-    </div>
+    <button 
+      :class="[
+        'p-1.5 transition-all duration-200 flex items-center justify-center border-2',
+        theme === 'system' 
+          ? 'bg-brutalist-yellow text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+          : 'text-black dark:text-white border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800'
+      ]"
+      class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+      aria-label="Sistema"
+      title="Sistema"
+      @click="toggleTheme('system')"
+    >
+      <Monitor class="w-4 h-4" />
+    </button>
+  </div>
 </template>

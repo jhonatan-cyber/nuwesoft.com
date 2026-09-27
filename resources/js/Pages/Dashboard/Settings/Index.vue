@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { ref, computed, h } from 'vue';
+import { ref, h } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import {
     Save,
@@ -120,240 +120,316 @@ const socialFields = [
 </script>
 
 <template>
-    <Head :title="t('settings.title')" />
+  <Head :title="t('settings.title')" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div class="space-y-1">
-                    <h2 class="text-3xl md:text-4xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
-                        {{ t('settings.title') }}
-                    </h2>
-                    <div class="flex items-center gap-3">
-                        <div class="h-0.5 w-8 bg-black dark:bg-white rounded-full"></div>
-                        <p class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
-                            {{ t('settings.subtitle') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-4xl mx-auto space-y-8 pb-12">
-            <Transition name="fade" mode="out-in">
-                <!-- Skeleton -->
-                <div v-if="!skeletonReady" key="skeleton" class="space-y-8">
-                    <div v-for="i in 3" :key="'card-' + i"
-                        class="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden pointer-events-none select-none relative">
-                        <div class="absolute inset-0 shimmer-sweep z-10"></div>
-                        <div class="p-6 border-b border-neutral-100 dark:border-neutral-800">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-2xl skeleton-bg shrink-0"></div>
-                                <div class="space-y-2 flex-1">
-                                    <div class="h-5 w-48 rounded skeleton-bg"></div>
-                                    <div class="h-3 w-32 rounded skeleton-bg"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6 space-y-5">
-                            <div v-for="j in 3" :key="'field-' + j" class="space-y-2">
-                                <div class="h-3 w-24 rounded skeleton-bg"></div>
-                                <div class="h-12 rounded-xl skeleton-bg"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-end">
-                        <div class="h-14 w-36 rounded-xl skeleton-bg"></div>
-                    </div>
-                </div>
-
-                <div v-else key="content">
-                    <!-- Site Identity -->
-            <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
-                <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
-                            <Globe class="w-6 h-6 text-neutral-900 dark:text-white" />
-                        </div>
-                        <div>
-                            <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
-                                {{ t('settings.sections.identity') }}
-                            </CardTitle>
-                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
-                                {{ t('settings.sections.identity_desc') }}
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent class="p-6 space-y-6">
-                    <!-- Logo -->
-                    <div class="space-y-3">
-                        <Label class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ t('settings.fields.logo') }}</Label>
-                        <div class="flex items-center gap-6">
-                            <div class="w-32 h-16 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center overflow-hidden relative group">
-                                <img v-if="logoPreview" :src="logoPreview" class="max-w-full max-h-full object-contain p-2" />
-                                <Image v-else class="w-8 h-8 text-neutral-300 dark:text-neutral-700" />
-                                <button
-                                    v-if="logoPreview"
-                                    @click="removeLogo"
-                                    class="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:opacity-100"
-                                >
-                                    <X class="w-3 h-3" />
-                                </button>
-                            </div>
-                            <div class="flex-1">
-                                <Input
-                                    type="file"
-                                    accept="image/*"
-                                    @change="handleLogoChange"
-                                    class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs"
-                                />
-                                <p class="text-xs font-medium text-neutral-400 mt-1">{{ t('settings.hints.logo') }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Site Name -->
-                    <div class="space-y-2">
-                        <Label for="site_name" class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ t('settings.fields.site_name') }}</Label>
-                        <Input
-                            id="site_name"
-                            v-model="form.site_name"
-                            class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
-                        />
-                        <p v-if="form.errors.site_name" class="text-xs text-status-danger">{{ form.errors.site_name }}</p>
-                    </div>
-
-                    <!-- Tagline -->
-                    <div class="space-y-2">
-                        <Label for="tagline" class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ t('settings.fields.tagline') }}</Label>
-                        <Input
-                            id="tagline"
-                            v-model="form.tagline"
-                            class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
-                        />
-                        <p v-if="form.errors.tagline" class="text-xs text-status-danger">{{ form.errors.tagline }}</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Contact Info -->
-            <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
-                <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
-                            <Mail class="w-6 h-6 text-neutral-900 dark:text-white" />
-                        </div>
-                        <div>
-                            <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
-                                {{ t('settings.sections.contact') }}
-                            </CardTitle>
-                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
-                                {{ t('settings.sections.contact_desc') }}
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent class="p-6 space-y-6">
-                    <!-- Email -->
-                    <div class="space-y-2">
-                        <Label for="email" class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
-                            <Mail class="w-3.5 h-3.5" /> {{ t('settings.fields.email') }}
-                        </Label>
-                        <Input
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
-                        />
-                        <p v-if="form.errors.email" class="text-xs text-status-danger">{{ form.errors.email }}</p>
-                    </div>
-
-                    <!-- Phone -->
-                    <div class="space-y-2">
-                        <Label for="phone" class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
-                            <Phone class="w-3.5 h-3.5" /> {{ t('settings.fields.phone') }}
-                        </Label>
-                        <Input
-                            id="phone"
-                            v-model="form.phone"
-                            type="tel"
-                            class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
-                        />
-                        <p v-if="form.errors.phone" class="text-xs text-status-danger">{{ form.errors.phone }}</p>
-                    </div>
-
-                    <!-- Address -->
-                    <div class="space-y-2">
-                        <Label for="address" class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
-                            <MapPin class="w-3.5 h-3.5" /> {{ t('settings.fields.address') }}
-                        </Label>
-                        <Input
-                            id="address"
-                            v-model="form.address"
-                            class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
-                        />
-                        <p v-if="form.errors.address" class="text-xs text-status-danger">{{ form.errors.address }}</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Social Links -->
-            <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
-                <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
-                            <LinkIcon class="w-6 h-6 text-neutral-900 dark:text-white" />
-                        </div>
-                        <div>
-                            <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
-                                {{ t('settings.sections.social') }}
-                            </CardTitle>
-                            <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
-                                {{ t('settings.sections.social_desc') }}
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent class="p-6 space-y-5">
-                    <div v-for="field in socialFields" :key="field.key" class="space-y-2">
-                        <Label :for="field.key" class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
-                            <component :is="field.icon" :class="['w-3.5 h-3.5', field.color]" />
-                            {{ field.label }}
-                        </Label>
-                        <div class="relative">
-                            <LinkIcon class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                            <Input
-                                :id="field.key"
-                                v-model="form[field.key]"
-                                :placeholder="field.placeholder"
-                                class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12 pl-11"
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Submit Button -->
-            <div class="flex justify-end pt-4">
-                <Button
-                    @click="submit"
-                    :disabled="processing"
-                    class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-10 py-6 shadow-lg font-bold uppercase text-xs tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                    <Save class="w-4 h-4 mr-2" />
-                    <template v-if="processing">
-                        <span class="animate-pulse">{{ t('settings.saving') }}</span>
-                    </template>
-                    <template v-else>
-                        {{ t('settings.save') }}
-                    </template>
-                </Button>
-            </div>
-                </div>
-            </Transition>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="space-y-1">
+          <h2 class="text-3xl md:text-4xl font-display font-bold tracking-tight text-neutral-900 dark:text-white uppercase italic">
+            {{ t('settings.title') }}
+          </h2>
+          <div class="flex items-center gap-3">
+            <div class="h-0.5 w-8 bg-black dark:bg-white rounded-full" />
+            <p class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+              {{ t('settings.subtitle') }}
+            </p>
+          </div>
         </div>
-    </AuthenticatedLayout>
+      </div>
+    </template>
+
+    <div class="max-w-4xl mx-auto space-y-8 pb-12">
+      <Transition
+        name="fade"
+        mode="out-in"
+      >
+        <!-- Skeleton -->
+        <div
+          v-if="!skeletonReady"
+          key="skeleton"
+          class="space-y-8"
+        >
+          <div
+            v-for="i in 3"
+            :key="'card-' + i"
+            class="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden pointer-events-none select-none relative"
+          >
+            <div class="absolute inset-0 shimmer-sweep z-10" />
+            <div class="p-6 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl skeleton-bg shrink-0" />
+                <div class="space-y-2 flex-1">
+                  <div class="h-5 w-48 rounded skeleton-bg" />
+                  <div class="h-3 w-32 rounded skeleton-bg" />
+                </div>
+              </div>
+            </div>
+            <div class="p-6 space-y-5">
+              <div
+                v-for="j in 3"
+                :key="'field-' + j"
+                class="space-y-2"
+              >
+                <div class="h-3 w-24 rounded skeleton-bg" />
+                <div class="h-12 rounded-xl skeleton-bg" />
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <div class="h-14 w-36 rounded-xl skeleton-bg" />
+          </div>
+        </div>
+
+        <div
+          v-else
+          key="content"
+        >
+          <!-- Site Identity -->
+          <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
+            <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
+                  <Globe class="w-6 h-6 text-neutral-900 dark:text-white" />
+                </div>
+                <div>
+                  <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
+                    {{ t('settings.sections.identity') }}
+                  </CardTitle>
+                  <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                    {{ t('settings.sections.identity_desc') }}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent class="p-6 space-y-6">
+              <!-- Logo -->
+              <div class="space-y-3">
+                <Label class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ t('settings.fields.logo') }}</Label>
+                <div class="flex items-center gap-6">
+                  <div class="w-32 h-16 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center overflow-hidden relative group">
+                    <img
+                      v-if="logoPreview"
+                      :src="logoPreview"
+                      class="max-w-full max-h-full object-contain p-2"
+                    >
+                    <Image
+                      v-else
+                      class="w-8 h-8 text-neutral-300 dark:text-neutral-700"
+                    />
+                    <button
+                      v-if="logoPreview"
+                      class="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:opacity-100"
+                      @click="removeLogo"
+                    >
+                      <X class="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div class="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs"
+                      @change="handleLogoChange"
+                    />
+                    <p class="text-xs font-medium text-neutral-400 mt-1">
+                      {{ t('settings.hints.logo') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Site Name -->
+              <div class="space-y-2">
+                <Label
+                  for="site_name"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500"
+                >{{ t('settings.fields.site_name') }}</Label>
+                <Input
+                  id="site_name"
+                  v-model="form.site_name"
+                  class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
+                />
+                <p
+                  v-if="form.errors.site_name"
+                  class="text-xs text-status-danger"
+                >
+                  {{ form.errors.site_name }}
+                </p>
+              </div>
+
+              <!-- Tagline -->
+              <div class="space-y-2">
+                <Label
+                  for="tagline"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500"
+                >{{ t('settings.fields.tagline') }}</Label>
+                <Input
+                  id="tagline"
+                  v-model="form.tagline"
+                  class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
+                />
+                <p
+                  v-if="form.errors.tagline"
+                  class="text-xs text-status-danger"
+                >
+                  {{ form.errors.tagline }}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Contact Info -->
+          <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
+            <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
+                  <Mail class="w-6 h-6 text-neutral-900 dark:text-white" />
+                </div>
+                <div>
+                  <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
+                    {{ t('settings.sections.contact') }}
+                  </CardTitle>
+                  <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                    {{ t('settings.sections.contact_desc') }}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent class="p-6 space-y-6">
+              <!-- Email -->
+              <div class="space-y-2">
+                <Label
+                  for="email"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2"
+                >
+                  <Mail class="w-3.5 h-3.5" /> {{ t('settings.fields.email') }}
+                </Label>
+                <Input
+                  id="email"
+                  v-model="form.email"
+                  type="email"
+                  class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
+                />
+                <p
+                  v-if="form.errors.email"
+                  class="text-xs text-status-danger"
+                >
+                  {{ form.errors.email }}
+                </p>
+              </div>
+
+              <!-- Phone -->
+              <div class="space-y-2">
+                <Label
+                  for="phone"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2"
+                >
+                  <Phone class="w-3.5 h-3.5" /> {{ t('settings.fields.phone') }}
+                </Label>
+                <Input
+                  id="phone"
+                  v-model="form.phone"
+                  type="tel"
+                  class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
+                />
+                <p
+                  v-if="form.errors.phone"
+                  class="text-xs text-status-danger"
+                >
+                  {{ form.errors.phone }}
+                </p>
+              </div>
+
+              <!-- Address -->
+              <div class="space-y-2">
+                <Label
+                  for="address"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2"
+                >
+                  <MapPin class="w-3.5 h-3.5" /> {{ t('settings.fields.address') }}
+                </Label>
+                <Input
+                  id="address"
+                  v-model="form.address"
+                  class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12"
+                />
+                <p
+                  v-if="form.errors.address"
+                  class="text-xs text-status-danger"
+                >
+                  {{ form.errors.address }}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Social Links -->
+          <Card class="border-neutral-200 dark:border-neutral-800 rounded-3xl bg-white dark:bg-black shadow-sm overflow-hidden">
+            <CardHeader class="border-b border-neutral-100 dark:border-neutral-800 pb-6">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl">
+                  <LinkIcon class="w-6 h-6 text-neutral-900 dark:text-white" />
+                </div>
+                <div>
+                  <CardTitle class="text-xl font-display font-bold uppercase italic tracking-tight text-neutral-900 dark:text-white">
+                    {{ t('settings.sections.social') }}
+                  </CardTitle>
+                  <CardDescription class="text-xs font-bold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.2em]">
+                    {{ t('settings.sections.social_desc') }}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent class="p-6 space-y-5">
+              <div
+                v-for="field in socialFields"
+                :key="field.key"
+                class="space-y-2"
+              >
+                <Label
+                  :for="field.key"
+                  class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2"
+                >
+                  <component
+                    :is="field.icon"
+                    :class="['w-3.5 h-3.5', field.color]"
+                  />
+                  {{ field.label }}
+                </Label>
+                <div class="relative">
+                  <LinkIcon class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <Input
+                    :id="field.key"
+                    v-model="form[field.key]"
+                    :placeholder="field.placeholder"
+                    class="rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 h-12 pl-11"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end pt-4">
+            <Button
+              :disabled="processing"
+              class="bg-black hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black rounded-xl px-10 py-6 shadow-lg font-bold uppercase text-xs tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
+              @click="submit"
+            >
+              <Save class="w-4 h-4 mr-2" />
+              <template v-if="processing">
+                <span class="animate-pulse">{{ t('settings.saving') }}</span>
+              </template>
+              <template v-else>
+                {{ t('settings.save') }}
+              </template>
+            </Button>
+          </div>
+        </div>
+      </Transition>
+    </div>
+  </AuthenticatedLayout>
 </template>
 
 <style scoped>
