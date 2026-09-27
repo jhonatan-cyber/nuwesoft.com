@@ -162,10 +162,29 @@ El workflow `CI` ejecuta PHPUnit, Pint, PHPStan, ESLint, Vitest, build y Playwri
 El despliegue:
 
 1. Genera y valida un backup persistente.
-2. Descarga el commit aprobado por CI.
+2. Fija exactamente el SHA aprobado por CI (`DEPLOY_SHA`) y comprueba que HEAD coincide tras el checkout; nunca despliega la cabeza móvil de `main`.
 3. reconstruye contenedores y ejecuta migraciones.
 4. verifica el healthcheck.
 5. ante un fallo, restaura el backup, vuelve al commit anterior y comprueba nuevamente la aplicación.
+
+Cada despliegue y rollback queda registrado en `deployments.log` (en la raíz del proyecto en el VPS) con el formato `<timestamp>|DEPLOY|<sha>|<backup>`, `<timestamp>|ROLLBACK_OK|<sha>|<backup>` o `ROLLBACK_FALLO`. Ese historial es la entrada del rollback manual.
+
+### Rollback manual (`scripts/rollback.sh`)
+
+En el VPS, para revertir al despliegue anterior (o a un commit concreto):
+
+```bash
+./scripts/rollback.sh --dry-run          # muestra el plan sin tocar nada
+./scripts/rollback.sh                    # revierte al despliegue anterior (BD incluida)
+./scripts/rollback.sh <commit-sha>       # revierte a un commit concreto
+./scripts/rollback.sh --skip-db <sha>    # solo código, sin restaurar BD (el despliegue revertido no debe tener migraciones destructivas)
+```
+
+El script: restaura la base de datos desde el backup registrado para el despliegue actual, hace checkout del commit objetivo, reconstruye contenedores, reconstruye cachés, verifica el healthcheck local y solo entonces escribe `ROLLBACK_OK` en `deployments.log`. Si algún paso falla, detiene el proceso con `ROLLBACK_FALLO` e instrucciones de intervención manual. Variables útiles: `APP_DIR`, `HEALTH_RETRIES`, `HEALTH_SLEEP`.
+
+### Simulacro destructivo programado
+
+El workflow manual **OPS-03 Rollback Rehearsal** (`.github/workflows/ops-rehearsal.yml`) ensaya el rollback completo en un proyecto compose efímero en el VPS (`ops-rehearsal`, puerto 8099, credenciales propias): levanta el stack, registra un backup con su entrada en `deployments.log`, daña el esquema a propósito (drop de una columna), ejecuta `scripts/rollback.sh` y verifica que la columna reaparece y la app queda sana. Ejecútalo desde la pestaña Actions antes de dar por cerrado cualquier cambio de rollback, y al menos una vez por ciclo.
 
 Después de un rollback revisa GitHub Actions, `docker compose -f compose.prod.yaml ps`, los logs del contenedor web y la tabla `failed_jobs`.
 

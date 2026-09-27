@@ -9,6 +9,8 @@ on:
 
 env:
   APP_IMAGE: nuwesoft-app:latest
+  # Exact commit approved by CI; the VPS checks out this SHA, never a branch head.
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
   deploy:
@@ -29,13 +31,22 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          envs: DEPLOY_SHA
           script: |
             echo "=== Iniciando Despliegue ==="
             cd /var/www/nuwesoft.com
 
-            # Save current commit for rollback
+            LOG_FILE=deployments.log
+            log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*" | tee -a "$LOG_FILE"; }
+
+            # Exact SHA approved by CI (never a moving branch head)
+            DEPLOY_SHA=${DEPLOY_SHA:?DEPLOY_SHA environment variable is required}
+            echo "Deploying exact SHA approved by CI: $DEPLOY_SHA"
+
+            # Save current commit and its pre-deploy backup for rollback
             PREV_COMMIT=$(git rev-parse HEAD)
-            echo "Previous commit: $PREV_COMMIT"
+            PREV_BACKUP=$(grep -E "\|DEPLOY\|" "$LOG_FILE" 2>/dev/null | tail -1 | cut -d'|' -f4 || true)
+            echo "Previous commit: $PREV_COMMIT (backup: ${PREV_BACKUP:-none})"
 
             # Backup database BEFORE pulling new code
             echo "Backing up database..."
@@ -56,11 +67,12 @@ jobs:
               docker compose -f compose.prod.yaml exec -T web php artisan optimize:clear || true
             }
 
-            # Pull latest changes
-            echo "Pulling latest changes..."
-            git pull origin main || { echo "ERROR: git pull failed"; exit 1; }
+            # Checkout the exact SHA approved by CI
+            echo "Fetching approved commit..."
+            git fetch origin "$DEPLOY_SHA" || { echo "ERROR: git fetch failed"; exit 1; }
+            git checkout "$DEPLOY_SHA" || { echo "ERROR: cannot checkout $DEPLOY_SHA"; exit 1; }
             NEW_COMMIT=$(git rev-parse HEAD)
-            echo "New commit: $NEW_COMMIT"
+            [ "$NEW_COMMIT" = "$DEPLOY_SHA" ] || { echo "ERROR: HEAD $NEW_COMMIT != approved $DEPLOY_SHA"; exit 1; }
 
             # Build and restart containers
             echo "Building containers..."
@@ -87,7 +99,7 @@ jobs:
 
             if [ $RETRIES -eq 0 ]; then
               echo "ERROR: App failed healthcheck. Rolling back..."
-              rollback_deploy || exit 1
+              rollback_deploy || { log "ROLLBACK_FALLO|${DEPLOY_SHA:0:9}|${LATEST_BACKUP:-none}"; exit 1; }
               # Wait for rollback to be healthy
               ROLLBACK_RETRIES=12
               until [ $ROLLBACK_RETRIES -eq 0 ] || docker compose -f compose.prod.yaml exec -T web curl -sf http://localhost/ > /dev/null 2>&1; do
@@ -96,7 +108,10 @@ jobs:
               done
               if [ $ROLLBACK_RETRIES -eq 0 ]; then
                 echo "CRITICAL: Rollback also failed healthcheck! Manual intervention required."
+                log "ROLLBACK_FALLO|${DEPLOY_SHA:0:9}|${LATEST_BACKUP:-none}"
+                exit 1
               fi
+              log "ROLLBACK_OK|${PREV_COMMIT}|${LATEST_BACKUP:-none}"
               echo "Rolled back to $PREV_COMMIT"
               exit 1
             fi
@@ -109,6 +124,10 @@ jobs:
 
             echo "=== Deploy successful ==="
             echo "Deployed commit: $NEW_COMMIT"
+            log "DEPLOY|${NEW_COMMIT}|${LATEST_BACKUP:-none}"
+
+            # Keep the audit log inside the repo directory; last 200 lines only.
+            tail -n 200 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 
       # ──────────────────────────────────────────────
       # Discord notifications

@@ -1,0 +1,153 @@
+name: OPS-03 Rollback Rehearsal
+
+# Simulacro destructivo del rollback de OPS-03, aislado de producción.
+# Levanta el mismo stack que producción en un proyecto compose efímero,
+# aplica un cambio destructivo de esquema, ejecuta scripts/rollback.sh
+# contra él y verifica que la app queda sana. No toca /var/www/nuwesoft.com
+# ni la base de datos de producción: usa otro directorio, otro puerto y
+# nombres de proyecto/volúmenes propios.
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "Conservar el entorno del simulacro tras terminar"
+        type: boolean
+        default: false
+
+env:
+  REHEARSAL_DIR: /var/www/ops-rehearsal
+  REHEARSAL_PORT: "8099"
+
+jobs:
+  rehearsal:
+    name: Destructive Rollback Rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run rehearsal on VPS
+        id: rehearsal
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            REHEARSAL_DIR="${REHEARSAL_DIR:-/var/www/ops-rehearsal}"
+            REHEARSAL_PORT="${REHEARSAL_PORT:-8099}"
+            REPO="https://github.com/${{ github.repository }}.git"
+            BRANCH="${{ github.ref_name }}"
+
+            echo "=== OPS-03 Rollback Rehearsal ==="
+            echo "Directorio: $REHEARSAL_DIR  Puerto: $REHEARSAL_PORT  Rama: $BRANCH"
+
+            # ── 1. Entorno efímero con el mismo stack ──
+            mkdir -p "$REHEARSAL_DIR"
+            cd "$REHEARSAL_DIR"
+            if [ -d ".git" ]; then
+              git fetch origin "$BRANCH" || git fetch origin
+              git checkout "origin/$BRANCH" 2>/dev/null || git checkout FETCH_HEAD
+            else
+              git clone --depth 1 -b "$BRANCH" "$REPO" .
+            fi
+            git reset --hard FETCH_HEAD
+
+            # .env aislado: credenciales propias, jamás las de producción.
+            cat > .env <<'EOF'
+            APP_ENV=production
+            APP_DEBUG=false
+            APP_KEY=
+            APP_URL=http://127.0.0.1:8099
+            APP_PORT=8099
+            DB_CONNECTION=pgsql
+            DB_DATABASE=ops_rehearsal
+            DB_USERNAME=ops_rehearsal
+            DB_PASSWORD=ops_rehearsal_local_only
+            REVERB_ENABLED=false
+            REVERB_PORT=8098
+            QUEUE_WORKERS=1
+            EOF
+            php_key=$(docker run --rm "${{ env.REHEARSAL_PHP_IMAGE }}" php -r "echo base64_encode(random_bytes(32));" 2>/dev/null || openssl rand -base64 32)
+            sed -i "s|^APP_KEY=$|APP_KEY=base64:${php_key}|" .env
+
+            COMPOSE="docker compose -p ops-rehearsal -f compose.prod.yaml"
+            # El stack de producción usa volúmenes nombrados; con -p quedan como
+            # ops-rehearsal_<volumen>, sin tocar los de producción.
+            $COMPOSE up -d --build --remove-orphans
+
+            # Esperar a que el contenedor web esté sano (init ejecuta migraciones).
+            RETRIES=24
+            until [ $RETRIES -eq 0 ] || $COMPOSE exec -T web curl -sf http://localhost/ >/dev/null 2>&1; do
+              RETRIES=$((RETRIES-1)); sleep 5
+            done
+            [ $RETRIES -gt 0 ] || { echo "ERROR: el entorno del simulacro no levantó"; $COMPOSE logs --tail=50 web; exit 1; }
+            echo "Entorno del simulacro sano en :$REHEARSAL_PORT"
+
+            # ── 2. Pre-deploy: backup verificado (como en deploy.yml) ──
+            $COMPOSE exec -T web php artisan backup:database --compress
+            LATEST_BACKUP=$($COMPOSE exec -T web sh -lc "ls -1t storage/app/backups/backup_*.sql.gz | head -1")
+            $COMPOSE exec -T web sh -lc "test -s '$LATEST_BACKUP' && gzip -t '$LATEST_BACKUP'"
+            echo "BACKUP=$LATEST_BACKUP"
+            CURRENT_SHA=$(git rev-parse HEAD)
+            echo "$(date -u +%FT%TZ)|DEPLOY|$CURRENT_SHA|$LATEST_BACKUP" >> deployments.log
+
+            # ── 3. Cambio destructivo controlado del esquema ──
+            echo "Aplicando cambio destructivo controlado (drop de una columna)..."
+            $COMPOSE exec -T web php artisan tinker --execute="Illuminate\Support\Facades\Schema::table('projects', fn (\$t) => \$t->dropColumn('icon'));"
+            $COMPOSE exec -T web php artisan tinker --execute="exit(Illuminate\Support\Facades\Schema::hasColumn('projects', 'icon') ? 1 : 0);" \
+              || { echo "ERROR: la columna no se eliminó; el simulacro no puede continuar"; exit 1; }
+            echo "Esquema dañado a propósito (projects.icon eliminado)."
+
+            # ── 4. Ejecutar el rollback automatizado ──
+            chmod +x scripts/rollback.sh
+            ./scripts/rollback.sh "$CURRENT_SHA"
+
+            # ── 5. Verificación de que la app quedó sana y los datos intactos ──
+            $COMPOSE exec -T web curl -sf http://localhost/ >/dev/null
+            $COMPOSE exec -T web php artisan tinker --execute="exit(Illuminate\Support\Facades\Schema::hasColumn('projects', 'icon') ? 0 : 1);" \
+              || { echo "FALLO: tras el rollback la columna restaurada no existe"; exit 1; }
+            MIGRATIONS=$($COMPOSE exec -T web php artisan tinker --execute="echo Illuminate\Support\Facades\DB::table('migrations')->count();" | tr -d '\r\n ')
+            echo "Migraciones registradas tras rollback: $MIGRATIONS"
+            grep -E "ROLLBACK_OK" deployments.log || { echo "FALLO: deployments.log sin ROLLBACK_OK"; exit 1; }
+
+            echo "=== Simulacro OK: rollback verificado de forma destructiva ==="
+
+            # ── 6. Limpieza ──
+            if [ "${{ inputs.keep }}" != "true" ]; then
+              cd "$REHEARSAL_DIR"
+              docker compose -p ops-rehearsal -f compose.prod.yaml down -v --remove-orphans
+              cd /
+              rm -rf "$REHEARSAL_DIR"
+              echo "Entorno del simulacro eliminado"
+            fi
+
+      - name: Notify Discord
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993; TITLE="✅ OPS-03: simulacro de rollback OK"
+            DESC="El rollback destructivo se ejecutó y verificó correctamente en el entorno efímero."
+          else
+            COLOR=15158332; TITLE="🔴 OPS-03: simulacro de rollback falló"
+            DESC="El simulacro de rollback falló; revisar logs del workflow."
+          fi
+          curl -s -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"${TITLE}\",
+                \"description\": \"${DESC}\",
+                \"color\": ${COLOR},
+                \"fields\": [
+                  {\"name\": \"👤 Autor\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                  {\"name\": \"🌿 Rama\", \"value\": \"${{ github.ref_name }}\", \"inline\": true}
+                ],
+                \"footer\": {\"text\": \"GitHub Actions — OPS-03\"}
+              }]
+            }" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
