@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Foundation\Vite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeaders
@@ -15,6 +17,14 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Per-request nonce for inline scripts. It is shared with Blade
+        // (app.blade.php), with Vite's generated tags and with Inertia pages
+        // (see HandleInertiaRequests), so 'unsafe-inline' can be dropped.
+        $nonce = base64_encode(random_bytes(16));
+        $request->attributes->set('csp_nonce', $nonce);
+        View::share('cspNonce', $nonce);
+        Vite::useCspNonce($nonce);
+
         $response = $next($request);
 
         // Content Security Policy
@@ -33,8 +43,16 @@ class SecurityHeaders
 
         $response->headers->set('Content-Security-Policy',
             "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline'{$evalSrc} https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://us-assets.i.posthog.com https://eu-assets.i.posthog.com{$devCsp}; " .
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
+            // Script hosts are an explicit allowlist: Cloudflare's Web Analytics
+            // beacon and PostHog's lazily loaded extensions/remote config. Nothing
+            // loads scripts from cdn.jsdelivr.net (its devicon SVGs are images),
+            // so it was dropped from script-src.
+            "script-src 'self' 'nonce-{$nonce}'{$evalSrc} https://static.cloudflareinsights.com https://us-assets.i.posthog.com https://eu-assets.i.posthog.com{$devCsp}; " .
+            "style-src 'self' 'nonce-{$nonce}' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
+            // Style *attributes* stay allowed (Vue's static style="..." bindings and
+            // third-party components), but <style> elements must now be first-party
+            // or nonced: injected stylesheet blocks are blocked outright.
+            "style-src-attr 'unsafe-inline'; " .
             "img-src 'self' data: blob: https: https://us-assets.i.posthog.com https://eu-assets.i.posthog.com; " .
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " .
             "connect-src 'self' wss: https://res.cloudinary.com https://us-assets.i.posthog.com https://us.i.posthog.com https://eu-assets.i.posthog.com https://eu.i.posthog.com{$devCsp}; " .

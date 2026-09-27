@@ -1,9 +1,10 @@
 <script setup>
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { useSkeletonLoader } from '@/composables/useSkeletonLoader';
 import { useI18n } from 'vue-i18n';
 import { usePageTracking } from '@/composables/usePageTracking';
+import { useCspNonce } from '@/composables/useCspNonce';
 import PublicGridBackground from '@/Components/PublicGridBackground.vue';
 import PublicSiteHeader from '@/Components/PublicSiteHeader.vue';
 import PublicSiteFooter from '@/Components/PublicSiteFooter.vue';
@@ -36,6 +37,7 @@ const { t } = useI18n();
 usePageTracking()
 
 const page = usePage();
+const cspNonce = useCspNonce();
 const settings = computed(() => page.props.settings || {});
 const siteName = computed(() => settings.value.site_name || 'NUWESOFT');
 const pageTitle = computed(() => t('portafolio.head_title').replace('NUWESOFT', siteName.value));
@@ -190,8 +192,6 @@ onUnmounted(() => {
 });
 
 // ── Lightbox ──
-// ── Stagger Delays ──
-const staggerDelay = (index, step = 80) => `${index * step}ms`;
 
 // ── JSON-LD Structured Data ──
 const portfolioJsonLd = computed(() => {
@@ -219,109 +219,155 @@ const portfolioJsonLd = computed(() => {
 </script>
 
 <template>
-    <Head :title="pageTitle">
-        <meta name="description" :content="pageDesc" />
-        <meta property="og:title" :content="pageTitle" />
-        <meta property="og:description" :content="pageDesc" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" :content="pageUrl" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" :content="pageTitle" />
-        <meta name="twitter:description" :content="pageDesc" />
-        <link rel="canonical" :href="pageUrl" />
-    </Head>
+  <Head :title="pageTitle">
+    <meta
+      name="description"
+      :content="pageDesc"
+    >
+    <meta
+      property="og:title"
+      :content="pageTitle"
+    >
+    <meta
+      property="og:description"
+      :content="pageDesc"
+    >
+    <meta
+      property="og:type"
+      content="website"
+    >
+    <meta
+      property="og:url"
+      :content="pageUrl"
+    >
+    <meta
+      name="twitter:card"
+      content="summary_large_image"
+    >
+    <meta
+      name="twitter:title"
+      :content="pageTitle"
+    >
+    <meta
+      name="twitter:description"
+      :content="pageDesc"
+    >
+    <link
+      rel="canonical"
+      :href="pageUrl"
+    >
+  </Head>
 
-    <Teleport to="head">
-        <component
-            v-for="(schema, idx) in portfolioJsonLd"
-            :key="idx"
-            :is="'script'"
-            type="application/ld+json"
-            v-html="JSON.stringify(schema)"
-        />
-    </Teleport>
+  <Teleport to="head">
+    <!-- JSON-LD serialized with JSON.stringify(); the slot renders no raw markup -->
+    <!-- eslint-disable vue/no-v-html, vue/no-v-text-v-html-on-component -->
+    <component
+      :is="'script'"
+      v-for="(schema, idx) in portfolioJsonLd"
+      :key="idx"
+      :nonce="cspNonce"
+      type="application/ld+json"
+      v-html="JSON.stringify(schema)"
+    />
+    <!-- eslint-enable vue/no-v-html, vue/no-v-text-v-html-on-component -->
+  </Teleport>
 
-    <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
-        <PublicGridBackground />
-        <PublicSiteHeader />
+  <div class="min-h-screen overflow-x-hidden bg-white font-sans text-black selection:bg-brutalist-yellow selection:text-black dark:bg-black dark:text-white">
+    <PublicGridBackground />
+    <PublicSiteHeader />
 
-        <main id="main-content" class="pt-32 pb-24 relative z-10">
-            <PortfolioHero
-                :categories="categories"
-                :active-category="activeCategory"
-                :category-highlights="categoryHighlights"
-                @update:active-category="activeCategory = $event"
-            />
+    <main
+      id="main-content"
+      class="pt-32 pb-24 relative z-10"
+    >
+      <PortfolioHero
+        :categories="categories"
+        :active-category="activeCategory"
+        :category-highlights="categoryHighlights"
+        @update:active-category="activeCategory = $event"
+      />
 
-            <!-- ═══ Projects Grid ═══ -->
-            <section class="px-6 mb-24">
-                <div class="max-w-[1400px] mx-auto">
-                    <Transition name="fade" mode="out-in">
-                        <!-- Skeleton Grid (while loading) -->
-                        <div
-                            v-if="!skeletonReady"
-                            key="skeleton"
-                            class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3"
-                        >
-                            <SkeletonCard v-for="i in skeletonCount" :key="'skel-' + i" />
-                        </div>
+      <!-- ═══ Projects Grid ═══ -->
+      <section class="px-6 mb-24">
+        <div class="max-w-[1400px] mx-auto">
+          <Transition
+            name="fade"
+            mode="out-in"
+          >
+            <!-- Skeleton Grid (while loading) -->
+            <div
+              v-if="!skeletonReady"
+              key="skeleton"
+              class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3"
+            >
+              <SkeletonCard
+                v-for="i in skeletonCount"
+                :key="'skel-' + i"
+              />
+            </div>
 
-                        <!-- Cards Grid (loaded) -->
-                        <div v-else key="cards">
-                            <TransitionGroup
-                                name="project-grid"
-                                tag="div"
-                                class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3"
-                            >
-                                <LazyLoad
-                                    v-for="(project, i) in displayProjects"
-                                    :key="project.id"
-                                    root-margin="300px"
-                                >
-                                    <PortfolioProjectCard
-                                        :project="project"
-                                        :index="i"
-                                        :get-tech-logo="getTechLogo"
-                                        :get-icon="getIcon"
-                                    />
-                                </LazyLoad>
-                            </TransitionGroup>
+            <!-- Cards Grid (loaded) -->
+            <div
+              v-else
+              key="cards"
+            >
+              <TransitionGroup
+                name="project-grid"
+                tag="div"
+                class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3"
+              >
+                <LazyLoad
+                  v-for="(project, i) in displayProjects"
+                  :key="project.id"
+                  root-margin="300px"
+                >
+                  <PortfolioProjectCard
+                    :project="project"
+                    :index="i"
+                    :get-tech-logo="getTechLogo"
+                    :get-icon="getIcon"
+                  />
+                </LazyLoad>
+              </TransitionGroup>
 
-                            <!-- Empty State -->
-                            <Transition name="fade">
-                                <div
-                                    v-if="displayProjects.length === 0"
-                                    class="border-4 border-black bg-white p-10 text-center shadow-brutalist dark:border-white dark:bg-zinc-950 dark:shadow-brutalist-white"
-                                >
-                                    <div class="mb-6 inline-flex items-center justify-center w-20 h-20 border-4 border-black bg-brutalist-yellow">
-                                        <Zap class="w-10 h-10 text-black" />
-                                    </div>
-                                    <p class="text-sm font-black uppercase tracking-[0.28em] text-brutalist-pink">{{ t('portafolio.empty_label') }}</p>
-                                    <h3 class="mt-4 text-4xl font-display font-black uppercase italic leading-none">{{ t('portafolio.empty_title') }}</h3>
-                                    <p class="mx-auto mt-6 max-w-2xl text-lg font-black uppercase leading-tight opacity-75">
-                                        {{ t('portafolio.empty_text') }}
-                                    </p>
-                                </div>
-                            </Transition>
-                        </div>
-                    </Transition>
+              <!-- Empty State -->
+              <Transition name="fade">
+                <div
+                  v-if="displayProjects.length === 0"
+                  class="border-4 border-black bg-white p-10 text-center shadow-brutalist dark:border-white dark:bg-zinc-950 dark:shadow-brutalist-white"
+                >
+                  <div class="mb-6 inline-flex items-center justify-center w-20 h-20 border-4 border-black bg-brutalist-yellow">
+                    <Zap class="w-10 h-10 text-black" />
+                  </div>
+                  <p class="text-sm font-black uppercase tracking-[0.28em] text-brutalist-pink">
+                    {{ t('portafolio.empty_label') }}
+                  </p>
+                  <h3 class="mt-4 text-4xl font-display font-black uppercase italic leading-none">
+                    {{ t('portafolio.empty_title') }}
+                  </h3>
+                  <p class="mx-auto mt-6 max-w-2xl text-lg font-black uppercase leading-tight opacity-75">
+                    {{ t('portafolio.empty_text') }}
+                  </p>
                 </div>
-            </section>
+              </Transition>
+            </div>
+          </Transition>
+        </div>
+      </section>
 
-            <PortfolioStats
-                ref="statsComponentRef"
-                :stats="stats"
-            :animated-stats="animatedStats"
-            :visible-stats="visibleStats"
-            :key="stats[0].displayValue"
-            />
+      <PortfolioStats
+        ref="statsComponentRef"
+        :key="stats[0].displayValue"
+        :stats="stats"
+        :animated-stats="animatedStats"
+        :visible-stats="visibleStats"
+      />
 
-            <PortfolioCta :is-visible="isVisible" />
-        </main>
+      <PortfolioCta :is-visible="isVisible" />
+    </main>
 
-        <PublicSiteFooter />
-
-    </div>
+    <PublicSiteFooter />
+  </div>
 </template>
 
 <style src="./portafolio.css"></style>

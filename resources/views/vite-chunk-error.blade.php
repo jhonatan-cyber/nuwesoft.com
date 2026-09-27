@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Actualizando — NUWESOFT</title>
-    <style>
+    <style nonce="{{ $cspNonce ?? '' }}">
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             min-height: 100vh;
@@ -54,7 +54,7 @@
         <p>El sitio se ha actualizado recientemente. Esta página se recargará automáticamente en <span id="countdown">5</span> segundos.</p>
         <a href="/" class="btn" id="reloadBtn">Ir al Inicio</a>
     </div>
-    <script>
+    <script nonce="{{ $cspNonce ?? '' }}">
         // Auto-reload after 5 seconds
         let seconds = 5;
         const el = document.getElementById('countdown');
