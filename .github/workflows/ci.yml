@@ -205,6 +205,7 @@ jobs:
       QUEUE_CONNECTION: sync
       CACHE_STORE: array
       SESSION_DRIVER: file
+      BROADCAST_CONNECTION: log
 
     steps:
       - uses: actions/checkout@v4
@@ -224,6 +225,9 @@ jobs:
       - name: Prepare isolated application
         run: |
           cp .env.example .env.testing
+          # BROADCAST_CONNECTION=log overrides the .env.example value: without a
+          # reachable Reverb server the pusher broadcast of EntityUpdated throws
+          # a connection error under QUEUE_CONNECTION=sync and breaks admin flows.
           php artisan key:generate --env=testing
           php artisan migrate:fresh --env=testing --force
           php artisan tinker --env=testing --execute="App\\Models\\User::forceCreate(['name' => 'E2E Admin', 'email' => 'e2e@nuwesoft.test', 'password' => bcrypt('E2E-password-2026!'), 'is_admin' => true, 'email_verified_at' => now()]);"

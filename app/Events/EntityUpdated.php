@@ -36,6 +36,31 @@ class EntityUpdated implements ShouldBroadcast
     }
 
     /**
+     * Skip broadcasting when no realtime backend is configured.
+     *
+     * The observers fire this on every model save. With BROADCAST_CONNECTION
+     * set to a websocket server that is not reachable (CI, testing, local
+     * without Reverb running) and a sync queue, the Pusher SDK throws a
+     * connection error that bubbles up as a 500 and breaks the admin flows.
+     */
+    public function broadcastWhen(): bool
+    {
+        $connection = config('broadcasting.default');
+
+        if (in_array($connection, ['null', 'log', ''], true)) {
+            return false;
+        }
+
+        $driver = config("broadcasting.connections.{$connection}.driver");
+
+        if ($driver === 'reverb' && empty(config("broadcasting.connections.{$connection}.key"))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Get the broadcast event name.
      */
     public function broadcastAs(): string

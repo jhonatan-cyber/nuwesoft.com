@@ -1,4 +1,9 @@
 import '../css/app.css';
+// NProgress styles for the Inertia progress bar. The library injects its own
+// <style> element on boot, which the CSP (style-src-elem without
+// 'unsafe-inline') blocks, so we import the identical rules as a bundled
+// stylesheet and disable the injection via includeCSS: false.
+import '../css/vendor/nprogress.css';
 import '../css/lightbox-animations.css';
 import './bootstrap';
 
@@ -99,5 +104,6 @@ createInertiaApp({
         color: '#FF2E63',
         delay: 200,
         showSpinner: false,
+        includeCSS: false, // styles live in resources/css/vendor/nprogress.css
     },
 });
