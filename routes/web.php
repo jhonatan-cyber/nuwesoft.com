@@ -93,6 +93,13 @@ Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middle
 // ── Contact form submission (throttled 3/min per IP — anti-spam) ──
 Route::post('/contacto', [ContactController::class, 'send'])->middleware('throttle:contact')->name('contacto.send');
 
+// ── CSP violation reports (report-uri target, throttled 30/min per IP) ──
+// Browsers POST here with no CSRF token, so the path is exempted in
+// bootstrap/app.php (preventRequestForgery) and only ever logs + returns 204.
+Route::post('/csp-report', [App\Http\Controllers\CspReportController::class, 'store'])
+    ->middleware('throttle:csp-report')
+    ->name('csp.report');
+
 Route::get('/sitemap.xml', function () {
     $settings = App\Models\Setting::getAll();
     $siteName = $settings['site_name'] ?? 'NUWESOFT';

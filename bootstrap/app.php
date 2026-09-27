@@ -29,6 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
             App\Http\Middleware\AddRateLimitHeaders::class,
         ]);
 
+        // Browsers POST CSP violation reports (report-uri) with no CSRF token,
+        // so /csp-report is exempted. The endpoint is read-only (logs + 204)
+        // and throttled by the `csp-report` rate limiter.
+        $middleware->preventRequestForgery(['/csp-report']);
+
         $middleware->alias([
             '2fa' => App\Http\Middleware\EnsureTwoFactorVerified::class,
             'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,

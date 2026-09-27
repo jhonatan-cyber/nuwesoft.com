@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Foundation\Vite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -59,7 +59,10 @@ class SecurityHeaders
             "frame-src 'none'; " .
             "object-src 'none'; " .
             "base-uri 'self'; " .
-            "form-action 'self';"
+            "form-action 'self'; " .
+            // Report violations back to our own endpoint (rate-limited by the
+            // `csp-report` limiter, exempted from CSRF in bootstrap/app.php).
+            "report-uri /csp-report;"
         );
 
         // Prevent MIME-type sniffing

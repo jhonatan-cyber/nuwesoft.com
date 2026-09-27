@@ -99,5 +99,12 @@ class AppServiceProvider extends ServiceProvider
                 $request->string('email') . '|' . $request->ip()
             );
         });
+
+        // CSP violation reports (report-uri) — one report per violation, so a
+        // single broken page can burst; 30/min per IP absorbs legit noise while
+        // capping log flooding from a hostile client.
+        RateLimiter::for('csp-report', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
+        });
     }
 }

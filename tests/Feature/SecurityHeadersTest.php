@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class SecurityHeadersTest extends TestCase
@@ -93,6 +94,76 @@ class SecurityHeadersTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('X-Frame-Options', 'DENY')
             ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+
+    public function test_csp_policy_points_report_uri_at_the_report_endpoint(): void
+    {
+        $csp = (string) $this->get('/')->assertOk()->headers->get('Content-Security-Policy');
+        $reportUri = $this->directive('report-uri', $csp);
+
+        $this->assertNotSame('', $csp, 'The Content-Security-Policy header is missing.');
+        $this->assertStringContainsString(
+            'report-uri /csp-report',
+            $reportUri,
+            'The policy does not send violations to /csp-report.'
+        );
+    }
+
+    public function test_csp_report_endpoint_logs_the_violation_and_returns_204(): void
+    {
+        Log::spy();
+
+        // Browsers send no CSRF token (and often no Origin), so the endpoint
+        // must answer 204 instead of 419. Note: PHPUnit bypasses CSRF globally
+        // (PreventRequestForgery::runningUnitTests), so the exemption itself is
+        // asserted separately in the test below.
+        $response = $this->postJson('/csp-report', [
+            'csp-report' => [
+                'document-uri' => 'https://nuwesoft.test/dashboard',
+                'violated-directive' => "script-src 'self'",
+                'blocked-uri' => 'https://evil.example/x.js',
+                'original-policy' => "default-src 'self'; script-src 'self';",
+                'line-number' => 12,
+            ],
+        ]);
+
+        $response->assertNoContent();
+
+        // The spy records every Log call; the closure receives the full
+        // argument list of each matching `Log::warning(...)` invocation.
+        Log::shouldHaveReceived('warning')->withArgs(
+            static fn (string $message, array $context): bool => $message === 'CSP Violation'
+                && $context['violated_directive'] === "script-src 'self'"
+                && $context['blocked_uri'] === 'https://evil.example/x.js'
+        );
+    }
+
+    public function test_csp_report_path_is_registered_as_csrf_exempt(): void
+    {
+        // The exemption (bootstrap/app.php → preventRequestForgery) is wired
+        // up when the HTTP kernel resolves, so boot it with a real request
+        // before inspecting the middleware's excluded paths.
+        $this->get('/')->assertOk();
+
+        $middleware = $this->app->make(\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class);
+
+        $this->assertContains(
+            '/csp-report',
+            $middleware->getExcludedPaths(),
+            'Browsers cannot POST reports without a CSRF token: /csp-report must be exempted.'
+        );
+    }
+
+    public function test_csp_report_endpoint_is_rate_limited_per_ip(): void
+    {
+        $payload = ['csp-report' => ['violated-directive' => "img-src 'self'"]];
+
+        for ($i = 0; $i < 30; $i++) {
+            $this->postJson('/csp-report', $payload)->assertNoContent();
+        }
+
+        // 31st report within the same minute trips the `csp-report` limiter.
+        $this->postJson('/csp-report', $payload)->assertStatus(429);
     }
 
     /**
