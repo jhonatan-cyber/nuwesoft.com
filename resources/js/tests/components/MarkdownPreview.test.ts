@@ -151,4 +151,18 @@ describe('MarkdownPreview.vue', () => {
         expect(wrapper.html()).toContain('Heading 0')
         expect(wrapper.html()).toContain('Heading 49')
     })
+
+    it('removes executable HTML from markdown content', () => {
+        const wrapper = mount(MarkdownPreview, {
+            props: {
+                content: '<script>alert(1)</script><img src="x" onerror="alert(2)"><a href="javascript:alert(3)">link</a>',
+            },
+        })
+
+        const html = wrapper.html()
+        expect(html).not.toContain('<script')
+        expect(html).not.toContain('onerror')
+        expect(html).not.toContain('javascript:')
+        expect(html).toContain('link')
+    })
 })

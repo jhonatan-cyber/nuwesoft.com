@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
+import DOMPurify from 'dompurify'
 import 'highlight.js/styles/github-dark.css'
 
 const props = defineProps<{
@@ -16,11 +17,11 @@ marked.use(markedHighlight({
         if (lang && hljs.getLanguage(lang)) {
             try {
                 return hljs.highlight(code, { language: lang }).value
-            } catch (_) {}
+            } catch {}
         }
         try {
             return hljs.highlightAuto(code).value
-        } catch (_) {}
+        } catch {}
         return code
     },
 }))
@@ -33,18 +34,25 @@ marked.setOptions({
 const renderedHTML = computed(() => {
     if (!props.content) return '<p class="text-neutral-400 italic">Sin contenido aún...</p>'
     try {
-        return marked.parse(props.content) as string
-    } catch (e) {
+        return DOMPurify.sanitize(marked.parse(props.content) as string, {
+            USE_PROFILES: { html: true },
+            FORBID_TAGS: ['form', 'iframe', 'object', 'embed', 'style'],
+            FORBID_ATTR: ['style'],
+        })
+    } catch {
         return `<p class="text-red-500">Error al renderizar markdown</p>`
     }
 })
 </script>
 
 <template>
-    <div
-        class="prose prose-sm dark:prose-invert max-w-none min-h-[200px] p-6 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black/50 overflow-y-auto"
-        v-html="renderedHTML"
-    ></div>
+  <!-- v-html renders the output of marked, sanitized with DOMPurify before binding -->
+  <!-- eslint-disable vue/no-v-html -->
+  <div
+    class="prose prose-sm dark:prose-invert max-w-none min-h-[200px] p-6 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black/50 overflow-y-auto"
+    v-html="renderedHTML"
+  />
+  <!-- eslint-enable vue/no-v-html -->
 </template>
 
 <style scoped>

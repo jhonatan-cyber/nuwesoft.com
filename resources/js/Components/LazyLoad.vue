@@ -56,9 +56,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div ref="target" class="contents">
-        <slot v-if="isVisible" />
-        <!-- Placeholder slot shown while not loaded -->
-        <slot v-else name="placeholder" />
-    </div>
+  <div
+    ref="target"
+    class="contents"
+  >
+    <slot v-if="isVisible" />
+    <!-- Placeholder slot shown while not loaded -->
+    <slot
+      v-else
+      name="placeholder"
+    />
+  </div>
 </template>

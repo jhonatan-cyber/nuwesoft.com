@@ -40,30 +40,30 @@ const handleError = () => {
 </script>
 
 <template>
-    <div
-        class="relative overflow-hidden bg-zinc-100 dark:bg-zinc-900"
+  <div
+    class="relative overflow-hidden bg-zinc-100 dark:bg-zinc-900"
+  >
+    <!-- Blur placeholder (shown while loading) -->
+    <img
+      v-if="blurUrl && !loaded"
+      :src="blurUrl"
+      :alt="alt"
+      class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg transition-opacity duration-700"
+      :class="loaded ? 'opacity-0' : 'opacity-100'"
+      aria-hidden="true"
+    >        <!-- Full image -->
+    <img
+      v-if="imageUrl"
+      :src="imageUrl"
+      :alt="alt"
+      class="w-full h-full object-cover transition-all duration-700"
+      :class="[imgClass, loaded || hasError ? 'opacity-100' : 'opacity-0']"
+      loading="lazy"
+      @load="handleLoad"
+      @error="handleError"
     >
-        <!-- Blur placeholder (shown while loading) -->
-        <img
-            v-if="blurUrl && !loaded"
-            :src="blurUrl"
-            :alt="alt"
-            class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg transition-opacity duration-700"
-            :class="loaded ? 'opacity-0' : 'opacity-100'"
-            aria-hidden="true"
-        />        <!-- Full image -->
-        <img
-            v-if="imageUrl"
-            :src="imageUrl"
-            :alt="alt"
-            class="w-full h-full object-cover transition-all duration-700"
-            :class="[imgClass, loaded || hasError ? 'opacity-100' : 'opacity-0']"
-            @load="handleLoad"
-            @error="handleError"
-            loading="lazy"
-        />
 
-        <!-- Slot for overlays (badges, buttons, etc.) -->
-        <slot />
-    </div>
+    <!-- Slot for overlays (badges, buttons, etc.) -->
+    <slot />
+  </div>
 </template>

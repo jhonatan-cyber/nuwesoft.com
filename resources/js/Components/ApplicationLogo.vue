@@ -14,11 +14,11 @@ const logoUrl = computed(() => page.props.settings?.logo_url || '/images/nuwesof
 </script>
 
 <template>
-    <div class="relative flex items-center justify-center overflow-hidden py-1">
-        <img
-            :src="logoUrl"
-            alt="NUWESOFT"
-            class="h-10 w-auto object-contain"
-        />
-    </div>
+  <div class="relative flex items-center justify-center overflow-hidden py-1">
+    <img
+      :src="logoUrl"
+      alt="NUWESOFT"
+      class="h-10 w-auto object-contain"
+    >
+  </div>
 </template>

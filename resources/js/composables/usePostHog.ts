@@ -6,6 +6,7 @@ interface FeatureFlags {
     [key: string]: boolean | string
 }
 
+/* eslint-disable no-unused-vars -- parameter names inside type signatures are erased, not bindings */
 interface UsePostHogReturn {
     isLoaded: ComputedRef<boolean>
     isFeatureEnabled: (flag: string) => boolean
@@ -15,6 +16,7 @@ interface UsePostHogReturn {
     identify: (distinctId: string, properties?: Record<string, any>) => void
     reset: () => void
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * Read local feature flag overrides from localStorage.

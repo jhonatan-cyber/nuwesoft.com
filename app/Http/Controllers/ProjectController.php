@@ -75,7 +75,7 @@ class ProjectController extends Controller
         $captures = [];
         $submittedCredentials = collect($validated['credentials'] ?? [])->contains(fn ($value) => filled($value));
 
-        if ($authenticationFields !== [] && $submittedCredentials) {
+        if ($authenticationFields === [] || $submittedCredentials) {
             $captureResult = $this->captureAuthenticatedPages(
                 $validated['url'],
                 $authenticationFields,
@@ -117,6 +117,7 @@ class ProjectController extends Controller
                 $command,
                 base_path(),
                 [
+                    'CHROME_PATH' => config('services.browser_capture.chrome_path'),
                     'OPENSSL_CONF' => false,
                     'ELECTRON_RUN_AS_NODE' => false,
                     'NODE_OPTIONS' => false,
@@ -311,6 +312,15 @@ class ProjectController extends Controller
         return Inertia::render('Dashboard/Projects/Form');
     }
 
+    public function show(Project $project)
+    {
+        $project->load(['images', 'technologies']);
+
+        return Inertia::render('PortfolioProjectDetail', [
+            'project' => $project,
+        ]);
+    }
+
     public function store(StoreProjectRequest $request)
     {
         $validated = $request->validated();
@@ -396,10 +406,32 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        $project->deleteAllImages();
+        try {
+            $project->deleteAllImages();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors([
+                'delete' => 'No se pudo eliminar una o más imágenes de Cloudinary. El proyecto no fue eliminado; intenta nuevamente.',
+            ]);
+        }
+
         $project->delete();
 
         return Redirect::route('projects.index')->with('success', 'Project deleted successfully.');
+    }
+
+    public function updateStatus(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $project->update(['is_active' => $validated['is_active']]);
+
+        return back()->with('success', $project->is_active
+            ? 'Proyecto activado correctamente.'
+            : 'Proyecto desactivado correctamente.');
     }
 
     public function publicIndex()

@@ -37,15 +37,15 @@
         <link rel="alternate" type="application/rss+xml" title="{{ $siteName }} — Portafolio" href="{{ url('/rss.xml') }}" />
         <link rel="alternate" type="application/rss+xml" title="{{ $siteName }} — Blog" href="{{ url('/rss/blog.xml') }}" />
 
-<script type="application/ld+json">
+<script type="application/ld+json" nonce="{{ $cspNonce }}">
 {!! json_encode(\App\Helpers\SchemaHelper::organization($siteSettings), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
-<script type="application/ld+json">
+<script type="application/ld+json" nonce="{{ $cspNonce }}">
 {!! json_encode(\App\Helpers\SchemaHelper::website($siteSettings), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
-<script type="application/ld+json">
+<script type="application/ld+json" nonce="{{ $cspNonce }}">
 {!! json_encode(\App\Helpers\SchemaHelper::breadcrumb([
     ['name' => 'Home', 'url' => url('/')],
     ['name' => $siteName, 'url' => url()->current()]
@@ -58,7 +58,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
         <!-- Prevent flash of wrong theme: apply class before first paint -->
-        <script>
+        <script nonce="{{ $cspNonce }}">
             (function() {
                 var theme = localStorage.getItem('theme');
                 var isDark = theme === 'dark' ||
@@ -68,9 +68,9 @@
         </script>
 
         <!-- Scripts (deploy_ts busts Cloudflare cache after deploys) -->
-        @routes
+        {!! app(\Tighten\Ziggy\BladeRouteGenerator::class)->generate(null, $cspNonce) !!}
         @vite(['resources/js/app.ts', "resources/js/Pages/{$page['component']}.vue"])
-        <script>window.__deploy_ts='{{ cache('deploy_ts', now()->timestamp) }}';</script>
+        <script nonce="{{ $cspNonce }}">window.__deploy_ts='{{ cache('deploy_ts', now()->timestamp) }}';</script>
         @inertiaHead
     </head>
     <body class="font-sans antialiased" role="document">

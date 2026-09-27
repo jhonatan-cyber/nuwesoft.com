@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ContactTest extends TestCase
@@ -55,6 +56,7 @@ class ContactTest extends TestCase
 
     public function test_se_puede_enviar_mensaje_con_adjunto_pdf(): void
     {
+        Queue::fake();
         $pdf = UploadedFile::fake()->create('proyecto.pdf', 100, 'application/pdf');
 
         $data = [
@@ -77,6 +79,7 @@ class ContactTest extends TestCase
 
     public function test_se_puede_enviar_mensaje_con_adjunto_docx(): void
     {
+        Queue::fake();
         $docx = UploadedFile::fake()->create('brief.docx', 200, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
         $data = [
@@ -109,6 +112,7 @@ class ContactTest extends TestCase
 
     public function test_mensaje_no_es_requerido_cuando_hay_adjunto(): void
     {
+        Queue::fake();
         $pdf = UploadedFile::fake()->create('docs.pdf', 50, 'application/pdf');
 
         $data = [
@@ -157,7 +161,7 @@ class ContactTest extends TestCase
 
     public function test_mensaje_con_adjunto_guarda_attachment_name_y_dispatch_job(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
 
         $pdf = UploadedFile::fake()->create('spec.pdf', 100, 'application/pdf');
 
@@ -177,7 +181,7 @@ class ContactTest extends TestCase
         $this->assertNull($message->attachment_url, 'Cloud URL is set async by UploadToCloudinary job');
 
         // Verify the upload job was dispatched
-        \Illuminate\Support\Facades\Queue::assertPushed(
+        Queue::assertPushed(
             \App\Jobs\UploadToCloudinary::class,
             fn ($job) => $job->modelType === 'contact_attachment'
                 && $job->modelId === $message->id

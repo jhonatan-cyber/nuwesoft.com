@@ -1,29 +1,30 @@
 services:
     laravel.test:
         build:
-            context: './vendor/laravel/sail/runtimes/8.5'
+            context: "./vendor/laravel/sail/runtimes/8.5"
             dockerfile: Dockerfile
             args:
-                WWWGROUP: '${WWWGROUP:-1000}'
-        image: 'sail-8.5/app'
+                WWWGROUP: "${WWWGROUP:-1000}"
+        image: "sail-8.5/app"
         extra_hosts:
-            - 'host.docker.internal:host-gateway'
+            - "host.docker.internal:host-gateway"
         ports:
-            - '${APP_PORT:-80}:80'
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
-            - '${REVERB_PORT:-8090}:${REVERB_PORT:-8090}'
+            - "${APP_PORT:-80}:80"
+            - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
+            - "${REVERB_PORT:-8090}:${REVERB_PORT:-8090}"
         environment:
-            WWWUSER: '${WWWUSER:-1000}'
+            WWWUSER: "${WWWUSER:-1000}"
             LARAVEL_SAIL: 1
-            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
-            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            PHP_CLI_SERVER_WORKERS: "${PHP_CLI_SERVER_WORKERS:-4}"
+            XDEBUG_MODE: "${SAIL_XDEBUG_MODE:-off}"
+            XDEBUG_CONFIG: "${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}"
+            IGNITION_LOCAL_SITES_PATH: "${PWD}"
         volumes:
-            - '.:/var/www/html'
-            - './docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
-            - 'sail-node-modules:/var/www/html/node_modules'
+            - ".:/var/www/html"
+            - "./docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf"
+            - "sail-node-modules:/var/www/html/node_modules"
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost"]
+            test: ["CMD", "curl", "-f", "http://localhost/up"]
             interval: 15s
             timeout: 15s
             retries: 5
@@ -38,36 +39,36 @@ services:
             mailpit:
                 condition: service_healthy
     pgsql:
-        image: 'postgres:18-alpine'
+        image: "postgres:18-alpine"
         ports:
-            - '${FORWARD_DB_PORT:-5432}:5432'
+            - "${FORWARD_DB_PORT:-5432}:5432"
         environment:
-            PGPASSWORD: '${DB_PASSWORD:-secret}'
-            POSTGRES_DB: '${DB_DATABASE}'
-            POSTGRES_USER: '${DB_USERNAME}'
-            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+            PGPASSWORD: "${DB_PASSWORD:-secret}"
+            POSTGRES_DB: "${DB_DATABASE}"
+            POSTGRES_USER: "${DB_USERNAME}"
+            POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
         volumes:
-            - 'sail-pgsql:/var/lib/postgresql'
-            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+            - "sail-pgsql:/var/lib/postgresql"
+            - "./vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql"
         networks:
             - sail
         healthcheck:
             test:
                 - CMD
                 - pg_isready
-                - '-q'
-                - '-d'
-                - '${DB_DATABASE}'
-                - '-U'
-                - '${DB_USERNAME}'
+                - "-q"
+                - "-d"
+                - "${DB_DATABASE}"
+                - "-U"
+                - "${DB_USERNAME}"
             retries: 3
             timeout: 5s
     redis:
-        image: 'redis:alpine'
+        image: "redis:alpine"
         ports:
-            - '${FORWARD_REDIS_PORT:-6379}:6379'
+            - "${FORWARD_REDIS_PORT:-6379}:6379"
         volumes:
-            - 'sail-redis:/data'
+            - "sail-redis:/data"
         networks:
             - sail
         healthcheck:
@@ -78,10 +79,10 @@ services:
             retries: 3
             timeout: 5s
     mailpit:
-        image: 'axllent/mailpit:latest'
+        image: "axllent/mailpit:latest"
         ports:
-            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
-            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+            - "${FORWARD_MAILPIT_PORT:-1025}:1025"
+            - "${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
         healthcheck:
             test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025"]
             interval: 10s
@@ -99,4 +100,3 @@ volumes:
         driver: local
     sail-node-modules:
         driver: local
-

@@ -44,21 +44,27 @@ const toggle = () => {
 </script>
 
 <template>
-    <TooltipProvider :delay-duration="0">
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <button
-                    @click="toggle"
-                    :aria-label="isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-                    class="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-all duration-300 hover:bg-neutral-100 hover:text-black dark:border-neutral-800 dark:bg-black dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
-                >
-                    <Sun v-if="!isDark" class="h-4 w-4" />
-                    <Moon v-else class="h-4 w-4" />
-                </button>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
+  <TooltipProvider :delay-duration="0">
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          :aria-label="isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+          class="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-all duration-300 hover:bg-neutral-100 hover:text-black dark:border-neutral-800 dark:bg-black dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2"
+          @click="toggle"
+        >
+          <Sun
+            v-if="!isDark"
+            class="h-4 w-4"
+          />
+          <Moon
+            v-else
+            class="h-4 w-4"
+          />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 </template>

@@ -13,18 +13,20 @@ use Inertia\Inertia;
 Route::middleware('throttle:public')->group(function () {
     Route::get('/', function () {
         return Inertia::render('Welcome', [
-            'testimonials' => App\Models\Testimonial::approved()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->limit(10)
-                ->get()
-                ->map(fn ($t) => [
-                    'client_name' => $t->client_name,
-                    'client_role' => $t->client_role,
-                    'client_company' => $t->client_company,
-                    'content' => $t->content,
-                    'rating' => $t->rating,
-                ]),
+            'testimonials' => Illuminate\Support\Facades\Cache::remember('home.approved_testimonials', 3600, function () {
+                return App\Models\Testimonial::approved()
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->limit(10)
+                    ->get()
+                    ->map(fn ($t) => [
+                        'client_name' => $t->client_name,
+                        'client_role' => $t->client_role,
+                        'client_company' => $t->client_company,
+                        'content' => $t->content,
+                        'rating' => $t->rating,
+                    ]);
+            }),
         ]);
     })->name('home');
 
@@ -90,6 +92,13 @@ Route::get('/api/portafolio', [ProjectController::class, 'publicIndex'])->middle
 
 // ── Contact form submission (throttled 3/min per IP — anti-spam) ──
 Route::post('/contacto', [ContactController::class, 'send'])->middleware('throttle:contact')->name('contacto.send');
+
+// ── CSP violation reports (report-uri target, throttled 30/min per IP) ──
+// Browsers POST here with no CSRF token, so the path is exempted in
+// bootstrap/app.php (preventRequestForgery) and only ever logs + returns 204.
+Route::post('/csp-report', [App\Http\Controllers\CspReportController::class, 'store'])
+    ->middleware('throttle:csp-report')
+    ->name('csp.report');
 
 Route::get('/sitemap.xml', function () {
     $settings = App\Models\Setting::getAll();
@@ -251,13 +260,16 @@ Route::get('/rss/blog.xml', function () {
 })->middleware('throttle:feeds');
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth'])
+    ->middleware(['auth', 'admin'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth', 'admin'])->group(function () {
 
     // Messages (Contact inbox)
     Route::get('/dashboard/messages', [App\Http\Controllers\ContactMessageController::class, 'index'])->name('messages.index');
@@ -276,7 +288,14 @@ Route::middleware('auth')->group(function () {
     Route::post('dashboard/projects/analyze-technologies', [ProjectController::class, 'analyzeTechnologies'])
         ->middleware('throttle:10,1')
         ->name('projects.analyze-technologies');
-    Route::resource('dashboard/projects', ProjectController::class)->names('projects');
+    Route::patch('dashboard/projects/{project:id}/status', [ProjectController::class, 'updateStatus'])
+        ->name('projects.status');
+    Route::resource('dashboard/projects', ProjectController::class)
+        ->scoped(['project' => 'id'])
+        ->except(['show'])
+        ->names('projects');
+    Route::get('dashboard/projects/{project:slug}', [ProjectController::class, 'show'])
+        ->name('projects.show');
 
     // Posts (Blog)
     Route::resource('dashboard/posts', App\Http\Controllers\PostController::class)->names('posts');
@@ -316,7 +335,7 @@ Route::get('/ping', [App\Http\Controllers\HealthController::class, 'ping']);
 
 // 404 Logs (authenticated)
 Route::get('/dashboard/logs', [App\Http\Controllers\LogController::class, 'index'])
-    ->middleware(['auth'])
+    ->middleware(['auth', 'admin'])
     ->name('logs.index');
 
 require __DIR__ . '/auth.php';

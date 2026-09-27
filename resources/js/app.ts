@@ -1,4 +1,9 @@
 import '../css/app.css';
+// NProgress styles for the Inertia progress bar. The library injects its own
+// <style> element on boot, which the CSP (style-src-elem without
+// 'unsafe-inline') blocks, so we import the identical rules as a bundled
+// stylesheet and disable the injection via includeCSS: false.
+import '../css/vendor/nprogress.css';
 import '../css/lightbox-animations.css';
 import './bootstrap';
 
@@ -14,6 +19,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Declare global window properties
 declare global {
+    // eslint-disable-next-line no-unused-vars -- interface augmentation: TypeScript merges it with the global Window type
     interface Window {
         __nuwesoft_navStart?: number;
         Echo?: any;
@@ -86,6 +92,7 @@ createInertiaApp({
         if (window.Echo) {
             window.Echo.channel('public-updates')
                 .listen('.entity.updated', (event: any) => {
+                    // eslint-disable-next-line no-console -- diagnostics for the realtime reload channel
                     console.log('Real-time sync event received:', event);
                     router.reload();
                 });
@@ -97,5 +104,6 @@ createInertiaApp({
         color: '#FF2E63',
         delay: 200,
         showSpinner: false,
+        includeCSS: false, // styles live in resources/css/vendor/nprogress.css
     },
 });

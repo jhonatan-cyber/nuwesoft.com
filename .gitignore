@@ -3,6 +3,7 @@
 .env
 .env.testing
 .env.local
+.env.e2e
 .env.backup
 .env.production
 .phpactor.json
@@ -15,6 +16,8 @@
 /.zed
 /auth.json
 /node_modules
+# Lockfile único: bun.lock (CI, Makefile, dev.ps1 y Dockerfile.prod)
+/package-lock.json
 /public/build
 /public/hot
 /public/storage
@@ -37,6 +40,8 @@ add-port.php
 cookies.txt
 curl/
 *.http
+/test-results/
+/playwright-report/
 
 # Freebuff tool cache
 .freebuff/

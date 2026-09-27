@@ -32,6 +32,11 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
+    --status-success: 160 84% 39%;
+    --status-warning: 38 92% 50%;
+    --status-danger: 350 89% 60%;
+    --status-info: 239 84% 67%;
+
     --radius: 0px;
   }
 
@@ -63,6 +68,11 @@
     --border: 0 0% 100%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+
+    --status-success: 158 64% 52%;
+    --status-warning: 43 96% 56%;
+    --status-danger: 350 100% 70%;
+    --status-info: 239 84% 74%;
   }
 }
 
@@ -72,6 +82,16 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  button,
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']),
+  select {
+    min-height: 44px;
+  }
+
+  button {
+    min-width: 44px;
   }
 }
 
@@ -170,6 +190,15 @@
 
 /* Reduced motion: respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
     .page-enter-active,
     .page-leave-active {
         transition: none;

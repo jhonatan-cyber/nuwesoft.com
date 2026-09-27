@@ -6,7 +6,7 @@
 #    .\scripts\db-tunnel.ps1 test    # prueba conexion por el tunel
 #    .\scripts\db-tunnel.ps1 stop    # cierra el tunel
 #
-#  Requiere en .env.local (o variables de entorno):
+#  Requiere en .env.tunnel (o variables de entorno):
 #    DEV_SSH_HOST=ip-o-dominio-del-vps
 #    DEV_SSH_USER=usuario
 #    DEV_SSH_PORT=22              # opcional (default 22)
@@ -28,7 +28,7 @@ $PidFile = Join-Path $PSScriptRoot '.db-tunnel.pid'
 $ErrFile = Join-Path $PSScriptRoot '.db-tunnel.err'
 
 function Read-DotEnvLocal {
-    $envFile = Join-Path (Split-Path $PSScriptRoot -Parent) '.env.local'
+    $envFile = Join-Path (Split-Path $PSScriptRoot -Parent) '.env.tunnel'
     if (-not (Test-Path $envFile)) { return @{} }
     $map = @{}
     Get-Content $envFile | ForEach-Object {
@@ -53,7 +53,7 @@ $SshPort = Get-Cfg 'DEV_SSH_PORT' '22'
 $SshKey = Get-Cfg 'DEV_SSH_KEY'
 
 if (-not $SshHost -or -not $SshUser) {
-    Write-Host "[X] Faltan DEV_SSH_HOST / DEV_SSH_USER en .env.local" -ForegroundColor Red
+    Write-Host "[X] Faltan DEV_SSH_HOST / DEV_SSH_USER en .env.tunnel" -ForegroundColor Red
     exit 1
 }
 

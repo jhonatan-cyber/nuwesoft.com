@@ -27,6 +27,7 @@ function writeFlags(flags: FeatureFlags): void {
 interface UseLocalFeatureFlagsReturn {
     flags: UnwrapNestedRefs<FeatureFlags>
     clear: () => void
+    // eslint-disable-next-line no-unused-vars -- parameter name of a public type signature, not a binding
     importFromPostHog: (serverFlags: FeatureFlags | null | undefined) => void
 }
 

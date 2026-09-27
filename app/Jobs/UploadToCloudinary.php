@@ -8,11 +8,19 @@ use App\Models\ProjectImage;
 use App\Models\Technology;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class UploadToCloudinary implements ShouldQueue
 {
     use Queueable;
+
+    public int $tries = 3;
+
+    /** @var array<int, int> */
+    public array $backoff = [10, 60, 300];
 
     /**
      * Create a new job instance.
@@ -40,30 +48,74 @@ class UploadToCloudinary implements ShouldQueue
     {
         $fullPath = Storage::path($this->filePath);
 
-        if (! file_exists($fullPath)) {
-            report(new \Exception("UploadToCloudinary: File not found at {$fullPath}"));
+        $this->markProjectUploadProcessing();
 
+        if (! file_exists($fullPath)) {
+            throw new RuntimeException("UploadToCloudinary: File not found at {$fullPath}");
+        }
+
+        $result = $storage->upload($fullPath, $this->folder);
+
+        match ($this->modelType) {
+            'project_image' => $this->handleProjectImage($result),
+            'technology' => $this->handleTechnology($result),
+            'settings' => $this->handleSettings($result),
+            'contact_attachment' => $this->handleContactAttachment($result),
+            default => null,
+        };
+
+        $this->markProjectUploadCompleted();
+
+        Storage::delete($this->filePath);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        report($exception);
+
+        if (Storage::exists($this->filePath)) {
+            Storage::delete($this->filePath);
+        }
+
+        $this->markProjectUploadFailed($exception);
+    }
+
+    private function markProjectUploadProcessing(): void
+    {
+        if ($this->modelType === 'project_image' && $this->projectId) {
+            Project::whereKey($this->projectId)->update(['media_status' => 'processing']);
+        }
+    }
+
+    private function markProjectUploadCompleted(): void
+    {
+        $this->updateProjectUploadStatus(false);
+    }
+
+    private function markProjectUploadFailed(Throwable $exception): void
+    {
+        $this->updateProjectUploadStatus(true, $exception->getMessage());
+    }
+
+    private function updateProjectUploadStatus(bool $failed, ?string $message = null): void
+    {
+        if ($this->modelType !== 'project_image' || ! $this->projectId) {
             return;
         }
 
-        try {
-            $result = $storage->upload($fullPath, $this->folder);
-
-            match ($this->modelType) {
-                'project_image' => $this->handleProjectImage($result),
-                'technology' => $this->handleTechnology($result),
-                'settings' => $this->handleSettings($result),
-                'contact_attachment' => $this->handleContactAttachment($result),
-                default => null,
-            };
-        } catch (\Throwable $e) {
-            report($e);
-        } finally {
-            // Clean up temporary file
-            if (file_exists($fullPath)) {
-                unlink($fullPath);
+        DB::transaction(function () use ($failed, $message): void {
+            $project = Project::query()->lockForUpdate()->find($this->projectId);
+            if (! $project) {
+                return;
             }
-        }
+
+            $remaining = max(0, $project->pending_uploads - 1);
+            $project->update([
+                'pending_uploads' => $remaining,
+                'media_status' => $failed ? 'failed' : ($remaining > 0 ? 'processing' : 'completed'),
+                'media_error' => $failed ? mb_substr((string) $message, 0, 1000) : null,
+            ]);
+        });
     }
 
     /**
@@ -108,7 +160,7 @@ class UploadToCloudinary implements ShouldQueue
         if ($technology->logo_public_id) {
             try {
                 app(StorageServiceInterface::class)->delete($technology->logo_public_id);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
             }
         }
@@ -137,7 +189,7 @@ class UploadToCloudinary implements ShouldQueue
         if ($message->attachment_public_id) {
             try {
                 app(StorageServiceInterface::class)->delete($message->attachment_public_id);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
             }
         }
@@ -158,7 +210,7 @@ class UploadToCloudinary implements ShouldQueue
         if ($oldPublicId) {
             try {
                 app(StorageServiceInterface::class)->delete($oldPublicId);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
             }
         }

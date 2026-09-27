@@ -13,8 +13,14 @@ vendor
 
 # Tests
 tests
+test-results
+output
 phpunit.xml
 vitest.config.ts
+
+# Local agent and analysis artifacts
+.freebuff
+.impeccable
 
 # Development tools
 .vscode
