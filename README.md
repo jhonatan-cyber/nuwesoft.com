@@ -88,6 +88,28 @@ Estado de `bun audit`: una única excepción conocida, `stream-json@1.9.1` (depe
 
 Las pruebas E2E están en `tests/e2e`. El flujo CI crea una base PostgreSQL vacía, un administrador temporal y ejecuta Playwright sin conectarse a producción.
 
+## Content Security Policy
+
+Toda respuesta emite una CSP con un nonce generado por petición en `app/Http/Middleware/SecurityHeaders.php`, que se comparte con Blade (`resources/views/app.blade.php`), con Vite y con las páginas Inertia (`HandleInertiaRequests`).
+
+- `script-src` y `style-src` exigen `'self'` y `'nonce-…'`: `'unsafe-inline'` ya no está permitido.
+- `style-src-attr` mantiene `'unsafe-inline'` porque Vue aplica los atributos `style="…"` escritos en las plantillas.
+- `script-src` solo admite `https://static.cloudflareinsights.com` (beacon de Web Analytics de Cloudflare) y `https://us-assets.i.posthog.com` / `https://eu-assets.i.posthog.com` (config y extensiones diferidas de PostHog). Cualquier otro host externo queda fuera: `cdn.jsdelivr.net` se eliminó porque solo servía imágenes.
+- `'unsafe-eval'` y los hosts de `localhost` aparecen únicamente en el entorno `local`, donde el compilador de vue-i18n necesita eval.
+- `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'` y `form-action 'self'` restringen marcos, objetos, bases y envíos de formulario.
+- `report-uri /csp-report` reenvía las violaciones a `CspReportController` (exento de CSRF en `bootstrap/app.php` y limitado a 30 informes/minuto por IP); cada informe se registra como `Log::warning` estructurado y responde 204.
+
+Al añadir un script inline nuevo hay que pasarle el nonce: Blade y Vite lo reciben solos, el JSON-LD de Vue usa el composable `useCspNonce()` y cualquier `<style>` inline debe llevar el nonce (o compilarse desde un SFC). Si rompes esta regla, lo detectan las pruebas de abajo.
+
+### Pruebas de la CSP
+
+| Archivo | Cobertura | Cómo ejecutarla |
+| ------- | --------- | --------------- |
+| `tests/Feature/SecurityHeadersTest.php` (9 pruebas) | Nonce presente, `unsafe-inline` ausente, scripts de la respuesta con el mismo nonce, allowlist exacta de hosts de `script-src` y reporting: `report-uri` en la cabecera, endpoint a 204 con log estructurado, exclusión de CSRF y rate limit. | `php artisan test --filter=SecurityHeadersTest` |
+| `tests/e2e/csp.spec.ts` (17 pruebas) | 7 páginas públicas y 10 rutas del dashboard autenticado: cabecera con nonce, Vue montado en `#app`, `script[nonce]` presente y cero violaciones. | `bun run test:e2e` |
+
+El E2E instala una trampa de `securitypolicyviolation` y de consola antes de que se ejecute ningún script de la página; si un script inline se bloquea, el test falla indicando el directivo y el recurso afectados. En CI corre en el job `Playwright E2E` contra `php artisan serve --env=testing`.
+
 ## Capturas y Cloudinary
 
 - Producción instala Chromium en la imagen y define `CHROME_PATH=/usr/bin/chromium`.

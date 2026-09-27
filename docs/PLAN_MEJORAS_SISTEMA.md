@@ -11,7 +11,7 @@ Fortalecer la seguridad, confiabilidad operativa, rendimiento y experiencia de u
 - Backend: regresión comprobada sin fallos ni pruebas riesgosas. Los casos de adjuntos se aislaron de Cloudinary con colas simuladas.
 - Frontend: 63 pruebas aprobadas.
 - Build de producción: correcto.
-- JavaScript: sin vulnerabilidades conocidas.
+- JavaScript: `bun.lock` es el único lockfile (`package-lock.json` eliminado e ignorado) y `bun audit` baja de 94 a 1 vulnerabilidad moderada (`stream-json@1.9.1` vía `crawlee`, sin fix compatible).
 - PHP: sin alertas de seguridad conocidas (`composer audit`).
 - Content Security Policy: `script-src` y `style-src` exigen nonce por request y ya no admiten `'unsafe-inline'`; 5 pruebas PHPUnit y 17 pruebas E2E cubren la política.
 - Auditoría visual: 10/20; principales problemas en tamaños táctiles, microtexto y densidad.
@@ -27,7 +27,9 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 | SEG-03  | P0        | Sanitizar Markdown y HTML del blog                   | Completado | Scripts, eventos HTML y protocolos inseguros no se guardan ni ejecutan.                                                  |
 | SEG-04  | P0        | Aislar el capturador contra SSRF                     | Completado | Chromium bloquea IP privadas, cambios de origen y protocolos no permitidos en cada request.                              |
 | SEG-05  | P1        | Exigir nonce en la CSP y podar hosts muertos         | Completado | `script-src`/`style-src` no admiten `'unsafe-inline'` y la allowlist de hosts de scripts queda fijada por pruebas.       |
+| SEG-06  | P1        | Reconectar el reporting de CSP                       | Completado | La cabecera declara `report-uri /csp-report`, el endpoint acepta informes sin CSRF, con rate limit, y las pruebas lo fijan. |
 | DEP-01  | P0        | Actualizar Laravel, Symfony, Guzzle y CommonMark     | Completado | `composer audit` no reporta vulnerabilidades altas o medias aplicables.                                                  |
+| DEP-02  | P1        | Unificar lockfiles y cerrar la auditoría JS          | Completado | `bun.lock` es el único lockfile, la imagen instala con `--frozen-lockfile` y `bun audit` queda en 1 vulnerabilidad sin fix documentada. |
 | OPS-01  | P1        | Persistir y comprobar respaldos de PostgreSQL        | Completado | El backup queda fuera del contenedor, se valida y puede restaurarse.                                                     |
 | OPS-02  | P1        | Condicionar Deploy al éxito de CI                    | Completado | Producción solo se despliega después de pruebas, análisis y build exitosos.                                              |
 | OPS-03  | P1        | Mejorar rollback de despliegues y migraciones        | En curso   | Un fallo restaura versión, contenedores y base de datos de forma verificable.                                            |
@@ -49,7 +51,7 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 
 ## Fases
 
-1. **Seguridad:** SEG-01 a SEG-05 y DEP-01.
+1. **Seguridad:** SEG-01 a SEG-05, DEP-01 y DEP-02.
 2. **Datos y despliegue:** OPS-01 a OPS-03, MED-01, MED-02 y API-01.
 3. **Calidad automatizada:** QA-01, QA-02, QA-03 y MED-03.
 4. **UX y rendimiento:** UX-01 a UX-04, PERF-01 y PERF-02.
@@ -98,6 +100,9 @@ Estados: `Pendiente`, `En curso`, `Bloqueado`, `Completado`.
 | 2026-09-27 | SEG-05         | Nonce por request en `SecurityHeaders`, compartido a Blade, Vite e Inertia; `script-src` y `style-src` sin `'unsafe-inline'`, con `style-src-attr` para atributos de Vue              | 5 pruebas PHPUnit de cabecera y nonce; JSON-LD de las páginas Vue también nonced                                                                                                                                             | Codebuff    |
 | 2026-09-27 | QA-03          | Prueba E2E de CSP con trampa de `securitypolicyviolation` en 7 páginas públicas y 10 rutas del dashboard autenticado                                                                  | 17 pruebas; verificadas contra fixture local: política sana pasa, script bloqueado, cabecera legacy y CDN muerto en `script-src` fallan                                                                                      | Codebuff    |
 | 2026-09-27 | SEG-05         | Hosts de `script-src` reducidos a allowlist explícita; `cdn.jsdelivr.net` eliminado por muerto (solo servía imágenes) y fijado por pruebas                                            | `test_script_src_hosts_are_a_tight_allowlist` y asertión equivalente en E2E; beacon de Cloudflare y assets de PostHog conservados por estar en uso                                                                           | Codebuff    |
+| 2026-09-27 | DEP-02         | `package-lock.json` eliminado y anotado en `.gitignore`; `bun.lock` como lockfile único, scripts de `composer.json` migrados de npm a bun y stage `node-deps` en `Dockerfile.prod` con `bun install --production --frozen-lockfile --ignore-scripts` | `bun install --frozen-lockfile` y una instalación de producción aislada verificadas (crawlee 197 exports, shadcn ausente del runtime); la imagen de ejecución queda sin npm                                                      | Codebuff    |
+| 2026-09-27 | DEP-02         | Overrides de dependencias (adm-zip, decode-uri-component, fast-uri, hono, ip-address, qs, shell-quote) y `shadcn-vue` movido a devDependencies para desbloquear la instalación         | `bun audit` de 94 a 1 vulnerabilidad: `stream-json@1.9.1` (moderada, GHSA-528h-pc64-c93x) vía `crawlee`, sin fix — 3.x rompe `stream-json/streamers/StreamArray`; crawlee no se puede aislar porque `ProjectController` lo lanza en el mismo contenedor | Codebuff    |
+| 2026-09-27 | SEG-06         | Ruta `POST /csp-report` hacia `CspReportController`, `report-uri` en la cabecera CSP, limiter `csp-report` (30/min por IP) y exclusión CSRF con `preventRequestForgery(['/csp-report'])`                                                                 | 4 pruebas nuevas en `SecurityHeadersTest` (9 en total): cabecera con `report-uri`, 204 con log estructurado, ruta exenta de CSRF y 429 al exceder el límite; el endpoint no toca sesión ni base de datos | Codebuff    |
 
 ## Cobertura de Content Security Policy
 
@@ -110,17 +115,26 @@ Definida en `app/Http/Middleware/SecurityHeaders.php`, con nonce por request (`r
 | `script-src` | `'self' 'nonce-…'` sin `'unsafe-inline'`; `'unsafe-eval'` solo en local; hosts permitidos: `static.cloudflareinsights.com` (beacon de Web Analytics) y `us-/eu-assets.i.posthog.com` (config y extensiones diferidas de PostHog). `cdn.jsdelivr.net` se eliminó: no carga ningún script. |
 | `style-src` | `'self' 'nonce-…'` más Google Fonts y jsdelivr; sin `'unsafe-inline'`. |
 | `style-src-attr` | `'unsafe-inline'` para los atributos `style="…"` que Vue aplica en plantillas estáticas. |
+| `report-uri` | Apunta a `/csp-report` (POST → `CspReportController`), exento de CSRF y limitado a 30 informes/minuto por IP. |
 | Resto | `img-src`, `font-src`, `connect-src`, `frame-src 'none'`, `object-src 'none'`, `base-uri` y `form-action` sin cambios. |
 
 ### Pruebas PHPUnit
 
-`tests/Feature/SecurityHeadersTest.php` (5 pruebas, se ejecutan con el resto del backend en CI):
+`tests/Feature/SecurityHeadersTest.php` (9 pruebas, se ejecutan con el resto del backend en CI):
 
 1. `script-src` exige nonce y rechaza `'unsafe-inline'`.
 2. `style-src` rechaza `'unsafe-inline'` pero conserva `style-src-attr`.
 3. Los scripts inline de la respuesta llevan el mismo nonce de la política.
 4. Los hosts de `script-src` coinciden exactamente con la allowlist (falla si reaparece un CDN muerto o se quita un host en uso).
 5. Cabeceras complementarias: `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`.
+6. La política declara `report-uri /csp-report`.
+7. El endpoint responde 204 y registra la violación como `Log::warning` con el contexto del informe (directivo, recurso bloqueado, documento).
+8. `/csp-report` figura entre las rutas exentas de verificación CSRF (`preventRequestForgery`), que los navegadores necesitan porque no envían token.
+9. El limiter `csp-report` admite 30 informes por IP y minuto y devuelve 429 en el 31.º.
+
+### Reporting de violaciones
+
+La cabecera `report-uri` hace que el navegador envíe cada violación a `POST /csp-report` (`CspReportController::store`): lee el cuerpo `csp-report` (o JSON plano), lo registra como `Log::warning` estructurado con IP y user agent, y responde 204. La ruta lleva `throttle:csp-report` (30/min por IP, definido en `AppServiceProvider`), está exenta de CSRF en `bootstrap/app.php` y no toca sesión ni base de datos, de modo que un atacante solo puede generar logs limitados.
 
 ### Pruebas E2E (Playwright)
 
